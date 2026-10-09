@@ -10,7 +10,8 @@ type Entry = { id: string; name: string; flagged_ac: number };
 // when DATA_URL is a URL, otherwise the files synced into public/data for offline work.
 async function lakes(): Promise<Entry[]> {
   if (/^https?:\/\//.test(DATA_URL)) {
-    const res = await fetch(`${DATA_URL}/index.json`, { cache: "no-store" });
+    // Fetched once at build time; "no-store" would make the page dynamic, which a static export can't be.
+    const res = await fetch(`${DATA_URL}/index.json`, { cache: "force-cache" });
     if (!res.ok) throw new Error(`lake list from ${DATA_URL}: ${res.status}`);
     return (await res.json()).lakes;
   }
