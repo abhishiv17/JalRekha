@@ -431,3 +431,8 @@ svg:has(.jal-orbit) { overflow: visible; }
 .plain-list b { color: var(--text); }
 .why-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 16px; }
 .protect { display: flex; gap: 14px; align-items: flex-start; margin-top: 24px; border-color: var(--brand-soft); background: var(--brand-tint); }
+.explain { display: grid; gap: 8px; margin: 14px 0 10px; }
+.explain div { display: grid; grid-template-columns: minmax(110px, 160px) 1fr; gap: 10px; }
+.explain dt { font-weight: 600; color: var(--text); }
+.explain dd { margin: 0; color: var(--body); }
+@media (max-width: 600px) { .explain div { grid-template-columns: 1fr; gap: 2px; } }

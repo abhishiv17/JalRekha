@@ -270,7 +270,7 @@ export default function CheckView() {
         <div className="check-go no-print">
           <div>
             <strong>{address || `${pin[1].toFixed(5)}, ${pin[0].toFixed(5)}`}</strong>
-            <div className="small muted">The check reads a 1.2 km square around this pin.</div>
+            <div className="small muted">The check reads a 1.2-kilometre square around this pin.</div>
             {nearest && km2radius(nearest.lake.ha) > nearest.d && (
               <div className="small" style={{ color: "var(--danger)" }}>
                 This pin looks like it&rsquo;s in the water of {nearest.lake.name}. Plot Check is for land near a lake:
@@ -279,7 +279,7 @@ export default function CheckView() {
             )}
             {nearest && (nearest.d <= NEAR_CATALOG_KM ? (
               <div className="small" style={{ color: "var(--brand-deep)" }}>
-                Nearest catalogued lake: {nearest.lake.name}, {nearest.d < 1 ? `${Math.round(nearest.d * 1000)} m` : `${nearest.d.toFixed(1)} km`} from the pin.
+                Nearest catalogued lake: {nearest.lake.name}, {nearest.d < 1 ? `${Math.round(nearest.d * 1000)} metres` : `${nearest.d.toFixed(1)} kilometres`} from the pin.
               </div>
             ) : (
               <div className="small" style={{ color: "var(--amber-ink)" }}>
@@ -427,8 +427,8 @@ function ReportDetails({ report }: { report: Report }) {
         <div className="stat-tile">
           <dt>LAKE&rsquo;S LARGEST WATER EXTENT</dt>
           <dd className={d !== null && d <= 30 ? "changed" : undefined}>
-            {d === null ? "none nearby" : d === 0 ? "on it" : `${d} m away`}
-            <small>{f.nearest_lake ? f.nearest_lake.name : d === null ? "within 600 m" : "unnamed water body"}</small>
+            {d === null ? "none nearby" : d === 0 ? "on it" : `${d} metres away`}
+            <small>{f.nearest_lake ? f.nearest_lake.name : d === null ? "within 600 metres" : "unnamed water body"}</small>
           </dd>
         </div>
         <div className="stat-tile">
@@ -450,7 +450,7 @@ function ReportDetails({ report }: { report: Report }) {
           {f.buffer_rules.map((r) => (
             <tr key={r.rule}>
               <td>{RULE_LABEL[r.rule]}</td>
-              <td>{r.width_m} m</td>
+              <td>{r.width_m} metres</td>
               <td>{RULE_STATUS[r.status]}</td>
               <td>{d === 0 ? "on the lake's water extent" : r.inside ? <strong>inside</strong> : "outside"}</td>
             </tr>
@@ -470,7 +470,7 @@ function ReportDetails({ report }: { report: Report }) {
               <li key={x.id}>
                 <strong>{x.name}</strong> ({x.date}):{" "}
                 {x.flooded_at_pin ? "standing water at this spot" : "no standing water at this spot"}
-                {x.share_flooded_250m !== null && `, ${Math.round(x.share_flooded_250m * 100)}% of open ground within 250 m flooded`}.
+                {x.share_flooded_250m !== null && `, ${Math.round(x.share_flooded_250m * 100)}% of open ground within 250 metres flooded`}.
               </li>
             ))}
           </ul>
@@ -491,7 +491,7 @@ function ReportDetails({ report }: { report: Report }) {
             afterLabel={seasonLabel(img.after.season!)}
             overlay={<span className="crosshair" aria-hidden="true" />}
           />
-          <p className="small muted">Sentinel-2 true colour, 10 m pixels, 1.2 km across. The crosshair is your pin.</p>
+          <p className="small muted">Sentinel-2 true colour, 10-metre pixels, 1.2 kilometres across. The crosshair is your pin.</p>
         </>
       )}
 

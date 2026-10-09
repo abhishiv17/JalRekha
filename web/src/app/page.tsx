@@ -37,16 +37,16 @@ const SCALLOP = (() => {
 // Real Plot Check results (stored by the Plot Check API), one per level.
 const EXAMPLES: { id: string; place: string; level: "high" | "watch" | "low"; label: string; mood: Mood; why: string }[] = [
   {
-    id: "12.9130_77.6636", place: "HSR Layout, Bengaluru", level: "high", label: "High risk", mood: "worried",
-    why: "Lake water stood here in 2019 and 2023, and it flooded on 5 September 2022.",
+    id: "28.7471_77.1774", place: "Edge of Bhalswa Lake, Delhi", level: "high", label: "High risk", mood: "worried",
+    why: "Lake water stood here in 6 of 8 years. This is probably old lake bed.",
   },
   {
-    id: "12.9884_77.4882", place: "Next to Herohalli Kere, Bengaluru", level: "watch", label: "Be careful", mood: "cautious",
-    why: "The lake comes within 76 m. The spot itself stayed dry every year.",
+    id: "28.5536_77.1952", place: "Hauz Khas Village, Delhi", level: "watch", label: "Be careful", mood: "cautious",
+    why: "Hauz Khas Lake comes within 67 metres. The spot itself stayed dry every year.",
   },
   {
-    id: "12.9381_77.6612", place: "Near Bellandur, Bengaluru", level: "low", label: "Low risk", mood: "celebrate",
-    why: "No lake water or flooding seen here in any year since 2019.",
+    id: "28.7462_77.1676", place: "West of Bhalswa Lake, Delhi", level: "low", label: "Low risk", mood: "celebrate",
+    why: "Dry in every satellite photo since 2019. The lake is 277 metres away.",
   },
 ];
 
@@ -61,9 +61,10 @@ export default function Home() {
     () => cards(lakes).filter((c) => c.analysed).sort((a, b) => (b.flaggedAc ?? 0) - (a.flaggedAc ?? 0)),
     [lakes],
   );
+  // Delhi lakes first, most lake lost first.
   const preview = [
-    ...analysed.filter((c) => c.id === "subedeharana-kere"),
-    ...analysed.filter((c) => c.id !== "subedeharana-kere"),
+    ...analysed.filter((c) => c.city === "Delhi"),
+    ...analysed.filter((c) => c.city !== "Delhi"),
   ].slice(0, 3);
 
   return (
@@ -85,26 +86,26 @@ export default function Home() {
             <li>ENGLISH</li><li lang="kn">ಕನ್ನಡ</li><li lang="te">తెలుగు</li><li lang="hi">हिंदी</li><li>BUILT ON AWS</li>
           </ul>
         </div>
-        <figure className="hero-figure" aria-label="Subedeharana Kere, Bengaluru, in 2019 and 2026">
+        <figure className="hero-figure" aria-label="Bhalswa Lake, Delhi, in 2019 and 2026">
           <div className="hero-stack">
             <div className="shot back">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/thumbs/hero-subedeharana-2019.png" alt="Subedeharana Kere in 2019, with the lake outline" />
+              <img src="/thumbs/hero-bhalswa-2019.jpg" alt="Bhalswa Lake, Delhi, in 2019, with the lake outline" />
               <span className="label">2019</span>
             </div>
             <div className="shot front">
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/thumbs/hero-subedeharana-2026.png" alt="Subedeharana Kere in 2026, with the lost lake bed outlined in amber" />
+              <img src="/thumbs/hero-bhalswa-2026.jpg" alt="Bhalswa Lake, Delhi, in 2026, with the lake bed turned to land outlined in orange" />
               <span className="label">2026</span>
             </div>
           </div>
           <figcaption>
             <Guide size={60}>
               <span className="hero-caption">
-                <strong>0.94 acres</strong>
+                <strong>8 acres</strong>
                 <span>
-                  <span className="flag-key" />of this lake was turned into land between 2019 and 2026. Spotted from space,
-                  dated, ready to report. <Link href="/lake/subedeharana-kere/">See it</Link>
+                  <span className="flag-key" />of Delhi&rsquo;s Bhalswa Lake turned into land since 2019, mostly soil pushed in at
+                  its north-east edge. Spotted from space, dated, ready to check. <Link href="/lake/bhalswa/">See it</Link>
                 </span>
               </span>
             </Guide>
@@ -238,7 +239,7 @@ export default function Home() {
         <span className="eyebrow">How sure is this?</span>
         <h2 id="method-title" className="section-title" style={{ marginBottom: 20 }}>Strong early warning. Then verify on the ground.</h2>
         <ul className="plain-list">
-          <li><b>What we see:</b> where water was, each year since 2019, from photos 10 m sharp.</li>
+          <li><b>What we see:</b> where water was, each year since 2019, from photos 10 metres sharp.</li>
           <li><b>What we don&rsquo;t:</b> the legal lake boundary, small walls or sheds, or floods hidden between tall buildings.</li>
           <li><b>Clouds:</b> if a season is too cloudy, we say &ldquo;not sure&rdquo; instead of guessing.</li>
           <li><b>Before you act:</b> check the official lake map and ask a lawyer. We tell you what to ask.</li>

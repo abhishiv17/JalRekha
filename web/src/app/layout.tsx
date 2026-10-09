@@ -45,20 +45,21 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 Lakes protect our cities. Let’s protect lakes. Built for WeMakeDevs Environmental Hacks, Heat and Water track.
               </p>
               <p style={{ margin: 0, maxWidth: 380 }}>
-                Satellite-detected change is not proof of illegal encroachment. Verify on the ground and in official records.
+                A satellite shows where a lake changed, not who changed it or whether it was allowed. Check on the ground and in official records.
               </p>
             </div>
             <nav aria-label="Footer">
               <span className="footer-title">Explore</span>
-              <Link href="/lakes/">Monitored lakes</Link>
-              <Link href="/lakes/?status=queued">India catalogue</Link>
+              <Link href="/check/">Check a plot</Link>
+              <Link href="/lakes/">Lakes we track</Link>
+              <Link href="/lakes/?status=queued">All lakes in India</Link>
               <Link href="/watchlist/">Your watchlist</Link>
             </nav>
             <nav aria-label="About">
               <span className="footer-title">About</span>
               <Link href="/#how">How it works</Link>
-              <Link href="/#method">Methodology and limits</Link>
-              <Link href="/#credits">Data sources and credits</Link>
+              <Link href="/#method">How sure is it?</Link>
+              <Link href="/#credits">Where the data comes from</Link>
             </nav>
             <div style={{ flex: "0 1 340px", minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}>
               <span className="footer-title">Data</span>

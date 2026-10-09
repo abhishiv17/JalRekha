@@ -46,12 +46,12 @@ export default function SiteHeader() {
       <div className="announce">
         {analysed && (
           <strong>
-            {analysed.n} lakes analysed in {analysed.cities} {analysed.cities === 1 ? "city" : "cities"}
+            {analysed.n} lakes tracked in {analysed.cities} {analysed.cities === 1 ? "city" : "cities"}
           </strong>
         )}
         {analysed && " · "}
-        {catalogSize > 0 && <>{catalogSize.toLocaleString("en-IN")} lakes across India catalogued · </>}
-        results as of 9 Oct 2026
+        {catalogSize > 0 && <>{catalogSize.toLocaleString("en-IN")} lakes across India on the map · </>}
+        updated 10 Oct 2026
       </div>
       <header className="site">
         <nav aria-label="Main">
