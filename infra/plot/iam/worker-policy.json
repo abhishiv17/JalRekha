@@ -7,6 +7,7 @@
      "Resource": "arn:aws:s3:::${BUCKET}/plots/*"},
     {"Sid": "Checks", "Effect": "Allow", "Action": ["dynamodb:UpdateItem", "dynamodb:GetItem"],
      "Resource": "arn:aws:dynamodb:${REGION}:${ACCOUNT}:table/jalrekha-plot-checks"},
-    {"Sid": "Claude", "Effect": "Allow", "Action": ["bedrock-mantle:CreateInference"], "Resource": "*"}
+    {"Sid": "Claude", "Effect": "Allow", "Action": ["bedrock-mantle:CreateInference"], "Resource": "*"},
+    {"Sid": "Translate", "Effect": "Allow", "Action": ["translate:TranslateText"], "Resource": "*"}
   ]
 }

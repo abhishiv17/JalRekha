@@ -131,3 +131,29 @@ def test_parse_claude_reply():
     bad = {**good, "te": {"headline": "h"}}
     with pytest.raises((KeyError, ValueError)):
         _parse(json.dumps(bad))
+
+
+def test_verdict_falls_back_from_bedrock_to_translate_to_templates(monkeypatch):
+    import jalrekha.verdict as v
+
+    def boom(*a, **k):
+        raise RuntimeError("no access")
+
+    f = facts(dry_seasons_with_water=["2019-dry"], distance_to_extent_m=0, in_lake_bed=True)
+    monkeypatch.setattr(v, "explain_with_claude", boom)
+    monkeypatch.setattr(v, "explain_with_translate", lambda *a: {"en": "translated"})
+    assert v.verdict(f)["text_source"] == "translate"
+    monkeypatch.setattr(v, "explain_with_translate", boom)
+    out = v.verdict(f)
+    assert out["text_source"] == "template" and out["level"] == "high"
+    assert "2019" in out["text"]["en"]["summary"] and "2019-dry" not in out["text"]["en"]["summary"]
+
+
+def test_english_wording_names_the_lake_and_reads_plainly():
+    found = [{"code": "near_lake", "level": "watch", "distance_m": 76},
+             {"code": "flood_nearby", "level": "watch", "event": "E", "date": "2022-09-05", "share": 0.1}]
+    f = facts(dry_seasons_checked=8, nearest_lake={"name": "Herohalli Kere"})
+    en = explain_with_template("watch", found, f)["en"]
+    assert "Herohalli Kere's water has come within 76 m" in en["summary"]
+    assert "5 September 2022" in en["summary"]
+    assert "stayed dry in all 8 dry seasons" in en["summary"]

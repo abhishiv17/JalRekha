@@ -1,9 +1,11 @@
 """Plot Check verdict: a fixed rule sets the level, Claude explains it.
 
 The level (high / watch / low) comes from the satellite facts alone, so the
-same spot always gets the same answer. Claude on Amazon Bedrock writes the
-plain-language explanation in English, Kannada, Telugu and Hindi from those
-facts; if Bedrock is unavailable, short fixed templates are used instead.
+same spot always gets the same answer. The plain-language explanation in
+English, Kannada, Telugu and Hindi comes from, in order of preference:
+1. Claude on Amazon Bedrock, from the facts;
+2. the English template, translated by Amazon Translate;
+3. the fixed templates below, written in each language.
 """
 
 import json
@@ -119,22 +121,23 @@ def _parse(text: str) -> dict:
 # Fixed fallback text. Kept short and literal on purpose.
 _T = {
     "en": {
-        "high": "High risk: satellites saw water at or right next to this spot.",
-        "watch": "Watch: this spot is close to water or got wet after the monsoon.",
-        "low": "Low risk: no open water seen here in the satellite record since 2019.",
-        "unknown": "Not enough clear satellite images here to judge.",
-        "lake_bed": "Open lake water covered this spot in {n} dry season(s): {seasons}.",
-        "flooded": "Flooding was seen at this spot on {date} ({event}).",
-        "in_buffer": "It is {distance_m} m from the lake's water edge, inside the {width_m} m buffer.",
-        "in_buffer_other": "It is {distance_m} m from the lake's water edge, inside a proposed {width_m} m buffer.",
-        "wet_after_monsoon": "The ground here held water after the monsoon in {seasons}.",
-        "near_lake": "The lake's largest water extent is {distance_m} m away.",
-        "flood_nearby": "{pct}% of the area within 250 m flooded on {date} ({event}).",
-        "none": "The satellite record shows no open water here since 2019.",
+        "high": "High risk: water has been on this spot or right next to it.",
+        "watch": "Be careful: water comes close to this spot.",
+        "low": "Low risk: no lake water or flooding seen here since 2019.",
+        "unknown": "Not sure: there are too few clear satellite photos of this spot.",
+        "lake_bed": "This spot was under {lake}'s water in {n} of {checked} dry seasons ({seasons}). It may be on the old lake bed.",
+        "flooded": "Radar saw floodwater on this spot on {date_words} ({event}).",
+        "in_buffer": "It is {distance_m} m from {lake}'s water, inside the {width_m} m no-build zone around the lake.",
+        "in_buffer_other": "It is {distance_m} m from {lake}'s water, inside a proposed {width_m} m no-build zone.",
+        "wet_after_monsoon": "Water stood here after the rains in {seasons}.",
+        "near_lake": "{lake}'s water has come within {distance_m} m of this spot.",
+        "flood_nearby": "On {date_words}, floodwater covered {pct}% of the open ground within 250 m.",
+        "dry_here": "The spot itself stayed dry in all {checked} dry seasons since 2019.",
+        "none": "Since 2019, this spot stayed dry in every satellite photo, and no lake water came within 100 m.",
         "checks": [
-            "Ask for the survey number and check it against the lake and buffer maps of the planning authority.",
-            "Ask neighbours whether the street floods during heavy rain.",
-            "Get the occupancy certificate and approved plan, and have a lawyer verify them.",
+            "Ask the seller for the survey number and check it on the lake map at the city planning office.",
+            "Ask neighbours if the street floods in heavy rain.",
+            "Get the approved building plan and have a lawyer check it.",
         ],
     },
     "kn": {
@@ -150,6 +153,7 @@ _T = {
         "near_lake": "ಕೆರೆಯ ಗರಿಷ್ಠ ನೀರಿನ ವ್ಯಾಪ್ತಿ {distance_m} ಮೀ ದೂರದಲ್ಲಿದೆ.",
         "flood_nearby": "{date} ರಂದು 250 ಮೀ ಸುತ್ತಳತೆಯ {pct}% ಪ್ರದೇಶದಲ್ಲಿ ಪ್ರವಾಹ ಇತ್ತು ({event}).",
         "none": "2019 ರಿಂದ ಉಪಗ್ರಹ ದಾಖಲೆಯಲ್ಲಿ ಇಲ್ಲಿ ತೆರೆದ ನೀರು ಕಾಣಿಸಿಲ್ಲ.",
+        "dry_here": "2019 ರಿಂದ ಎಲ್ಲಾ {checked} ಬೇಸಿಗೆ ಋತುಗಳಲ್ಲಿ ಈ ಸ್ಥಳ ಒಣಗಿತ್ತು.",
         "checks": [
             "ಸರ್ವೆ ನಂಬರ್ ಪಡೆದು, ಯೋಜನಾ ಪ್ರಾಧಿಕಾರದ ಕೆರೆ ಮತ್ತು ಬಫರ್ ನಕ್ಷೆಗಳೊಂದಿಗೆ ಹೋಲಿಸಿ.",
             "ಜೋರು ಮಳೆಯಲ್ಲಿ ರಸ್ತೆ ಮುಳುಗುತ್ತದೆಯೇ ಎಂದು ನೆರೆಹೊರೆಯವರನ್ನು ಕೇಳಿ.",
@@ -169,6 +173,7 @@ _T = {
         "near_lake": "చెరువు గరిష్ట నీటి విస్తీర్ణం {distance_m} మీ దూరంలో ఉంది.",
         "flood_nearby": "{date}న 250 మీ పరిధిలో {pct}% ప్రాంతం వరదలో ఉంది ({event}).",
         "none": "2019 నుండి ఉపగ్రహ రికార్డులో ఇక్కడ నీరు కనిపించలేదు.",
+        "dry_here": "2019 నుండి అన్ని {checked} వేసవి కాలాల్లో ఈ స్థలం పొడిగా ఉంది.",
         "checks": [
             "సర్వే నంబర్ తీసుకుని, ప్రణాళికా సంస్థ చెరువు, బఫర్ మ్యాప్‌లతో సరిచూడండి.",
             "భారీ వర్షంలో వీధి మునుగుతుందేమో పొరుగువారిని అడగండి.",
@@ -188,6 +193,7 @@ _T = {
         "near_lake": "झील का सबसे बड़ा जल-क्षेत्र {distance_m} मीटर दूर है।",
         "flood_nearby": "{date} को 250 मीटर के दायरे का {pct}% हिस्सा बाढ़ में था ({event})।",
         "none": "2019 से उपग्रह रिकॉर्ड में यहाँ खुला पानी नहीं दिखा।",
+        "dry_here": "2019 से सभी {checked} सूखे मौसमों में यह जगह सूखी रही।",
         "checks": [
             "सर्वे नंबर लेकर योजना प्राधिकरण के झील और बफ़र नक्शों से मिलाएँ।",
             "पड़ोसियों से पूछें कि भारी बारिश में गली में पानी भरता है या नहीं।",
@@ -197,7 +203,19 @@ _T = {
 }
 
 
-def explain_with_template(lvl: str, found: list[dict]) -> dict:
+MONTHS = ("January", "February", "March", "April", "May", "June", "July", "August", "September",
+          "October", "November", "December")
+
+
+def _date_words(iso: str) -> str:
+    y, m, d = iso.split("-")
+    return f"{int(d)} {MONTHS[int(m) - 1]} {y}"
+
+
+def explain_with_template(lvl: str, found: list[dict], facts: dict | None = None) -> dict:
+    facts = facts or {}
+    lake = (facts.get("nearest_lake") or {}).get("name") or "the lake"
+    checked = facts.get("dry_seasons_checked", 0)
     out = {}
     for lang in LANGUAGES:
         t = _T[lang]
@@ -205,11 +223,16 @@ def explain_with_template(lvl: str, found: list[dict]) -> dict:
         for r in found:
             vals = {
                 **r,
+                "lake": lake,
+                "checked": checked,
                 "n": len(r.get("seasons", [])),
-                "seasons": ", ".join(r.get("seasons", [])),
+                "seasons": ", ".join(season.split("-")[0] for season in r.get("seasons", [])),  # years
                 "pct": round(100 * r.get("share", 0)),
+                "date_words": _date_words(r["date"]) if r.get("date") else "",
             }
             lines.append(t[r["code"]].format(**vals))
+        if found and checked and not any(r["code"] == "lake_bed" for r in found):
+            lines.append(t["dry_here"].format(checked=checked))
         out[lang] = {
             "headline": t[lvl],
             "summary": " ".join(lines) if lines else t["none"],
@@ -218,13 +241,35 @@ def explain_with_template(lvl: str, found: list[dict]) -> dict:
     return out
 
 
+def explain_with_translate(lvl: str, found: list[dict], facts: dict | None = None) -> dict:
+    """English template, translated into Kannada, Telugu and Hindi by Amazon Translate."""
+    import boto3
+
+    translate = boto3.client("translate", region_name=REGION)
+    en = explain_with_template(lvl, found, facts)["en"]
+    out = {"en": en}
+    for lang in LANGUAGES[1:]:
+        tr = lambda text: translate.translate_text(  # noqa: E731
+            Text=text, SourceLanguageCode="en", TargetLanguageCode=lang)["TranslatedText"]
+        out[lang] = {"headline": tr(en["headline"]), "summary": tr(en["summary"]),
+                     "checks": [tr(c) for c in en["checks"]]}
+    return out
+
+
 def verdict(facts: dict) -> dict:
     found = reasons(facts)
     lvl = level(facts, found)
-    try:
-        text, source = explain_with_claude(facts, lvl, found), "bedrock"
-    except Exception as e:  # no Bedrock access, refusal, timeout: still answer
-        print(f"Bedrock explanation unavailable, using templates: {e!r}"[:500])
-        text, source = explain_with_template(lvl, found), "template"
+    attempts = (
+        ("bedrock", lambda: explain_with_claude(facts, lvl, found)),
+        ("translate", lambda: explain_with_translate(lvl, found, facts)),
+    )
+    for source, explain in attempts:
+        try:
+            text = explain()
+            break
+        except Exception as e:  # no access, refusal, timeout: try the next way, still answer
+            print(f"{source} explanation unavailable: {e!r}"[:500])
+    else:
+        source, text = "template", explain_with_template(lvl, found, facts)
     return {"level": lvl, "reasons": found, "text": text, "text_source": source,
             "model": MODEL if source == "bedrock" else None}
