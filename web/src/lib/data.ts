@@ -78,7 +78,7 @@ export const drySeasons = (s: Stats) => s.seasons.filter((x) => x.season.endsWit
 
 export const seasonLabel = (season: string) => {
   const [year, kind] = season.split("-");
-  return `${kind === "dry" ? "Dry season" : "Post-monsoon"} ${year}`;
+  return `${kind === "dry" ? "Jan–Apr" : "Nov–Dec"} ${year}`;
 };
 
 export const kindLabel = (kind?: string) =>

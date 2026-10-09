@@ -34,7 +34,32 @@ type Loaded = {
 };
 
 const BASELINE = ["2019", "2020"];
+
+/** What the law says about building near a lake, by state. Only Karnataka has a proposed change. */
+function zoneRule(state: string | undefined, lakeAc: number): { law: string; proposed: boolean } {
+  if (state === "Karnataka") {
+    return { law: "Karnataka's lake law (KTCDA Act, 2014) bans building within 30 metres of a lake.", proposed: true };
+  }
+  if (state === "Telangana") {
+    const big = lakeAc * 0.404686 > 10;
+    return {
+      law: `Hyderabad's lake rules keep a no-build zone of ${big ? "30 metres around lakes over 10 hectares, like this one" : "9 metres around lakes under 10 hectares, like this one; we show 30 metres"}, measured from the full-tank line.`,
+      proposed: false,
+    };
+  }
+  return {
+    law: `${state ?? "This state"} has no single no-build distance around lakes in its law. We show 30 metres as a common reference, not a legal line.`,
+    proposed: false,
+  };
+}
 const yearOf = (season: string) => season.slice(0, 4);
+
+/** Whether a spot stayed land: in plain words, including when water came back in between. */
+export function lasted(status: string, firstSeen: string, latest: string): string {
+  if (status === "confirmed") return "Yes, 2+ years in a row";
+  const first = firstSeen.slice(0, 4), now = latest.slice(0, 4);
+  return first === now ? `New in ${now}` : `On and off: land in ${first}, water came back, land again in ${now}`;
+}
 const ac = (n: number) => `${n.toFixed(2)} acres`;
 
 // How sure, from the pipeline's confidence (pipeline/jalrekha/change.py).
@@ -114,7 +139,12 @@ export default function LakeView({ id }: { id: string }) {
   const postBaseline = usable.filter((s) => !BASELINE.includes(yearOf(s.season)));
   const enoughData = postBaseline.length >= 2;
   const status = !enoughData ? "nodata" : total > 0 ? "changed" : "steady";
-  const statusText = status === "nodata" ? "Not enough clear photos" : status === "changed" ? "Lake is shrinking" : "Lake looks stable";
+  // Only call it lost when at least one spot is fairly sure; "not sure yet" spots need a second look.
+  const firm = fs.some((f) => f.confidence !== "low");
+  const statusText = status === "nodata" ? "Not enough clear photos"
+    : status === "steady" ? "No part turned into land"
+    : firm ? "Parts turned into land" : "Possible change, needs a second look";
+  const rule = zoneRule(place?.state, stats.reference_area_ac);
   const last = usable.at(-1)!.season;
 
   const narration = (() => {
@@ -129,13 +159,13 @@ export default function LakeView({ id }: { id: string }) {
         const where = f.zone === "buffer" ? "within 30 metres of the lake, where building is not allowed" : "inside the lake";
         const hand = checks[f.flag_id];
         return `Spot ${n}: ${ac(f.area_ac)} of ${what}, ${where}. I first saw it in ${yearOf(f.first_seen)}${
-          f.status === "confirmed" ? ", and it stayed land the next year too" : ". It has been land in only one year so far, so it needs another look next year"
+          f.status === "confirmed" ? ", and it stayed land the next year too" : yearOf(f.first_seen) === yearOf(last) ? ". It is new this year, so it needs another look next year" : `. Since then water came back for a while, and it was land again in ${yearOf(last)}`
         }. ${SURE[f.confidence]}.${hand ? ` A person checked it: ${CHECKED[hand.verdict] ?? hand.verdict}. They saw: ${hand.seen}` : ""}`;
       }
     }
     if (said.kind === "buffer") {
       return bufferWidth === 30
-        ? `The law says nothing may be built within 30 metres of a lake. ${inBuffer > 0 ? `${ac(inBuffer)} of the change I found is inside that zone.` : "None of the change I found is in that zone; it's all inside the lake."}`
+        ? `${rule.proposed ? "The law says nothing may be built within 30 metres of a lake." : "Here is the 30-metre zone around the lake."} ${inBuffer > 0 ? `${ac(inBuffer)} of the change I found is inside that zone.` : "None of the change I found is in that zone; it's all inside the lake."}`
         : `A proposed rule would shrink the zone to ${bufferWidth} metres here. It isn't law yet. ${inBuffer > 0 ? `${ac(inBuffer)} of the change is inside that smaller zone.` : "None of the change is inside that smaller zone."}`;
     }
     if (said.kind === "landcover") {
@@ -324,8 +354,8 @@ export default function LakeView({ id }: { id: string }) {
           <div className="card">
             <h2 style={{ marginTop: 0 }}>No-build zone around the lake</h2>
             <div className="segmented" role="group" aria-label="Zone width" style={{ width: "fit-content" }}>
-              <button type="button" aria-pressed={bufferWidth === 30} onClick={() => { setBufferWidth(30); setSaid({ kind: "buffer", ref: 30 }); }}>30 metres · the law today</button>
-              {bill > 0 && bill !== 30 && (
+              <button type="button" aria-pressed={bufferWidth === 30} onClick={() => { setBufferWidth(30); setSaid({ kind: "buffer", ref: 30 }); }}>{rule.proposed ? "30 metres · the law today" : "30 metres"}</button>
+              {rule.proposed && bill > 0 && bill !== 30 && (
                 <button type="button" aria-pressed={bufferWidth === bill} onClick={() => { setBufferWidth(bill); setSaid({ kind: "buffer", ref: bill }); }}>{bill} metres · proposed rule</button>
               )}
             </div>
@@ -340,7 +370,7 @@ export default function LakeView({ id }: { id: string }) {
             )}
             <p className="small muted" style={{ margin: 0 }}>
               {bufferWidth === 30
-                ? "Karnataka's lake law (KTCDA Act, 2014) bans building within 30 metres of a lake."
+                ? rule.law
                 : `A 2025 change to the law would allow building up to ${bill} metres from a lake this size. It is not law yet (as of ${stats.as_of}).`}{" "}
               This is not a legal ruling.
             </p>
@@ -390,7 +420,7 @@ export default function LakeView({ id }: { id: string }) {
         ) : (
           <div className="table-scroll"><table>
             <thead>
-              <tr><th>Spot</th><th>Where</th><th>What happened</th><th className="num">Size</th><th>First seen</th><th>Lasted?</th><th>How sure</th><th>Checked by a person</th></tr>
+              <tr><th>Spot</th><th>Where</th><th>What happened</th><th className="num">Size</th><th>First seen as land</th><th>Lasted?</th><th>How sure</th><th>Checked by a person</th></tr>
             </thead>
             <tbody>
               {fs.map((f) => (
@@ -404,7 +434,7 @@ export default function LakeView({ id }: { id: string }) {
                   <td>{kindLabel(f.kind)}</td>
                   <td className="num">{ac(f.area_ac)}</td>
                   <td>{yearOf(f.first_seen)}</td>
-                  <td>{f.status === "confirmed" ? "Yes, 2+ years" : "Only 1 year so far"}</td>
+                  <td>{lasted(f.status, f.first_seen, last)}</td>
                   <td><span className={`pill ${f.confidence}`}>{SURE[f.confidence]}</span></td>
                   <td title={checks[f.flag_id]?.seen}>{checks[f.flag_id] ? CHECKED[checks[f.flag_id].verdict] ?? checks[f.flag_id].verdict : "Not yet"}</td>
                 </tr>
@@ -413,7 +443,7 @@ export default function LakeView({ id }: { id: string }) {
           </table></div>
         )}
         <dl className="explain small">
-          <div><dt>Lasted?</dt><dd><b>Yes, 2+ years</b>: the spot was land in two or more dry seasons in a row. <b>Only 1 year so far</b>: land in the latest year only; it could be a dry year.</dd></div>
+          <div><dt>Lasted?</dt><dd><b>Yes, 2+ years in a row</b>: the spot stayed land. <b>New</b>: land only in the latest year. <b>On and off</b>: it became land, water came back, then land again; often water levels, sometimes dumping that keeps returning.</dd></div>
           <div><dt>How sure</dt><dd><b>Sure</b>: land 2+ years in a row, and still land after every monsoon since. <b>Fairly sure</b>: land 2+ years, but water came back after some monsoons. <b>Not sure yet</b>: land in one year only.</dd></div>
           <div><dt>Checked by a person</dt><dd>A team member compared the spot with older, sharper photos (Google Earth). Hover or tap a spot to read what they saw. Every other spot still needs a check.</dd></div>
         </dl>

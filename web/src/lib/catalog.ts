@@ -163,8 +163,8 @@ export type StatusKey = "changed" | "nochange" | "nodata" | "queued";
 export function statusOf(c: Card): Status {
   if (!c.analysed) return { label: "Not tracked yet", tone: "queued", key: "queued" };
   if (c.flaggedAc == null) return { label: "Too cloudy to tell", tone: "nodata", key: "nodata" };
-  if (!c.flaggedAc) return { label: "Stable", tone: "steady", key: "nochange" };
-  return { label: `Shrinking · ${c.flaggedAc.toFixed(2)} acres lost`, tone: "changed", key: "changed" };
+  if (!c.flaggedAc) return { label: "No part turned to land", tone: "steady", key: "nochange" };
+  return { label: `${c.flaggedAc.toFixed(2)} acres turned to land`, tone: "changed", key: "changed" };
 }
 
 export const KIND_LABELS: Record<string, string> = {

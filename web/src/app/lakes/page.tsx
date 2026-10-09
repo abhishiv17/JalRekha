@@ -14,8 +14,8 @@ type StatusFilter = "all" | StatusKey;
 type Sort = "change" | "recent" | "largest" | "name";
 const STATUS_LABELS: Record<StatusFilter, string> = {
   all: "All lakes",
-  changed: "Shrinking",
-  nochange: "Stable",
+  changed: "Some lake turned to land",
+  nochange: "No part turned to land",
   nodata: "Too cloudy to tell",
   queued: "Not tracked yet",
 };
@@ -127,14 +127,14 @@ export default function AllLakes() {
         ? `${m} ${a === shown.length ? "I track all of them" : `I track ${a} of them`}; open one to see every year since 2019.`
         : `${m} I don't track these yet, but you can still check plots near them.`;
     }
-    if (status === "changed") return `${a} lakes${where} where part of the lake turned into land. Most lost first.`;
+    if (status === "changed") return `${a} lakes${where} where part of the lake turned into land. Biggest first.`;
     if (status === "nochange") return `${a} lakes${where} that kept their size since 2019.`;
     if (status === "nodata") return `${a} lakes${where} where clouds hid too many years. I won't guess.`;
     if (status === "queued") return `${n.toLocaleString("en-IN")} lakes${where} I don't track yet. That doesn't mean they're fine; I just haven't looked.`;
     if (kind !== "any") return `Lakes with at least one spot of ${(KIND_LABELS[kind] ?? kind).toLowerCase()}${where}.`;
     if (state !== "All" && a === 0) return `I don't track a lake in ${state} yet. The ${n.toLocaleString("en-IN")} below are on the map.`;
-    if (state !== "All") return `${state}: ${a} tracked, ${n.toLocaleString("en-IN")} more on the map. Orange means the lake is shrinking.`;
-    return "Orange means the lake is shrinking; green means it kept its size. Blue dots on the map are lakes I don't track yet.";
+    if (state !== "All") return `${state}: ${a} tracked, ${n.toLocaleString("en-IN")} more on the map. Orange means part of the lake turned into land.`;
+    return "Orange means part of the lake turned into land; green means none did. Blue dots on the map are lakes I don't track yet.";
   })();
   const reset = () => {
     setState("All");

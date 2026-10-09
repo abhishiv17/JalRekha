@@ -7,7 +7,7 @@ import { Suspense, useEffect, useMemo, useState } from "react";
 import LakeCard from "@/components/LakeCard";
 import LakeShape from "@/components/LakeShape";
 import { EmptyState, Guide, Loader } from "@/components/Mascot";
-import { type Card, cards, loadCatalog, placeLabel } from "@/lib/catalog";
+import { ANALYSED_META, type Card, type OsmLake, cards, loadCatalog, placeLabel } from "@/lib/catalog";
 import { loadIndex } from "@/lib/data";
 
 const IndiaMap = dynamic(() => import("@/components/IndiaMap"), { ssr: false });
@@ -35,10 +35,13 @@ function QueuedLake() {
   // Read from the URL on every navigation, so links to other lakes on this page work.
   const id = useSearchParams().get("id");
   const [all, setAll] = useState<Card[] | null>(null);
+  const [osmAll, setOsmAll] = useState<OsmLake[]>([]);
 
   useEffect(() => {
-    Promise.all([loadIndex().then((i) => i.lakes).catch(() => []), loadCatalog()]).then(([idx, osm]) =>
-      setAll(cards(idx, osm)),
+    Promise.all([loadIndex().then((i) => i.lakes).catch(() => []), loadCatalog()]).then(([idx, osm]) => {
+      setOsmAll(osm);
+      setAll(cards(idx, osm));
+    },
     );
   }, []);
 
@@ -46,7 +49,23 @@ function QueuedLake() {
     window.scrollTo(0, 0);
   }, [id]);
 
-  const lake = useMemo(() => all?.find((c) => c.id === id), [all, id]);
+  // A lake we track is listed under our own id, not its OpenStreetMap id. Links that
+  // carry the OpenStreetMap id (Plot Check's "See this lake") land on the tracked lake.
+  const lake = useMemo(() => {
+    if (!all) return undefined;
+    const direct = all.find((c) => c.id === id);
+    if (direct) return direct;
+    const tracked = Object.entries(ANALYSED_META).find(([, m]) => m.osmId === id)?.[0];
+    if (tracked) return all.find((c) => c.id === tracked);
+    const o = osmAll.find((x) => x.id === id);
+    if (!o) return undefined;
+    // Hidden from the catalogue because a tracked lake sits on it: open that one.
+    return all
+      .filter((c) => c.analysed && c.lat != null)
+      .map((c) => ({ c, d: Math.hypot((c.lat! - o.lat) * 111, (c.lon! - o.lon) * 111 * Math.cos((o.lat * Math.PI) / 180)) }))
+      .filter((x) => x.d <= 1)
+      .sort((a, b) => a.d - b.d)[0]?.c;
+  }, [all, osmAll, id]);
   useEffect(() => {
     if (lake?.analysed) router.replace(`/lake/${lake.id}/`);
   }, [lake, router]);
