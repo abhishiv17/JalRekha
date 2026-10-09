@@ -17,6 +17,7 @@ Data © OpenStreetMap contributors, ODbL.
 
 import json
 import math
+import os
 import warnings
 import re
 import sys
@@ -136,6 +137,8 @@ def main(raw: Path, out: Path) -> None:
                 allow_empty=True,
             )["elements"]
             # Many Indian tanks are mapped with the older landuse=reservoir tag only.
+            if os.environ.get("KW_NATURAL_WATER_ONLY"):
+                continue
             water += overpass(
                 f'[out:json][timeout:600];area({area_id})->.s;'
                 f'{kind}["landuse"="reservoir"]["name"]["natural"!="water"](area.s);out geom;',
@@ -185,17 +188,19 @@ def main(raw: Path, out: Path) -> None:
         (out / "outlines" / f"{key}.geojson").write_text(
             json.dumps({"type": "FeatureCollection", "features": outlines}, separators=(",", ":")), encoding="utf-8")
         print(f"  {n} lakes", flush=True)
-        write_catalog(out, catalog)
+        write_catalog(out, catalog, "india.partial.json")
 
+    write_catalog(out, catalog, "india.json")
+    (out / "india.partial.json").unlink(missing_ok=True)
     print(len(catalog), "lakes in total", flush=True)
 
 
-def write_catalog(out: Path, catalog: list) -> None:
+def write_catalog(out: Path, catalog: list, name: str) -> None:
     unique = {}
     for row in catalog:  # a lake on a state border comes back for both states; keep the first
         unique.setdefault(row["id"], row)
     rows = sorted(unique.values(), key=lambda l: -l["ha"])
-    (out / "india.json").write_text(json.dumps(rows, separators=(",", ":"), ensure_ascii=False), encoding="utf-8")
+    (out / name).write_text(json.dumps(rows, separators=(",", ":"), ensure_ascii=False), encoding="utf-8")
 
 
 if __name__ == "__main__":

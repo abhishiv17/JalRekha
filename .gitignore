@@ -34,3 +34,4 @@ Thumbs.db
 
 # Full OSM outlines are large; regenerate with pipeline/scripts/osm_india_lakes.py
 data/catalog/outlines/
+data/catalog/india.partial.json
