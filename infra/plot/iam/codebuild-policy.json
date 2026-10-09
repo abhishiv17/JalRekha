@@ -1,0 +1,18 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {"Sid": "Logs", "Effect": "Allow", "Action": ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
+     "Resource": "arn:aws:logs:${REGION}:${ACCOUNT}:log-group:/aws/codebuild/jalrekha-build:*"},
+    {"Sid": "Bucket", "Effect": "Allow", "Action": ["s3:GetObject", "s3:PutObject", "s3:ListBucket"],
+     "Resource": ["arn:aws:s3:::${BUCKET}", "arn:aws:s3:::${BUCKET}/*"]},
+    {"Sid": "Sentinel1RequesterPays", "Effect": "Allow", "Action": ["s3:GetObject", "s3:ListBucket"],
+     "Resource": ["arn:aws:s3:::sentinel-s1-l1c", "arn:aws:s3:::sentinel-s1-l1c/*"]},
+    {"Sid": "EcrLogin", "Effect": "Allow", "Action": "ecr:GetAuthorizationToken", "Resource": "*"},
+    {"Sid": "EcrPush", "Effect": "Allow",
+     "Action": ["ecr:BatchCheckLayerAvailability", "ecr:BatchGetImage", "ecr:CompleteLayerUpload", "ecr:GetDownloadUrlForLayer",
+                "ecr:InitiateLayerUpload", "ecr:PutImage", "ecr:UploadLayerPart"],
+     "Resource": "arn:aws:ecr:${REGION}:${ACCOUNT}:repository/jalrekha-plot"},
+    {"Sid": "UpdateWorker", "Effect": "Allow", "Action": ["lambda:GetFunction", "lambda:UpdateFunctionCode"],
+     "Resource": "arn:aws:lambda:${REGION}:${ACCOUNT}:function:jalrekha-plot-worker"}
+  ]
+}
