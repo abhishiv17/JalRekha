@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import { ANALYSED_META } from "@/lib/catalog";
+import { loadIndex } from "@/lib/data";
 
 export function Logo() {
   return (
@@ -37,14 +39,25 @@ export function SearchIcon() {
 export default function SiteHeader() {
   const path = usePathname();
   const [catalogSize, setCatalogSize] = useState(0);
+  const [analysed, setAnalysed] = useState<{ n: number; cities: number } | null>(null);
   useEffect(() => {
     fetch("/catalog/meta.json").then((r) => r.json()).then((m) => setCatalogSize(m.lakes ?? 0)).catch(() => {});
+    loadIndex()
+      .then((i) => {
+        const cities = new Set(i.lakes.map((l) => ANALYSED_META[l.id]?.city ?? l.id));
+        setAnalysed({ n: i.lakes.length, cities: cities.size });
+      })
+      .catch(() => {});
   }, []);
   const on = (p: string) => (path === p || path === p.replace(/\/$/, "") ? "page" : undefined);
   return (
     <>
       <div className="announce">
-        <strong>6 Bengaluru lakes analysed</strong>
+        {analysed && (
+          <strong>
+            {analysed.n} lakes analysed in {analysed.cities} {analysed.cities === 1 ? "city" : "cities"}
+          </strong>
+        )}
         {catalogSize > 0 && <> · {catalogSize.toLocaleString("en-IN")} lakes across India catalogued</>} · results as of 9 Oct 2026
       </div>
       <header className="site">

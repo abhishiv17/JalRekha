@@ -27,6 +27,7 @@ export default function LakeCard({ c, facts = true }: { c: Card; facts?: boolean
         </div>
         <span className={`pill ${status.tone}`}>{status.label}</span>
       </div>
+      {facts && c.note && <p className="lake-note">{c.note}</p>}
       {facts && (
         <dl className="lake-facts">
           <div><dt>LAKE</dt><dd>{c.areaAc != null ? fmtAc(c.areaAc) : "—"}</dd></div>

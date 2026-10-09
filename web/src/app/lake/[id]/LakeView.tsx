@@ -71,6 +71,7 @@ export default function LakeView({ id }: { id: string }) {
         as changed · as of {stats.as_of}
       </p>
       {stats.sample && <p className="notice">Sample data, not real results.</p>}
+      {place?.note && <p className="notice"><strong>Read before using these flags:</strong> {place.note}</p>}
 
       <div className="grid2">
         <section>

@@ -9,13 +9,27 @@ import { type LakeSummary, lakeUrl } from "./data";
 
 export type Place = { city: string; state: string };
 
-export const ANALYSED_META: Record<string, Place & { thumb: string; lat: number; lon: number }> = {
+type AnalysedMeta = Place & { thumb: string; lat: number; lon: number; osmId?: string; note?: string };
+
+export const ANALYSED_META: Record<string, AnalysedMeta> = {
   "subedeharana-kere": { city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/subedeharana-kere.png", lat: 12.8598, lon: 77.6166 },
   "pattandur-agrahara": { city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/pattandur-agrahara.png", lat: 12.98, lon: 77.7384 },
   "ambalipura-kelagina": { city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/ambalipura-kelagina.png", lat: 12.9173, lon: 77.6656 },
   sadaramangala: { city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/sadaramangala.png", lat: 13.003, lon: 77.7295 },
   "yele-mallappa-shetty": { city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/yele-mallappa-shetty.png", lat: 13.0173, lon: 77.7332 },
-  jakkur: { city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/jakkur.png", lat: 13.0866, lon: 77.6127 },
+  jakkur: {
+    city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/jakkur.png", lat: 13.0866, lon: 77.6127,
+    note: "Most flagged area is construction in the 30 m buffer on the east side and a new structure at the north-west inlet; verify whether these are approved works.",
+  },
+  bellandur: {
+    city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/bellandur.png", lat: 12.93482, lon: 77.66382, osmId: "osm-r19751547",
+    note: "The imagery shows this lake drained and under earthworks from 2021 (bare, excavated lake bed; works along the southern edge). Most flags here are works in progress, not encroachment. Verify each one.",
+  },
+  varthur: { city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/varthur.png", lat: 12.94722, lon: 77.73629, osmId: "osm-r19306126" },
+  kaikondrahalli: { city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/kaikondrahalli.png", lat: 12.91289, lon: 77.67273, osmId: "osm-r6820030" },
+  "durgam-cheruvu": { city: "Hyderabad", state: "Telangana", thumb: "/thumbs/durgam-cheruvu.png", lat: 17.43021, lon: 78.38991, osmId: "osm-w28131043" },
+  ameenpur: { city: "Hyderabad", state: "Telangana", thumb: "/thumbs/ameenpur.png", lat: 17.52312, lon: 78.33316, osmId: "osm-w115772000" },
+  chembarambakkam: { city: "Chennai", state: "Tamil Nadu", thumb: "/thumbs/chembarambakkam.jpg", lat: 13.00825, lon: 80.05548, osmId: "osm-w25453624" },
 };
 
 /** Catalog lakes with a real satellite thumbnail, matched to OSM lakes by location. */
@@ -45,6 +59,7 @@ export type Card = Place & {
   areaAc?: number;
   flaggedAc?: number;
   firstSeen?: string | null;
+  note?: string;
 };
 
 export const placeLabel = (p: Place) =>
@@ -78,9 +93,11 @@ export function cards(analysed: LakeSummary[], osm: OsmLake[] = []): Card[] {
       areaAc: l.area_ac,
       flaggedAc: l.flagged_ac,
       firstSeen: l.latest_first_seen,
+      note: meta?.note,
     };
   });
   const analysedSpots = Object.values(ANALYSED_META);
+  const analysedOsm = new Set(analysedSpots.map((a) => a.osmId).filter(Boolean));
   const featuredUsed = new Set<string>();
 
   const queued: Card[] = [];
@@ -88,7 +105,7 @@ export function cards(analysed: LakeSummary[], osm: OsmLake[] = []): Card[] {
   for (const o of osm) {
     if (seen.has(o.id)) continue; // a lake on a state border is listed by both states
     seen.add(o.id);
-    if (analysedSpots.some((a) => near(a, o, 0.6))) continue; // already analysed
+    if (analysedOsm.has(o.id) || analysedSpots.some((a) => near(a, o, 0.6))) continue; // already analysed
     const f = FEATURED.find((x) => !featuredUsed.has(x.name) && near(x, o, 2));
     if (f) featuredUsed.add(f.name);
     queued.push({
