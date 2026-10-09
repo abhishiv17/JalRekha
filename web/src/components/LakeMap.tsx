@@ -4,12 +4,13 @@ import maplibregl, { type GeoJSONSource, type ImageSource } from "maplibre-gl";
 import { useEffect, useRef } from "react";
 import type { FeatureCollection, FlagProps } from "@/lib/data";
 
-export type Layers = { flags: boolean; outline: boolean; buffer: boolean; landcover: boolean };
+export type Layers = { flags: boolean; outline: boolean; buffer: boolean; landcover: boolean; water: boolean };
 
 type Props = {
   bounds: [number, number, number, number];
   imageUrl: string;
   overlayUrl: string;
+  waterUrl: string; // GeoJSON of the open water seen that season
   layers: Layers;
   flags: FeatureCollection<FlagProps>;
   reference: FeatureCollection<{ kind: string; width_m?: number }>;
@@ -28,6 +29,9 @@ function apply(m: maplibregl.Map, p: Props) {
   (m.getSource("overlay") as ImageSource | undefined)?.updateImage({ url: p.overlayUrl, coordinates: corners(p.bounds) });
   const vis = (on: boolean) => (on ? "visible" : "none");
   m.setLayoutProperty("overlay", "visibility", vis(p.layers.landcover));
+  (m.getSource("water") as GeoJSONSource | undefined)?.setData(p.waterUrl);
+  m.setLayoutProperty("water-fill", "visibility", vis(p.layers.water));
+  m.setLayoutProperty("water-line", "visibility", vis(p.layers.water));
   m.setLayoutProperty("reference", "visibility", vis(p.layers.outline));
   m.setLayoutProperty("buffer", "visibility", vis(p.layers.buffer));
   m.setLayoutProperty("flags-fill", "visibility", vis(p.layers.flags));
@@ -77,12 +81,15 @@ export default function LakeMap(p: Props) {
           truecolor: { type: "image", url: p.imageUrl, coordinates: corners(p.bounds) },
           overlay: { type: "image", url: p.overlayUrl, coordinates: corners(p.bounds) },
           reference: { type: "geojson", data: p.reference as GeoJSON.FeatureCollection },
+          water: { type: "geojson", data: p.waterUrl },
           flags: { type: "geojson", data: p.flags as GeoJSON.FeatureCollection },
         },
         layers: [
           { id: "osm", type: "raster", source: "osm", paint: { "raster-saturation": -0.7 } },
           { id: "truecolor", type: "raster", source: "truecolor", paint: { "raster-resampling": "nearest" } },
           { id: "overlay", type: "raster", source: "overlay", paint: { "raster-resampling": "nearest", "raster-opacity": 0.8 } },
+          { id: "water-fill", type: "fill", source: "water", paint: { "fill-color": "#1e78dc", "fill-opacity": 0.6 } },
+          { id: "water-line", type: "line", source: "water", paint: { "line-color": "#9fd0ff", "line-width": 1.2 } },
           {
             id: "buffer",
             type: "line",
@@ -125,7 +132,7 @@ export default function LakeMap(p: Props) {
   useEffect(() => {
     if (map.current && ready.current) apply(map.current, p);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [p.imageUrl, p.overlayUrl, p.layers, p.bufferWidth, p.flags, p.focusFlag]);
+  }, [p.imageUrl, p.overlayUrl, p.waterUrl, p.layers, p.bufferWidth, p.flags, p.focusFlag]);
 
   useEffect(() => {
     if (map.current && ready.current) zoom(map.current, p);

@@ -140,9 +140,9 @@ export default function IndiaMap({ lakes }: { lakes: Card[] }) {
     <div>
       <div ref={el} className="map india-map" />
       <div className="legend">
-        <span><i style={{ background: "#f5a524", borderRadius: 99 }} />Change detected</span>
-        <span><i style={{ background: "#1f5c3f", borderRadius: 99 }} />No change detected</span>
-        <span><i style={{ background: "#4f7fbf", opacity: 0.6, borderRadius: 99 }} />Queued, not analysed (size = lake area)</span>
+        <span><i style={{ background: "#f5a524", borderRadius: 99 }} />Shrinking</span>
+        <span><i style={{ background: "#1f5c3f", borderRadius: 99 }} />Stable</span>
+        <span><i style={{ background: "#4f7fbf", opacity: 0.6, borderRadius: 99 }} />Not tracked yet (bigger dot = bigger lake)</span>
       </div>
     </div>
   );

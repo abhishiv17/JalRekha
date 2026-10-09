@@ -13,11 +13,11 @@ const IndiaMap = dynamic(() => import("@/components/IndiaMap"), { ssr: false });
 type StatusFilter = "all" | StatusKey;
 type Sort = "change" | "recent" | "largest" | "name";
 const STATUS_LABELS: Record<StatusFilter, string> = {
-  all: "All statuses",
-  changed: "Change detected",
-  nochange: "No change detected",
-  nodata: "Not enough data",
-  queued: "Queued for analysis",
+  all: "All lakes",
+  changed: "Shrinking",
+  nochange: "Stable",
+  nodata: "Too cloudy to tell",
+  queued: "Not tracked yet",
 };
 const PAGE = 48;
 
@@ -121,19 +121,19 @@ export default function AllLakes() {
     const where = state === "All" ? "" : ` in ${state}`;
     if (q.trim()) {
       const m = shown.length === 1 ? `1 lake matches "${q.trim()}".` : `${shown.length.toLocaleString("en-IN")} lakes match "${q.trim()}".`;
-      if (shown.length === 1) return a ? `${m} I've analysed it; open it to see every dry season since 2019.` : `${m} I haven't analysed it yet, so it's queued with no numbers.`;
+      if (shown.length === 1) return a ? `${m} I track it; open it to see every year since 2019.` : `${m} I don't track it yet, but you can still check plots near it.`;
       return a
-        ? `${m} ${a === shown.length ? "I've analysed all of them" : `${a} of them I've analysed`}; open one to see every dry season since 2019.`
-        : `${m} I haven't analysed any of them yet, so they're queued with no numbers.`;
+        ? `${m} ${a === shown.length ? "I track all of them" : `I track ${a} of them`}; open one to see every year since 2019.`
+        : `${m} I don't track these yet, but you can still check plots near them.`;
     }
-    if (status === "changed") return `${a} lakes${where} where lake bed turned to land and stayed. Biggest change is first.`;
-    if (status === "nochange") return `${a} lakes${where} where nothing in the lake bed turned to land and stayed since 2019.`;
-    if (status === "nodata") return `${a} lakes${where} where clouds left me too few clear dry seasons to judge. I won't guess.`;
-    if (status === "queued") return `${n.toLocaleString("en-IN")} lakes${where} I haven't analysed yet. Queued doesn't mean unchanged; it means I haven't looked.`;
-    if (kind !== "any") return `Lakes with at least one flag of ${(KIND_LABELS[kind] ?? kind).toLowerCase()}${where}.`;
-    if (state !== "All" && a === 0) return `I haven't analysed a lake in ${state} yet. The ${n.toLocaleString("en-IN")} below are mapped and queued.`;
-    if (state !== "All") return `${state}: ${a} analysed, ${n.toLocaleString("en-IN")} queued. Amber means I found change that stayed.`;
-    return "Amber means I found lake bed that turned to land and stayed; green means the lake held steady. Blue dots on the map are lakes still in my queue.";
+    if (status === "changed") return `${a} lakes${where} where part of the lake turned into land. Most lost first.`;
+    if (status === "nochange") return `${a} lakes${where} that kept their size since 2019.`;
+    if (status === "nodata") return `${a} lakes${where} where clouds hid too many years. I won't guess.`;
+    if (status === "queued") return `${n.toLocaleString("en-IN")} lakes${where} I don't track yet. That doesn't mean they're fine; I just haven't looked.`;
+    if (kind !== "any") return `Lakes with at least one spot of ${(KIND_LABELS[kind] ?? kind).toLowerCase()}${where}.`;
+    if (state !== "All" && a === 0) return `I don't track a lake in ${state} yet. The ${n.toLocaleString("en-IN")} below are on the map.`;
+    if (state !== "All") return `${state}: ${a} tracked, ${n.toLocaleString("en-IN")} more on the map. Orange means the lake is shrinking.`;
+    return "Orange means the lake is shrinking; green means it kept its size. Blue dots on the map are lakes I don't track yet.";
   })();
   const reset = () => {
     setState("All");
@@ -148,11 +148,11 @@ export default function AllLakes() {
       <span className="eyebrow">Lakes</span>
       <div className="section-head" style={{ marginTop: 4 }}>
         <div style={{ flex: "1 1 520px", minWidth: 0 }}>
-          <h1>Monitored lakes</h1>
+          <h1>Lakes</h1>
           <p className="lede">
             {loading
               ? "Loading lakes…"
-              : `${analysedTotal} lakes analysed · ${(all.length - analysedTotal).toLocaleString("en-IN")} more catalogued across ${states.length} states and union territories, queued for analysis.`}
+              : `${analysedTotal} lakes tracked closely · ${(all.length - analysedTotal).toLocaleString("en-IN")} more on the map across ${states.length} states and union territories.`}
           </p>
         </div>
         <div style={{ flex: "0 1 340px", minWidth: 0 }}>
@@ -182,7 +182,7 @@ export default function AllLakes() {
           </select>
         </div>
         <div className="field" style={{ flex: "1 1 180px" }}>
-          <label htmlFor="kind">Change category</label>
+          <label htmlFor="kind">What happened</label>
           <select id="kind" value={kind} onChange={(e) => setKind(e.target.value)}>
             <option value="any">Any</option>
             {Object.entries(KIND_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -191,15 +191,15 @@ export default function AllLakes() {
         <div className="field" style={{ flex: "1 1 170px" }}>
           <label htmlFor="sort">Sort</label>
           <select id="sort" value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
-            <option value="change">Most change first</option>
-            <option value="recent">Most recent change</option>
+            <option value="change">Most lake lost first</option>
+            <option value="recent">Most recent first</option>
             <option value="largest">Largest lake</option>
             <option value="name">A to Z</option>
           </select>
         </div>
       </div>
 
-      {failed && <p className="notice error">Analysis results could not be loaded. The catalogue below is still available.</p>}
+      {failed && <p className="notice error">Tracked lakes could not be loaded. The map of all lakes below still works.</p>}
 
       {loading ? (
         <Skeleton />
@@ -214,7 +214,7 @@ export default function AllLakes() {
           {analysedShown.length > 0 && (
             <section aria-labelledby="analysed-title" style={{ marginBottom: 56 }}>
               <div className="count-head">
-                <h2 id="analysed-title">Analysed lakes</h2>
+                <h2 id="analysed-title">Lakes we track</h2>
                 <span className="muted">{analysedShown.length} with results from the full pipeline · flags not yet hand-checked</span>
               </div>
               <div className="lake-grid">{analysedShown.map((c) => <LakeCard key={c.id} c={c} />)}</div>
@@ -224,7 +224,7 @@ export default function AllLakes() {
           {queuedSorted.length > 0 && (
             <section aria-labelledby="queued-title">
               <div className="count-head">
-                <h2 id="queued-title">India catalogue</h2>
+                <h2 id="queued-title">All lakes in India</h2>
                 <span className="muted">
                   {queuedSorted.length.toLocaleString("en-IN")} named lakes from OpenStreetMap · queued, no results yet
                 </span>

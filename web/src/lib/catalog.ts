@@ -19,11 +19,11 @@ export const ANALYSED_META: Record<string, AnalysedMeta> = {
   "yele-mallappa-shetty": { city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/yele-mallappa-shetty.png", lat: 13.0173, lon: 77.7332 },
   jakkur: {
     city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/jakkur.png", lat: 13.0866, lon: 77.6127,
-    note: "Most flagged area is construction in the 30 m buffer on the east side and a new structure at the north-west inlet; verify whether these are approved works.",
+    note: "Most of the change is building work within 30 m of the lake on the east side, and a new structure at the north-west corner. Check whether these were approved.",
   },
   bellandur: {
     city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/bellandur.png", lat: 12.93482, lon: 77.66382, osmId: "osm-r19751547",
-    note: "The imagery shows this lake drained and under earthworks from 2021 (bare, excavated lake bed; works along the southern edge). Most flags here are works in progress, not encroachment. Verify each one.",
+    note: "This lake was drained for repair work from 2021 (dug-up lake bed, work along the south edge). Most spots here are that work, not people taking land. Check each one.",
   },
   varthur: { city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/varthur.png", lat: 12.94722, lon: 77.73629, osmId: "osm-r19306126" },
   kaikondrahalli: { city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/kaikondrahalli.png", lat: 12.91289, lon: 77.67273, osmId: "osm-r6820030" },
@@ -143,15 +143,15 @@ export type StatusKey = "changed" | "nochange" | "nodata" | "queued";
 
 /** Never treats "not analysed" as "no change". */
 export function statusOf(c: Card): Status {
-  if (!c.analysed) return { label: "Queued for analysis", tone: "queued", key: "queued" };
-  if (c.flaggedAc == null) return { label: "Not enough data", tone: "nodata", key: "nodata" };
-  if (!c.flaggedAc) return { label: "No change detected", tone: "steady", key: "nochange" };
-  return { label: `Change detected · ${c.flaggedAc.toFixed(2)} ac`, tone: "changed", key: "changed" };
+  if (!c.analysed) return { label: "Not tracked yet", tone: "queued", key: "queued" };
+  if (c.flaggedAc == null) return { label: "Too cloudy to tell", tone: "nodata", key: "nodata" };
+  if (!c.flaggedAc) return { label: "Stable", tone: "steady", key: "nochange" };
+  return { label: `Shrinking · ${c.flaggedAc.toFixed(2)} acres lost`, tone: "changed", key: "changed" };
 }
 
 export const KIND_LABELS: Record<string, string> = {
-  fill_or_construction: "Fill or construction",
-  vegetated_land: "Lake bed grassed over",
+  fill_or_construction: "Soil dumped or built on",
+  vegetated_land: "Lake bed dried and grassed over",
 };
 
 /** Change categories per analysed lake, from its flags. */

@@ -2,9 +2,9 @@ import type { Season } from "@/lib/data";
 
 const SERIES = [
   { key: "water_ac", label: "Open water", color: "var(--water)" },
-  { key: "floating_veg_ac", label: "Floating vegetation", color: "var(--veg)" },
-  { key: "bare_built_ac", label: "Bare or built", color: "var(--bare)" },
-  { key: "land_veg_ac", label: "Lake bed now land vegetation", color: "var(--land)" },
+  { key: "floating_veg_ac", label: "Weeds on water", color: "var(--veg)" },
+  { key: "bare_built_ac", label: "Bare soil or buildings", color: "var(--bare)" },
+  { key: "land_veg_ac", label: "Lake bed now grass", color: "var(--land)" },
 ] as const;
 
 /** Acres per class across dry seasons; gaps where a season lacks clear images. */
@@ -18,7 +18,7 @@ export default function AreaChart({ seasons, selected }: { seasons: Season[]; se
 
   return (
     <figure style={{ margin: 0 }}>
-      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Lake area by class, dry season each year" width="100%">
+      <svg viewBox={`0 0 ${W} ${H}`} role="img" aria-label="Lake area by type, each year" width="100%">
         {ticks.map((t) => (
           <g key={t}>
             <line x1={L} x2={W - R} y1={y(t)} y2={y(t)} stroke="var(--line)" />

@@ -1,8 +1,8 @@
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
-  title: "Monitored lakes",
-  description: "Analysed lakes with satellite change results, and the India-wide catalogue of named lakes queued for analysis.",
+  title: "Lakes",
+  description: "See which lakes are shrinking, year by year, from satellite photos. Lakes we track closely, and every named lake in India on one map.",
 };
 
 export default function Layout({ children }: { children: React.ReactNode }) {
