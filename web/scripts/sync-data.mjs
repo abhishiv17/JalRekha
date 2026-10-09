@@ -51,3 +51,34 @@ if (existsSync(floods)) {
 }
 writeFileSync(resolve(pub, "floods", "index.json"), JSON.stringify(events));
 console.log(`synced ${events.length} flood event(s)`);
+
+// Spots a person checked by hand against older high-resolution imagery (research/flags_checked.csv).
+function parseCsv(text) {
+  const rows = [];
+  let row = [], field = "", quoted = false;
+  for (let i = 0; i < text.length; i++) {
+    const c = text[i];
+    if (quoted) {
+      if (c === '"' && text[i + 1] === '"') { field += '"'; i++; }
+      else if (c === '"') quoted = false;
+      else field += c;
+    } else if (c === '"') quoted = true;
+    else if (c === ",") { row.push(field); field = ""; }
+    else if (c === "\n" || c === "\r") {
+      if (c === "\r" && text[i + 1] === "\n") i++;
+      row.push(field); rows.push(row); row = []; field = "";
+    } else field += c;
+  }
+  if (field || row.length) { row.push(field); rows.push(row); }
+  const [head, ...body] = rows.filter((r) => r.length > 1);
+  return body.map((r) => Object.fromEntries(head.map((h, i) => [h, r[i] ?? ""])));
+}
+const checked = resolve(repo, "research", "flags_checked.csv");
+const checks = {};
+if (existsSync(checked)) {
+  for (const r of parseCsv(readFileSync(checked, "utf-8"))) {
+    checks[r.flag_id] = { verdict: r.verdict, seen: r.what_seen, dates: r.imagery_dates_compared, source: r.imagery_source };
+  }
+}
+writeFileSync(resolve(pub, "hand-checks.json"), JSON.stringify(checks));
+console.log(`synced ${Object.keys(checks).length} hand-checked spots`);

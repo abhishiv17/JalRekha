@@ -35,7 +35,18 @@ type Loaded = {
 
 const BASELINE = ["2019", "2020"];
 const yearOf = (season: string) => season.slice(0, 4);
-const ac = (n: number) => `${n.toFixed(2)} ac`;
+const ac = (n: number) => `${n.toFixed(2)} acres`;
+
+// How sure, from the pipeline's confidence (pipeline/jalrekha/change.py).
+const SURE: Record<string, string> = { high: "Sure", medium: "Fairly sure", low: "Not sure yet" };
+
+// A person compared the spot with older high-resolution photos (research/flags_checked.csv).
+type HandCheck = { verdict: string; seen: string; dates: string; source: string };
+const CHECKED: Record<string, string> = {
+  confirmed: "Yes: lake really lost",
+  "not confirmed": "Yes: no loss found",
+  "can't tell": "Yes: unclear",
+};
 
 export default function LakeView({ id }: { id: string }) {
   const [data, setData] = useState<Loaded | null>(null);
@@ -49,7 +60,12 @@ export default function LakeView({ id }: { id: string }) {
   const [before, setBefore] = useState<string | null>(null);
   const [after, setAfter] = useState<string | null>(null);
   // What Jal last reacted to; drives the narration next to the map.
+  const [checks, setChecks] = useState<Record<string, HandCheck>>({});
   const [said, setSaid] = useState<{ kind: "intro" | "season" | "flag" | "buffer" | "landcover"; ref?: string | number }>({ kind: "intro" });
+
+  useEffect(() => {
+    fetch("/hand-checks.json").then((r) => r.json()).then(setChecks).catch(() => setChecks({}));
+  }, []);
 
   // A failed image belongs to one season; clear the notice when the season changes.
   useEffect(() => setMapError(null), [season]);
@@ -110,16 +126,17 @@ export default function LakeView({ id }: { id: string }) {
       if (f) {
         const n = f.flag_id.split("-").at(-1);
         const what = f.kind === "vegetated_land" ? "lake bed that dried up and grassed over" : "soil dumped or built on";
-        const where = f.zone === "buffer" ? "in the 30 m no-build zone around the lake" : "inside the lake";
+        const where = f.zone === "buffer" ? "within 30 metres of the lake, where building is not allowed" : "inside the lake";
+        const hand = checks[f.flag_id];
         return `Spot ${n}: ${ac(f.area_ac)} of ${what}, ${where}. I first saw it in ${yearOf(f.first_seen)}${
-          f.status === "confirmed" ? ", and it was still there the next year" : ". So far it's been seen only once, so check again next year"
-        }. How sure I am: ${f.confidence}.`;
+          f.status === "confirmed" ? ", and it stayed land the next year too" : ". It has been land in only one year so far, so it needs another look next year"
+        }. ${SURE[f.confidence]}.${hand ? ` A person checked it: ${CHECKED[hand.verdict] ?? hand.verdict}. They saw: ${hand.seen}` : ""}`;
       }
     }
     if (said.kind === "buffer") {
       return bufferWidth === 30
-        ? `The law says nothing may be built within 30 m of a lake. ${inBuffer > 0 ? `${ac(inBuffer)} of the change I found is inside that zone.` : "None of the change I found is in that zone; it's all inside the lake."}`
-        : `A proposed rule would shrink the zone to ${bufferWidth} m here. It isn't law yet. ${inBuffer > 0 ? `${ac(inBuffer)} of the change is inside that smaller zone.` : "None of the change is inside that smaller zone."}`;
+        ? `The law says nothing may be built within 30 metres of a lake. ${inBuffer > 0 ? `${ac(inBuffer)} of the change I found is inside that zone.` : "None of the change I found is in that zone; it's all inside the lake."}`
+        : `A proposed rule would shrink the zone to ${bufferWidth} metres here. It isn't law yet. ${inBuffer > 0 ? `${ac(inBuffer)} of the change is inside that smaller zone.` : "None of the change is inside that smaller zone."}`;
     }
     if (said.kind === "landcover") {
       return "Blue is open water, green is weeds floating on water (still lake), red is bare soil or buildings.";
@@ -182,7 +199,7 @@ export default function LakeView({ id }: { id: string }) {
                 {earliest && <> First seen in {yearOf(earliest)}.</>}
               </>
             ) : (
-              <>None of the lake, or the 30 m around it, turned into land between 2019 and {yearOf(last)}.</>
+              <>None of the lake, or the 30 metres around it, turned into land between 2019 and {yearOf(last)}.</>
             )}
           </p>
           <div className="periods">
@@ -265,7 +282,7 @@ export default function LakeView({ id }: { id: string }) {
               <label><input type="checkbox" checked={layers.outline} onChange={() => toggle("outline")} />
                 <span><i className="legend-key" style={{ border: "2px solid #fff", background: "#8a958f" }} />Lake outline</span></label>
               <label><input type="checkbox" checked={layers.buffer} onChange={() => toggle("buffer")} />
-                <span><i className="legend-key" style={{ border: "2px dashed #8fbf9f" }} />{bufferWidth} m no-build zone</span></label>
+                <span><i className="legend-key" style={{ border: "2px dashed #8fbf9f" }} />{bufferWidth}-metre no-build zone</span></label>
               <label><input type="checkbox" checked={layers.landcover} onChange={() => toggle("landcover")} />
                 <span>Colour every spot (water, weeds, soil)</span></label>
             </fieldset>
@@ -287,8 +304,8 @@ export default function LakeView({ id }: { id: string }) {
               <div><dt>Share of the lake</dt><dd className="stat">{pct.toFixed(1)}%</dd></div>
               <div><dt>Lake size in 2019–2020</dt><dd>{ac(stats.reference_area_ac)}</dd></div>
               <div><dt>First noticed</dt><dd>{earliest ? yearOf(earliest) : "—"}</dd></div>
-              <div><dt>Spots still there 2+ years</dt><dd>{confirmed.length} of {fs.length}</dd></div>
-              <div><dt>How sure we are</dt><dd>{conf.filter((x) => x.n).map((x) => `${x.n} ${x.c}`).join(" · ") || "—"}</dd></div>
+              <div><dt>Spots that lasted 2+ years</dt><dd>{confirmed.length} of {fs.length}</dd></div>
+              <div><dt>How sure</dt><dd>{conf.filter((x) => x.n).map((x) => `${x.n} ${SURE[x.c].toLowerCase()}`).join(" · ") || "—"}</dd></div>
             </dl>
             {byKind.length > 0 && (
               <ul style={{ margin: "14px 0 0", padding: 0, listStyle: "none" }}>
@@ -300,21 +317,21 @@ export default function LakeView({ id }: { id: string }) {
               </ul>
             )}
             <p className="small muted" style={{ margin: "12px 0 0" }}>
-              &ldquo;ac&rdquo; is acres (1 acre is about half a football field). A spot seen only once could be a dry year, so check it again next year.
+              1 acre is about half a football field. A spot seen as land in only one year could just be a dry year, so it needs another look.
             </p>
           </div>
 
           <div className="card">
             <h2 style={{ marginTop: 0 }}>No-build zone around the lake</h2>
             <div className="segmented" role="group" aria-label="Zone width" style={{ width: "fit-content" }}>
-              <button type="button" aria-pressed={bufferWidth === 30} onClick={() => { setBufferWidth(30); setSaid({ kind: "buffer", ref: 30 }); }}>30 m · the law today</button>
+              <button type="button" aria-pressed={bufferWidth === 30} onClick={() => { setBufferWidth(30); setSaid({ kind: "buffer", ref: 30 }); }}>30 metres · the law today</button>
               {bill > 0 && bill !== 30 && (
-                <button type="button" aria-pressed={bufferWidth === bill} onClick={() => { setBufferWidth(bill); setSaid({ kind: "buffer", ref: bill }); }}>{bill} m · proposed rule</button>
+                <button type="button" aria-pressed={bufferWidth === bill} onClick={() => { setBufferWidth(bill); setSaid({ kind: "buffer", ref: bill }); }}>{bill} metres · proposed rule</button>
               )}
             </div>
             <p style={{ margin: "14px 0 6px" }}>
               <span className="stat">{ac(inBuffer)}</span>{" "}
-              <span className="muted">of change inside the {bufferWidth} m zone</span>
+              <span className="muted">of change inside the {bufferWidth}-metre zone</span>
             </p>
             {bufferWidth === 30 && bufferFlags.length > 0 && (
               <p className="small" style={{ margin: "0 0 6px" }}>
@@ -323,8 +340,8 @@ export default function LakeView({ id }: { id: string }) {
             )}
             <p className="small muted" style={{ margin: 0 }}>
               {bufferWidth === 30
-                ? "Karnataka's lake law (KTCDA Act, 2014) bans building within 30 m of a lake."
-                : `A 2025 change to the law would allow building up to ${bill} m from a lake this size. It is not law yet (as of ${stats.as_of}).`}{" "}
+                ? "Karnataka's lake law (KTCDA Act, 2014) bans building within 30 metres of a lake."
+                : `A 2025 change to the law would allow building up to ${bill} metres from a lake this size. It is not law yet (as of ${stats.as_of}).`}{" "}
               This is not a legal ruling.
             </p>
           </div>
@@ -373,7 +390,7 @@ export default function LakeView({ id }: { id: string }) {
         ) : (
           <div className="table-scroll"><table>
             <thead>
-              <tr><th>Spot</th><th>Where</th><th>What happened</th><th className="num">Size</th><th>First seen</th><th>Still there?</th><th>How sure</th></tr>
+              <tr><th>Spot</th><th>Where</th><th>What happened</th><th className="num">Size</th><th>First seen</th><th>Lasted?</th><th>How sure</th><th>Checked by a person</th></tr>
             </thead>
             <tbody>
               {fs.map((f) => (
@@ -383,17 +400,23 @@ export default function LakeView({ id }: { id: string }) {
                   onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), zoom(f.flag_id))}
                   onMouseEnter={() => setFocusFlag(f.flag_id)} onMouseLeave={() => setFocusFlag(zoomTo)}>
                   <td>{f.flag_id.split("-").at(-1)}</td>
-                  <td>{f.zone === "lakebed" ? "Inside the lake" : "Within 30 m of the lake"}</td>
+                  <td>{f.zone === "lakebed" ? "Inside the lake" : "Within 30 metres of the lake"}</td>
                   <td>{kindLabel(f.kind)}</td>
                   <td className="num">{ac(f.area_ac)}</td>
                   <td>{yearOf(f.first_seen)}</td>
-                  <td>{f.status === "confirmed" ? "Yes, 2+ years" : "Not yet, seen once"}</td>
-                  <td><span className={`pill ${f.confidence}`}>{f.confidence}</span></td>
+                  <td>{f.status === "confirmed" ? "Yes, 2+ years" : "Only 1 year so far"}</td>
+                  <td><span className={`pill ${f.confidence}`}>{SURE[f.confidence]}</span></td>
+                  <td title={checks[f.flag_id]?.seen}>{checks[f.flag_id] ? CHECKED[checks[f.flag_id].verdict] ?? checks[f.flag_id].verdict : "Not yet"}</td>
                 </tr>
               ))}
             </tbody>
           </table></div>
         )}
+        <dl className="explain small">
+          <div><dt>Lasted?</dt><dd><b>Yes, 2+ years</b>: the spot was land in two or more dry seasons in a row. <b>Only 1 year so far</b>: land in the latest year only; it could be a dry year.</dd></div>
+          <div><dt>How sure</dt><dd><b>Sure</b>: land 2+ years in a row, and still land after every monsoon since. <b>Fairly sure</b>: land 2+ years, but water came back after some monsoons. <b>Not sure yet</b>: land in one year only.</dd></div>
+          <div><dt>Checked by a person</dt><dd>A team member compared the spot with older, sharper photos (Google Earth). Hover or tap a spot to read what they saw. Every other spot still needs a check.</dd></div>
+        </dl>
         <p className="small muted" style={{ marginBottom: 0 }}>Tap a row to see the spot on the map. A satellite sees change, not who did it, so check on the ground before blaming anyone.</p>
       </div>
 
@@ -405,7 +428,7 @@ export default function LakeView({ id }: { id: string }) {
       <details className="method">
         <summary>How we worked this out (technical details)</summary>
         <dl>
-          <dt>Imagery</dt><dd>Sentinel-2 Level-2A (10 m), {dry.reduce((a, s) => a + s.scene_ids.length, 0)} dry-season scenes from 2019 to 2026, via Earth Search on AWS Open Data.</dd>
+          <dt>Imagery</dt><dd>Sentinel-2 Level-2A (10 metres), {dry.reduce((a, s) => a + s.scene_ids.length, 0)} dry-season scenes from 2019 to 2026, via Earth Search on AWS Open Data.</dd>
           <dt>Baseline</dt><dd>Dry seasons 2019 and 2020. The reference footprint is the mapped outline plus water present in both baseline seasons.</dd>
           <dt>Classification</dt><dd>Water: MNDWI above a per-lake Otsu threshold (never below {stats.thresholds.mndwi}). Vegetation: NDVI ≥ {stats.thresholds.veg_ndvi}; floating if its shortwave infrared stays low. Bare or built: NDVI &lt; {stats.thresholds.bare_ndvi} and NDBI &gt; {stats.thresholds.ndbi}.</dd>
           <dt>Persistence</dt><dd>Lake bed that was lake in every baseline season and is land in its latest dry seasons; two in a row is confirmed.</dd>
