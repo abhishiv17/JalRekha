@@ -100,7 +100,8 @@ export default function AllLakes() {
         (!needle || `${c.name} ${placeLabel(c)}`.toLowerCase().includes(needle)),
     );
     const by: Record<Sort, (a: Card, b: Card) => number> = {
-      change: (a, b) => (b.flaggedAc ?? -1) - (a.flaggedAc ?? -1) || (b.areaAc ?? 0) - (a.areaAc ?? 0),
+      // Delhi first (the hackathon's home), then most lake lost.
+      change: (a, b) => Number(b.city === "Delhi") - Number(a.city === "Delhi") || (b.flaggedAc ?? -1) - (a.flaggedAc ?? -1) || (b.areaAc ?? 0) - (a.areaAc ?? 0),
       recent: (a, b) => (b.firstSeen ?? "").localeCompare(a.firstSeen ?? "") || (b.flaggedAc ?? -1) - (a.flaggedAc ?? -1),
       largest: (a, b) => (b.areaAc ?? 0) - (a.areaAc ?? 0),
       name: (a, b) => a.name.localeCompare(b.name),

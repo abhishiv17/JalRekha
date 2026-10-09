@@ -98,7 +98,7 @@ function QueuedLake() {
 
       <dl className="stat-tiles">
         <div className="stat-tile"><dt>LAKE</dt>
-          <dd>{lake.areaAc != null ? `${Math.round(lake.areaAc).toLocaleString("en-IN")} ac` : "—"}<small>mapped on OpenStreetMap</small></dd></div>
+          <dd>{lake.areaAc != null ? `${Math.round(lake.areaAc).toLocaleString("en-IN")} acres` : "—"}<small>size on OpenStreetMap</small></dd></div>
         <div className="stat-tile"><dt>STATE</dt><dd style={{ fontSize: 22 }}>{lake.state}<small>{lake.city ? `near ${lake.city}` : " "}</small></dd></div>
         <div className="stat-tile"><dt>CENTRE</dt>
           <dd style={{ fontSize: 20 }}>{lake.lat?.toFixed(4)}, {lake.lon?.toFixed(4)}<small>latitude, longitude</small></dd></div>

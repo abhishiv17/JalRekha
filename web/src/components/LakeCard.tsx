@@ -3,7 +3,7 @@ import LakeShape from "@/components/LakeShape";
 import { type Card, cardHref, placeLabel, statusOf } from "@/lib/catalog";
 import { seasonLabel } from "@/lib/data";
 
-const fmtAc = (ac: number) => (ac >= 100 ? Math.round(ac).toLocaleString("en-IN") : ac.toFixed(1)) + " ac";
+const fmtAc = (ac: number) => (ac >= 100 ? Math.round(ac).toLocaleString("en-IN") : ac.toFixed(1)) + " acres";
 
 /** Gallery card; analysed lakes link to their page, queued ones say what's missing. */
 export default function LakeCard({ c, facts = true }: { c: Card; facts?: boolean }) {
@@ -31,7 +31,7 @@ export default function LakeCard({ c, facts = true }: { c: Card; facts?: boolean
       {facts && (
         <dl className="lake-facts">
           <div><dt>LAKE</dt><dd>{c.areaAc != null ? fmtAc(c.areaAc) : "—"}</dd></div>
-          <div><dt>LAKE LOST</dt><dd>{c.analysed ? `${(c.flaggedAc ?? 0).toFixed(2)} ac` : "—"}</dd></div>
+          <div><dt>LAKE LOST</dt><dd>{c.analysed ? `${(c.flaggedAc ?? 0).toFixed(2)} acres` : "—"}</dd></div>
           <div><dt>LATEST CHANGE</dt><dd>{c.firstSeen ? seasonLabel(c.firstSeen).replace("Dry season ", "") : "—"}</dd></div>
         </dl>
       )}
