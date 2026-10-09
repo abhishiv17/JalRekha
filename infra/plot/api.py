@@ -3,6 +3,8 @@
     GET  /geocode?q=<text>          address search (Amazon Location Service), India only
     POST /check   {"lat", "lon", "address"?}  start a check, or reuse the stored one
     GET  /check/<id>                status, and the report with image links when done
+    GET  /index.json                tracked lakes, from lakes/*/summary.json (same as infra/api)
+    GET  /lakes/<id>/<file...>      302 to a short-lived presigned S3 URL (same as infra/api)
 
 The id is the pin rounded to 4 decimals (about 11 m), so the same spot is
 analysed once and shared links stay stable.
@@ -13,6 +15,7 @@ Env: PLOT_TABLE, PLOT_BUCKET, WORKER_FUNCTION
 import datetime as dt
 import json
 import os
+import re
 
 import boto3
 from botocore.config import Config
@@ -132,12 +135,52 @@ def get_check(pid: str) -> dict | None:
     return out
 
 
+LAKE_ID = re.compile(r"^[a-z0-9-]{1,64}$")
+LAKE_FILE = re.compile(r"^[A-Za-z0-9_./-]{1,200}$")
+
+
+def _s3():
+    # Regional endpoint: the global one redirects, and the redirect has no CORS headers.
+    return boto3.client("s3", region_name=os.environ["AWS_REGION"],
+                        config=Config(signature_version="s3v4", s3={"addressing_style": "virtual"}))
+
+
+def lake_index() -> dict:
+    s3, bucket, lakes = _s3(), os.environ["PLOT_BUCKET"], []
+    for page in s3.get_paginator("list_objects_v2").paginate(Bucket=bucket, Prefix="lakes/", Delimiter="/"):
+        for prefix in page.get("CommonPrefixes", []):
+            try:
+                lakes.append(json.loads(s3.get_object(Bucket=bucket, Key=f"{prefix['Prefix']}summary.json")["Body"].read()))
+            except s3.exceptions.NoSuchKey:
+                continue
+    lakes.sort(key=lambda l: l.get("latest_first_seen") or "", reverse=True)
+    lakes.sort(key=lambda l: l.get("flagged_ac", 0), reverse=True)
+    return {"generated": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"), "lakes": lakes}
+
+
+def lake_file(lake: str, path: str) -> dict:
+    if not LAKE_ID.match(lake) or not LAKE_FILE.match(path) or ".." in path:
+        return _resp(400, {"error": "bad path"})
+    url = _s3().generate_presigned_url(
+        "get_object", Params={"Bucket": os.environ["PLOT_BUCKET"], "Key": f"lakes/{lake}/{path}"}, ExpiresIn=3600)
+    return {"statusCode": 302, "headers": {"Location": url, **CORS, "Cache-Control": "max-age=600"}, "body": ""}
+
+
 def handler(event, context):
     method = event.get("requestContext", {}).get("http", {}).get("method", "GET")
     path = event.get("rawPath", "/")
     if method == "OPTIONS":
         return {"statusCode": 204, "headers": CORS, "body": ""}
     try:
+        if method == "GET" and path == "/index.json":
+            r = _resp(200, lake_index())
+            r["headers"]["Cache-Control"] = "max-age=300"
+            return r
+
+        m = re.match(r"^/lakes/([^/]+)/(.+)$", path)
+        if method == "GET" and m:
+            return lake_file(m.group(1), m.group(2))
+
         if method == "GET" and path == "/geocode":
             q = (event.get("queryStringParameters") or {}).get("q", "").strip()
             return _resp(200, {"results": geocode(q) if len(q) >= 3 else []})

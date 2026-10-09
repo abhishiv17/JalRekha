@@ -8,7 +8,9 @@
     {"Sid": "StartWorker", "Effect": "Allow", "Action": "lambda:InvokeFunction",
      "Resource": "arn:aws:lambda:${REGION}:${ACCOUNT}:function:jalrekha-plot-worker"},
     {"Sid": "ImageLinks", "Effect": "Allow", "Action": "s3:GetObject",
-     "Resource": "arn:aws:s3:::${BUCKET}/plots/*"},
+     "Resource": ["arn:aws:s3:::${BUCKET}/plots/*", "arn:aws:s3:::${BUCKET}/lakes/*"]},
+    {"Sid": "LakeList", "Effect": "Allow", "Action": "s3:ListBucket", "Resource": "arn:aws:s3:::${BUCKET}",
+     "Condition": {"StringLike": {"s3:prefix": ["lakes/*"]}}},
     {"Sid": "Geocode", "Effect": "Allow", "Action": ["geo-places:Geocode", "geo-places:ReverseGeocode", "geo-places:SearchText"],
      "Resource": "arn:aws:geo-places:${REGION}::provider/default"}
   ]
