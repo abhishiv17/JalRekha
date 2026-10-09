@@ -75,7 +75,7 @@ def main(results: Path, out: Path) -> None:
         w.writeheader()
         w.writerows(rows)
     kml = ('<?xml version="1.0" encoding="UTF-8"?><kml xmlns="http://www.opengis.net/kml/2.2"><Document>'
-           "<name>KereWatch flags to check</name>"
+           "<name>JalRekha flags to check</name>"
            '<Style id="flag"><LineStyle><color>ff335aff</color><width>3</width></LineStyle>'
            "<PolyStyle><color>40335aff</color></PolyStyle></Style>"
            + "".join(placemarks) + "</Document></kml>")

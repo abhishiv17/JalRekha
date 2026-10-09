@@ -1,8 +1,8 @@
 """Run one lake end to end.
 
-    python -m kerewatch.run --lake subedeharana-kere --out ../data/out
-    python -m kerewatch.run --lake subedeharana-kere --years 2023 2024 2025   # quick test
-    python -m kerewatch.run --lake subedeharana-kere --s3-bucket <bucket>
+    python -m jalrekha.run --lake subedeharana-kere --out ../data/out
+    python -m jalrekha.run --lake subedeharana-kere --years 2023 2024 2025   # quick test
+    python -m jalrekha.run --lake subedeharana-kere --s3-bucket <bucket>
 """
 
 import argparse

@@ -32,7 +32,7 @@ from shapely.ops import linemerge, polygonize, transform, unary_union
 
 warnings.filterwarnings("ignore", category=DeprecationWarning)
 OVERPASS = "https://overpass-api.de/api/interpreter"  # the community mirrors were down on 2026-10-09
-UA = "KereWatch/0.1 (WeMakeDevs hackathon lake catalog)"
+UA = "JalRekha/0.1 (WeMakeDevs hackathon lake catalog)"
 SKIP_WATER = {"river", "canal", "stream", "wastewater", "ditch", "drain", "moat", "fish_pass", "lock", "riverbank", "basin", "fountain"}
 MIN_HA = 1.0  # drop tiny garden ponds
 

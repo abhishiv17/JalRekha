@@ -2,12 +2,12 @@
 
 import numpy as np
 
-from kerewatch.change import baseline_lake, baseline_natural, confidence, find_flags, persistence
-from kerewatch.lakes import grow_footprint
-from kerewatch.classify import BARE_BUILT, FLOATING_VEG, LAND_VEG, MIXED, NODATA, WATER, classify
-from kerewatch.composites import seasonal_composite
-from kerewatch.indices import mndwi, ndvi
-from kerewatch.masks import clear_mask, shadow_mask
+from jalrekha.change import baseline_lake, baseline_natural, confidence, find_flags, persistence
+from jalrekha.lakes import grow_footprint
+from jalrekha.classify import BARE_BUILT, FLOATING_VEG, LAND_VEG, MIXED, NODATA, WATER, classify
+from jalrekha.composites import seasonal_composite
+from jalrekha.indices import mndwi, ndvi
+from jalrekha.masks import clear_mask, shadow_mask
 
 B, W, N = BARE_BUILT, WATER, NODATA
 

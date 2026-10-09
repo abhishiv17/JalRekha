@@ -3,7 +3,7 @@ import pytest
 shapely = pytest.importorskip("shapely")
 from shapely.geometry import box  # noqa: E402
 
-from kerewatch.buffer import bill_2025_buffer_m, buffer_rings  # noqa: E402
+from jalrekha.buffer import bill_2025_buffer_m, buffer_rings  # noqa: E402
 
 
 @pytest.mark.parametrize(
