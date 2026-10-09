@@ -1,0 +1,11 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "StartMonthlyRun",
+      "Effect": "Allow",
+      "Action": ["states:StartExecution"],
+      "Resource": "arn:aws:states:us-west-2:468094683747:stateMachine:kerewatch-run-all"
+    }
+  ]
+}

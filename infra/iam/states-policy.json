@@ -1,0 +1,14 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "RunPipeline",
+      "Effect": "Allow",
+      "Action": ["lambda:InvokeFunction"],
+      "Resource": [
+        "arn:aws:lambda:us-west-2:468094683747:function:kerewatch-pipeline",
+        "arn:aws:lambda:us-west-2:468094683747:function:kerewatch-pipeline:*"
+      ]
+    }
+  ]
+}

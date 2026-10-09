@@ -1,0 +1,58 @@
+{
+  "Comment": "KereWatch: run the pipeline for every lake, one Map branch per lake (years default to all).",
+  "StartAt": "RunLakes",
+  "States": {
+    "RunLakes": {
+      "Type": "Map",
+      "ItemsPath": "$.lakes",
+      "MaxConcurrency": 6,
+      "ItemSelector": {
+        "lake.$": "$$.Map.Item.Value"
+      },
+      "ItemProcessor": {
+        "ProcessorConfig": {
+          "Mode": "INLINE"
+        },
+        "StartAt": "RunLake",
+        "States": {
+          "RunLake": {
+            "Type": "Task",
+            "Resource": "arn:aws:states:::lambda:invoke",
+            "Parameters": {
+              "FunctionName": "${PipelineFunctionArn}",
+              "Payload.$": "$"
+            },
+            "OutputPath": "$.Payload",
+            "Retry": [
+              {
+                "ErrorEquals": [
+                  "Lambda.ServiceException",
+                  "Lambda.TooManyRequestsException",
+                  "States.Timeout"
+                ],
+                "IntervalSeconds": 10,
+                "MaxAttempts": 2,
+                "BackoffRate": 2
+              }
+            ],
+            "Catch": [
+              {
+                "ErrorEquals": [
+                  "States.ALL"
+                ],
+                "ResultPath": "$.error",
+                "Next": "LakeFailed"
+              }
+            ],
+            "End": true
+          },
+          "LakeFailed": {
+            "Type": "Pass",
+            "End": true
+          }
+        }
+      },
+      "End": true
+    }
+  }
+}
