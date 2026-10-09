@@ -39,6 +39,8 @@ export default function SiteHeader() {
       })
       .catch(() => {});
   }, []);
+  const [open, setOpen] = useState(false);
+  useEffect(() => setOpen(false), [path]);
   const on = (p: string) => (path?.startsWith(p) ? "page" : undefined);
 
   return (
@@ -46,23 +48,26 @@ export default function SiteHeader() {
       <div className="announce">
         {analysed && (
           <strong>
-            {analysed.n} lakes analysed in {analysed.cities} {analysed.cities === 1 ? "city" : "cities"}
+            {analysed.n} lakes checked in {analysed.cities} {analysed.cities === 1 ? "city" : "cities"}
           </strong>
         )}
         {analysed && " · "}
-        {catalogSize > 0 && <>{catalogSize.toLocaleString("en-IN")} lakes across India catalogued · </>}
-        results as of 9 Oct 2026
+        {catalogSize > 0 && <>{catalogSize.toLocaleString("en-IN")} more mapped across India · </>}
+        re-checked every month
       </div>
       <header className="site">
         <nav aria-label="Main">
           <Link href="/" className="brand" aria-label="JalRekha home"><Logo /></Link>
-          <div className="nav-links">
-            <Link className="link" href="/lakes/" aria-current={on("/lake")}>Lakes</Link>
-            <Link className="link" href="/#how">How it works</Link>
-            <Link className="link" href="/#method">Methodology</Link>
-            <Link className="link" href="/watchlist/" aria-current={on("/watchlist")}>Watchlist</Link>
+          <button type="button" className="menu-toggle" aria-expanded={open} aria-controls="main-links" onClick={() => setOpen((o) => !o)}>
+            {open ? "Close" : "Menu"}
+          </button>
+          <div id="main-links" className={`nav-links${open ? " open" : ""}`}>
+            <Link className="link" href="/lakes/" aria-current={on("/lake")}>Find a lake</Link>
+            <Link className="link" href="/#why">Why lakes matter</Link>
+            <Link className="link" href="/#how">How we check</Link>
+            <Link className="link" href="/watchlist/" aria-current={on("/watchlist")}>My alerts</Link>
             <Link className="button" href="/lakes/" style={{ minHeight: 40, padding: "9px 16px", marginLeft: 6 }}>
-              Explore lakes
+              Check your lake
             </Link>
           </div>
         </nav>
