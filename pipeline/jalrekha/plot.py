@@ -169,10 +169,31 @@ def flood_events_at(lat: float, lon: float, floods_dir: Path = DATA_DIR / "flood
     return out
 
 
-def analyse(lat: float, lon: float, years=YEARS, catalog: list[dict] | None = None, cache: Path | None = None):
-    """Water history at the pin. Returns (facts, arrays) where arrays feed the images."""
+def _season_words(name: str) -> str:
+    year, kind = name.split("-")
+    return f"{'Jan–Apr' if kind == 'dry' else 'Nov–Dec'} {year}"
+
+
+def analyse(lat: float, lon: float, years=YEARS, catalog: list[dict] | None = None, cache: Path | None = None,
+            progress=None):
+    """Water history at the pin. Returns (facts, arrays) where arrays feed the images.
+
+    progress(step, line, done=None, total=None), if given, is told what is happening.
+    """
+    say = progress or (lambda *a, **k: None)
     gbox, pin = plot_grid(lat, lon)
-    seasons = load_seasons(gbox, years, cache)
+    total = 2 * len(list(years))
+    count = {"done": 0}
+
+    def on_season(name, scenes):
+        count["done"] += 1
+        line = (f"{_season_words(name)}: {scenes} satellite photos" if scenes
+                else f"{_season_words(name)}: no clear photos")
+        say("read", line, count["done"], total)
+
+    say("read", "Looking for satellite photos of this spot since 2019", 0, total)
+    seasons = load_seasons(gbox, years, cache, on_season=on_season)
+    say("water", "Finding where water has been, season by season")
     region = np.ones(gbox.shape, dtype=bool)
 
     history, dry_water = [], []
@@ -193,6 +214,8 @@ def analyse(lat: float, lon: float, years=YEARS, catalog: list[dict] | None = No
             dry_water.append(water)
 
     extent = drop_specks(np.logical_or.reduce(dry_water)) if dry_water else np.zeros(gbox.shape, bool)
+    seen = sum(1 for h in history if h["season"].endswith("dry") and h["water_at_pin"])
+    say("water", f"Water at the pin in {seen} of {sum(1 for h in history if h['season'].endswith('dry'))} dry seasons")
     near = nearest_extent(extent, pin)
     # Name the lake from the water patch the pin belongs to, not the pin itself:
     # a plot can sit nearer another lake's centre than its own lake's.
@@ -208,6 +231,14 @@ def analyse(lat: float, lon: float, years=YEARS, catalog: list[dict] | None = No
     for rule in rules:
         rule["inside"] = d is not None and 0 < d <= rule["width_m"]
 
+    say("water", "Nearest lake edge: " + ("on the lake" if d == 0 else f"{d} m away" if d is not None else "none within 600 m")
+        + (f" ({lake['name']})" if lake else ""))
+    say("flood", "Checking radar flood maps")
+    floods = flood_events_at(lat, lon)
+    for f in floods:
+        say("flood", f"{f['name']}: " + ("water here" if f["flooded_at_pin"] else "no water seen here"))
+    if not floods:
+        say("flood", "No flood map covers this area yet")
     dry_hits = [h for h in history if h["season"].endswith("dry") and h["water_at_pin"]]
     post_hits = [h for h in history if h["season"].endswith("post") and h["water_at_pin"]]
     facts = {
@@ -225,7 +256,7 @@ def analyse(lat: float, lon: float, years=YEARS, catalog: list[dict] | None = No
             "near": lake.get("near"), "area_ha": lake.get("ha"),
         },
         "buffer_rules": rules,
-        "floods": flood_events_at(lat, lon),
+        "floods": floods,
         "window": {
             "half_size_m": HALF_WINDOW_M,
             "bounds": list(gbox.geographic_extent.boundingbox),  # left, bottom, right, top

@@ -109,6 +109,13 @@ def get_check(pid: str) -> dict | None:
            "lat": float(item["lat"]), "lon": float(item["lon"]), "created": item.get("created")}
     if item["status"] == "error":
         out["error"] = item.get("error")
+    if item["status"] in ("queued", "running"):
+        out["progress"] = {
+            "step": item.get("step", "queued"),
+            "done": int(item.get("done", 0)),
+            "total": int(item.get("total", 0)),
+            "log": item.get("log", []),
+        }
     if item["status"] in ("queued", "running") and _age_s(item.get("created")) > RUNNING_TIMEOUT_S:
         out["status"] = "error"
         out["error"] = "The check took too long; start it again."

@@ -37,17 +37,35 @@ def _set(table, pid: str, **fields) -> None:
     )
 
 
+def _progress(table, pid: str):
+    """Save each step for the page to show while the check runs (last 40 lines)."""
+    lines: list[str] = []
+
+    def say(step: str, line: str, done=None, total=None):
+        lines.append(line)
+        fields = {"step": step, "log": lines[-40:]}
+        if done is not None:
+            fields.update(done=done, total=total)
+        try:
+            _set(table, pid, **fields)
+        except Exception as e:  # progress is a nicety; never fail the check on it
+            print(f"progress update failed: {e!r}")
+    return say
+
+
 def handler(event, context):
     table = boto3.resource("dynamodb").Table(os.environ["PLOT_TABLE"])
     bucket = os.environ["PLOT_BUCKET"]
     pid, lat, lon = event["id"], float(event["lat"]), float(event["lon"])
     started = time.time()
     _set(table, pid, status="running", started=_now())
+    say = _progress(table, pid)
     try:
-        facts, arrays = analyse(lat, lon)
+        facts, arrays = analyse(lat, lon, progress=say)
         facts["address"] = event.get("address")
         out = Path(tempfile.mkdtemp()) / pid
         facts["images"] = write_images(out, arrays)
+        say("explain", "Writing your report in English, Kannada, Telugu and Hindi")
         report = {
             "id": pid,
             "facts": facts,
