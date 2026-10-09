@@ -127,13 +127,13 @@ _T = {
         "unknown": "Not sure: there are too few clear satellite photos of this spot.",
         "lake_bed": "This spot was under {lake}'s water in {n} of {checked} dry seasons ({seasons}). It may be on the old lake bed.",
         "flooded": "Radar saw floodwater on this spot on {date_words} ({event}).",
-        "in_buffer": "It is {distance_m} m from {lake}'s water, inside the {width_m} m no-build zone around the lake.",
-        "in_buffer_other": "It is {distance_m} m from {lake}'s water, inside a proposed {width_m} m no-build zone.",
+        "in_buffer": "It is {distance_m} metres from {lake}'s water, inside the {width_m}-metre no-build zone around the lake.",
+        "in_buffer_other": "It is {distance_m} metres from {lake}'s water, inside a proposed {width_m}-metre no-build zone.",
         "wet_after_monsoon": "Water stood here after the rains in {seasons}.",
-        "near_lake": "{lake}'s water has come within {distance_m} m of this spot.",
-        "flood_nearby": "On {date_words}, floodwater covered {pct}% of the open ground within 250 m.",
+        "near_lake": "{lake}'s water has come within {distance_m} metres of this spot.",
+        "flood_nearby": "On {date_words}, floodwater covered {pct}% of the open ground within 250 metres.",
         "dry_here": "The spot itself stayed dry in all {checked} dry seasons since 2019.",
-        "none": "Since 2019, this spot stayed dry in every satellite photo, and no lake water came within 100 m.",
+        "none": "Since 2019, this spot stayed dry in every satellite photo, and no lake water came within 100 metres.",
         "checks": [
             "Ask the seller for the survey number and check it on the lake map at the city planning office.",
             "Ask neighbours if the street floods in heavy rain.",
@@ -230,7 +230,8 @@ def explain_with_template(lvl: str, found: list[dict], facts: dict | None = None
                 "pct": round(100 * r.get("share", 0)),
                 "date_words": _date_words(r["date"]) if r.get("date") else "",
             }
-            lines.append(t[r["code"]].format(**vals))
+            line = t[r["code"]].format(**vals)
+            lines.append(line[:1].upper() + line[1:])  # "the lake's water..." starts a sentence
         if found and checked and not any(r["code"] == "lake_bed" for r in found):
             lines.append(t["dry_here"].format(checked=checked))
         out[lang] = {

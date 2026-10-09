@@ -154,6 +154,6 @@ def test_english_wording_names_the_lake_and_reads_plainly():
              {"code": "flood_nearby", "level": "watch", "event": "E", "date": "2022-09-05", "share": 0.1}]
     f = facts(dry_seasons_checked=8, nearest_lake={"name": "Herohalli Kere"})
     en = explain_with_template("watch", found, f)["en"]
-    assert "Herohalli Kere's water has come within 76 m" in en["summary"]
+    assert "Herohalli Kere's water has come within 76 metres" in en["summary"]
     assert "5 September 2022" in en["summary"]
     assert "stayed dry in all 8 dry seasons" in en["summary"]
