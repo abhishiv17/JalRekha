@@ -66,6 +66,39 @@ EVENTS = {
         "bbox": [77.50, 12.82, 77.82, 13.10],  # west, south, east, north
         "crs": "EPSG:32643",
     },
+    "delhi-2023-07": {
+        # The Yamuna crossed its all-time high (208.66 m) on 13 July; this pass is the morning before.
+        "name": "Yamuna floods, Delhi, July 2023",
+        "date": "2023-07-12",
+        "flood_scene": "S1A_IW_GRDH_1SDV_20230712T005233_20230712T005258_049383_05F03C",
+        "relative_orbit": 136,
+        "reference_ranges": ["2023-05-01/2023-06-25", "2023-09-25/2023-11-15"],
+        "dry_season": "2023-02-01/2023-04-30",
+        "bbox": [77.05, 28.45, 77.40, 28.85],
+        "crs": "EPSG:32643",
+    },
+    "chennai-2015-12": {
+        # Record rain on 1-2 December 2015; this pass is 6 December, with much still under water.
+        "name": "Chennai floods, December 2015",
+        "date": "2015-12-06",
+        "flood_scene": "S1A_IW_GRDH_1SDV_20151206T003120_20151206T003149_008914_00CC1F",
+        "relative_orbit": 92,
+        "reference_ranges": ["2016-01-15/2016-05-31"],
+        "dry_season": "2019-02-01/2019-04-30",  # Sentinel-2 L2A starts later; lakes change slowly
+        "bbox": [80.05, 12.85, 80.33, 13.20],
+        "crs": "EPSG:32644",
+    },
+    "hyderabad-2020-10": {
+        # Floods on 13-14 October 2020; this pass is 21 October, so it shows only water that stayed.
+        "name": "Hyderabad floods, October 2020",
+        "date": "2020-10-21",
+        "flood_scene": "S1A_IW_GRDH_1SDV_20201021T003858_20201021T003923_034887_041153",
+        "relative_orbit": 165,
+        "reference_ranges": ["2020-11-15/2021-02-28"],
+        "dry_season": "2020-02-01/2020-04-30",
+        "bbox": [78.30, 17.25, 78.62, 17.55],
+        "crs": "EPSG:32644",
+    },
 }
 
 RES_M = 20  # GRD resolution is about 20 m; finer pixels would only add speckle
