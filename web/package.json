@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --port 3000",
     "build": "next build",
     "start": "next start",
     "lint": "eslint",
     "sync-data": "node scripts/sync-data.mjs",
-    "predev": "node scripts/sync-data.mjs",
+    "predev": "node scripts/check-port.mjs && node scripts/sync-data.mjs",
     "prebuild": "node scripts/sync-data.mjs"
   },
   "dependencies": {
