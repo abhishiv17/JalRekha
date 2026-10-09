@@ -315,7 +315,7 @@ export default function EvidenceView({ id }: { id: string }) {
         <li>Losses before 2019 are outside this record.</li>
       </ul>
 
-      <h2>Draft letters</h2>
+      <h2 id="letters">Draft letters</h2>
       <p className="small muted no-print">Filled from the largest flag. Complete the parts in [square brackets] before sending.</p>
       <Letter title="Complaint to the lake custodian" text={fill(templates.complaint, letterValues(top))} />
       <Letter title="RTI application" text={fill(templates.rti, letterValues(top))} />

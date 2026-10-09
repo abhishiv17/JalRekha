@@ -6,7 +6,7 @@ import { useEffect, useMemo, useState } from "react";
 import AreaChart from "@/components/AreaChart";
 import type { Layers } from "@/components/LakeMap";
 import { Guide, Loader } from "@/components/Mascot";
-import { Outlines } from "@/components/OutlinedImage";
+import OutlinedImage, { Outlines } from "@/components/OutlinedImage";
 import Swipe from "@/components/Swipe";
 import WatchForm from "@/components/WatchForm";
 import { ANALYSED_META, KIND_LABELS, placeLabel } from "@/lib/catalog";
@@ -36,6 +36,24 @@ type Loaded = {
 const BASELINE = ["2019", "2020"];
 const yearOf = (season: string) => season.slice(0, 4);
 const ac = (n: number) => `${n.toFixed(2)} ac`;
+
+// Plain-language scales for the headline. A football pitch (105 × 68 m) is about 1.76 acres;
+// a 30×40 ft plot is 111.5 m² (36 to an acre); one acre of lake, one metre deep, holds 4,047 m³ (about 40 lakh litres).
+const PITCH_AC = 1.76;
+const LITRES_PER_AC_M = 4_046_856;
+
+function pitches(acres: number) {
+  const n = acres / PITCH_AC;
+  if (n < 0.35) return `about ${Math.max(2, Math.round(acres * 36.3))} house plots of 30×40 ft`;
+  if (n < 0.75) return "about half a football pitch";
+  if (n < 1.5) return "about one football pitch";
+  return `about ${Math.round(n)} football pitches`;
+}
+
+function litres(acres: number) {
+  const l = acres * LITRES_PER_AC_M;
+  return l >= 1e7 ? `${(l / 1e7).toFixed(1)} crore litres` : `${Math.round(l / 1e5)} lakh litres`;
+}
 
 export default function LakeView({ id }: { id: string }) {
   const [data, setData] = useState<Loaded | null>(null);
@@ -162,12 +180,65 @@ export default function LakeView({ id }: { id: string }) {
     <main>
       <Link href="/lakes/" className="small" style={{ textDecoration: "none" }}>← All lakes</Link>
 
-      <div className="lake-header" style={{ marginTop: 10 }}>
+      {/* The answer a resident came for: what happened, why it matters, what to do. */}
+      <section className="answer" aria-labelledby="answer-title">
+        <div className="answer-copy">
+          <span className="eyebrow">{place ? placeLabel(place) : "Lake"}</span>
+          <h1 id="answer-title">{stats.name}</h1>
+          <p className={`verdict ${status}`}>
+            {status === "nodata"
+              ? "Not enough clear satellite photos to judge this lake yet."
+              : total > 0
+                ? `About ${total.toFixed(1)} acres of this lake and its protected edge has turned into land since ${yearOf(usable[0].season)}.`
+                : `No lasting loss found. This lake has held its ground since ${yearOf(usable[0].season)}.`}
+          </p>
+          <p className="lede">
+            {status === "nodata" ? (
+              <>Clouds hid it in too many summers. We&apos;ll keep checking every month; ask for an alert below.</>
+            ) : total > 0 ? (
+              <>
+                That&apos;s {pitches(total)}{earliest && <>, first seen in {yearOf(earliest)}</>}. That much lake holds about {litres(total)} of
+                monsoon water for every metre of depth: water that would otherwise run into streets, and that refills the
+                borewells around it.
+              </>
+            ) : (
+              <>
+                We compared every summer from {yearOf(usable[0].season)} to {yearOf(last)}, and nothing in the lake bed or
+                its 30 m edge turned to land and stayed. We&apos;ll email you if that changes.
+              </>
+            )}
+          </p>
+          <div className="row answer-actions no-print">
+            {total > 0 && <Link className="button big" href={`/lake/${id}/evidence/#letters`}>Report it</Link>}
+            <a className={`button big${total > 0 ? " secondary" : ""}`} href="#watch">Alert me</a>
+            <a className="button big secondary" href="#explore">See the proof</a>
+          </div>
+          <p className="small muted" style={{ margin: 0 }}>
+            Satellites show that land changed, not who changed it or whether it was allowed. Check on the ground and in
+            official records before you complain.
+          </p>
+        </div>
+        {usable.length > 1 && (
+          <div className="then-now" aria-label={`${stats.name} in ${yearOf(usable[0].season)} and ${yearOf(last)}`}>
+            {[usable[0].season, last].map((s, i) => (
+              <figure key={s}>
+                <OutlinedImage src={lakeUrl(id, `truecolor/${s}.png`)} alt={`${stats.name}, January–April ${yearOf(s)}`}
+                  bounds={bounds} reference={reference} flags={i ? flags : undefined} />
+                <figcaption><b>{i ? "Now" : "Then"}</b> Jan–Apr {yearOf(s)}</figcaption>
+              </figure>
+            ))}
+            <p className="small muted">White: the lake. Amber: where it turned to land.</p>
+          </div>
+        )}
+      </section>
+      {stats.sample && <p className="notice">Sample data, not real results.</p>}
+      {place?.note && <p className="notice"><strong>What you should know about this lake:</strong> {place.note}</p>}
+
+      <div id="explore" className="lake-header" style={{ marginTop: 36 }}>
         <div style={{ minWidth: 0, flex: "1 1 560px" }}>
-          <span className="eyebrow">Lake analysis</span>
-          <h1>{stats.name}</h1>
-          <div className="row" style={{ gap: 10 }}>
-            {place && <span className="lede">{placeLabel(place)}</span>}
+          <span className="eyebrow">Explore the evidence</span>
+          <h2 style={{ margin: "4px 0 0" }}>Every summer since 2019, on the map</h2>
+          <div className="row" style={{ gap: 10, marginTop: 8 }}>
             <span className={`pill ${status}`}>{statusText}</span>
           </div>
           <p className="summary-line">
@@ -175,7 +246,7 @@ export default function LakeView({ id }: { id: string }) {
               <>Too few clear dry seasons after the baseline to judge lasting change reliably.</>
             ) : total > 0 ? (
               <>
-                <strong>{ac(total)}</strong> ({pct.toFixed(1)}% of the reference footprint) turned to land and stayed that way
+                <strong>{ac(total)}</strong> ({pct.toFixed(1)}% of the lake area tracked) turned to land and stayed that way
                 {byKind.length > 0 && <>: {byKind.map((x, i) => <span key={x.k}>{i ? " and " : ""}{ac(x.area)} {x.label.toLowerCase()}</span>)}</>}.
                 {earliest && <> The earliest flag was first seen in the {seasonLabel(earliest).toLowerCase()}.</>}
               </>
@@ -191,12 +262,9 @@ export default function LakeView({ id }: { id: string }) {
           </div>
         </div>
         <div className="row no-print" style={{ gap: 10 }}>
-          <Link className="button" href={`/lake/${id}/evidence/`}>Evidence pack</Link>
-          <a className="button secondary" href="#watch">Watch this lake</a>
+          <Link className="button secondary" href={`/lake/${id}/evidence/`}>Evidence pack</Link>
         </div>
       </div>
-      {stats.sample && <p className="notice">Sample data, not real results.</p>}
-      {place?.note && <p className="notice"><strong>Read before using these flags:</strong> {place.note}</p>}
 
       <div className="grid2" style={{ marginTop: 20 }}>
         <section id="lake-map" aria-label="Satellite map">
@@ -274,9 +342,9 @@ export default function LakeView({ id }: { id: string }) {
             <h2 style={{ marginTop: 0 }}>Change summary</h2>
             <dl className="season-stats" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "12px 16px" }}>
               <div><dt>Changed area</dt><dd className="stat" style={{ color: total ? "var(--amber-ink)" : undefined }}>{ac(total)}</dd></div>
-              <div><dt>Share of footprint</dt><dd className="stat">{pct.toFixed(1)}%</dd></div>
-              <div><dt>Reference footprint</dt><dd>{ac(stats.reference_area_ac)}</dd></div>
-              <div><dt>Earliest first seen</dt><dd>{earliest ? seasonLabel(earliest) : "—"}</dd></div>
+              <div><dt>Share of the lake</dt><dd className="stat">{pct.toFixed(1)}%</dd></div>
+              <div><dt>Lake area tracked</dt><dd>{ac(stats.reference_area_ac)}</dd></div>
+              <div><dt>First seen</dt><dd>{earliest ? seasonLabel(earliest) : "—"}</dd></div>
               <div><dt>Persistence</dt><dd>{confirmed.length} confirmed · {fresh.length} new</dd></div>
               <div><dt>Confidence</dt><dd>{conf.filter((x) => x.n).map((x) => `${x.n} ${x.c}`).join(" · ") || "—"}</dd></div>
             </dl>
