@@ -1,0 +1,36 @@
+# Planning files kept locally, not in the public repo
+/*.pdf
+/*.zip
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.ipynb_checkpoints/
+
+# Pipeline outputs and caches (results go to S3)
+data/cache/
+data/out/
+*.tif
+*.tiff
+
+# Node / Next.js
+node_modules/
+.next/
+out/
+
+# Env and secrets
+.env
+.env.*
+!.env.example
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Full OSM outlines are large; regenerate with pipeline/scripts/osm_india_lakes.py
+data/catalog/outlines/
