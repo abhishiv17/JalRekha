@@ -1,9 +1,10 @@
-"""KereWatch API (API Gateway HTTP API -> this Lambda).
+"""JalRekha API (API Gateway HTTP API -> this Lambda).
 
 Serves results with the same paths the web app reads as static files:
     GET  /index.json              lake list, built from lakes/*/summary.json
     GET  /lakes/<id>/<file...>    302 to a short-lived presigned S3 URL
     POST /watch {lake, email}     store the watcher; SNS emails a confirmation link
+    POST /unwatch {lake, email}   remove the watcher and its email subscription
 
 Env: RESULTS_BUCKET, WATCHERS_TABLE, ALERTS_TOPIC_ARN
 """
@@ -85,6 +86,29 @@ def _watch(body: str):
     return _resp(202, {"ok": True})
 
 
+def _unwatch(body: str):
+    try:
+        data = json.loads(body or "{}")
+    except json.JSONDecodeError:
+        return _resp(400, {"error": "invalid JSON"})
+    lake, email = str(data.get("lake", "")), str(data.get("email", "")).strip().lower()
+    if not LAKE_ID.match(lake) or not EMAIL.match(email):
+        return _resp(400, {"error": "lake and a valid email are required"})
+    ddb.delete_item(TableName=os.environ["WATCHERS_TABLE"], Key={"pk": {"S": lake}, "sk": {"S": email}})
+    removed = 0
+    topic = os.environ["ALERTS_TOPIC_ARN"]
+    for page in sns.get_paginator("list_subscriptions_by_topic").paginate(TopicArn=topic):
+        for sub in page["Subscriptions"]:
+            arn = sub["SubscriptionArn"]
+            if sub["Endpoint"].lower() != email or not arn.startswith("arn:"):
+                continue  # pending confirmations have no ARN yet and lapse on their own
+            policy = sns.get_subscription_attributes(SubscriptionArn=arn)["Attributes"].get("FilterPolicy", "{}")
+            if lake in json.loads(policy).get("lake", []):
+                sns.unsubscribe(SubscriptionArn=arn)
+                removed += 1
+    return _resp(200, {"ok": True, "subscriptions_removed": removed})
+
+
 def handler(event, context):
     method = event.get("requestContext", {}).get("http", {}).get("method", "GET")
     path = event.get("rawPath", "/")
@@ -97,4 +121,6 @@ def handler(event, context):
         return _file(m.group(1), m.group(2))
     if method == "POST" and path == "/watch":
         return _watch(event.get("body", ""))
+    if method == "POST" and path == "/unwatch":
+        return _unwatch(event.get("body", ""))
     return _resp(404, {"error": "not found"})

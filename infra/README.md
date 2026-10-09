@@ -52,4 +52,4 @@ Lambda settings: 3008 MB memory, 900 s timeout, 2048 MB ephemeral storage, env `
 
 ## Fallback
 
-If the Lambda isn't ready, run `python -m kerewatch.run --lake <id> --s3-bucket <bucket>` on a laptop with the same code, and show the Lambda running one lake in the video.
+If the Lambda isn't ready, run `python -m jalrekha.run --lake <id> --s3-bucket <bucket>` on a laptop with the same code, and show the Lambda running one lake in the video.

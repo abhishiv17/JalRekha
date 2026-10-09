@@ -1,5 +1,5 @@
 {
-  "Comment": "KereWatch: run the pipeline for every lake, one Map branch per lake (years default to all).",
+  "Comment": "JalRekha: run the pipeline for every lake, one Map branch per lake (years default to all).",
   "StartAt": "RunLakes",
   "States": {
     "RunLakes": {

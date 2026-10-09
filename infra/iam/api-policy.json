@@ -4,26 +4,44 @@
     {
       "Sid": "ReadResults",
       "Effect": "Allow",
-      "Action": ["s3:GetObject"],
+      "Action": [
+        "s3:GetObject"
+      ],
       "Resource": "arn:aws:s3:::kerewatch-results-468094683747/lakes/*"
     },
     {
       "Sid": "ListLakes",
       "Effect": "Allow",
-      "Action": ["s3:ListBucket"],
+      "Action": [
+        "s3:ListBucket"
+      ],
       "Resource": "arn:aws:s3:::kerewatch-results-468094683747",
-      "Condition": { "StringLike": { "s3:prefix": ["lakes/*"] } }
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": [
+            "lakes/*"
+          ]
+        }
+      }
     },
     {
       "Sid": "StoreWatchers",
       "Effect": "Allow",
-      "Action": ["dynamodb:PutItem"],
+      "Action": [
+        "dynamodb:PutItem",
+        "dynamodb:DeleteItem"
+      ],
       "Resource": "arn:aws:dynamodb:us-west-2:468094683747:table/kerewatch-watchers"
     },
     {
       "Sid": "SubscribeWatchers",
       "Effect": "Allow",
-      "Action": ["sns:Subscribe"],
+      "Action": [
+        "sns:Subscribe",
+        "sns:ListSubscriptionsByTopic",
+        "sns:GetSubscriptionAttributes",
+        "sns:Unsubscribe"
+      ],
       "Resource": "arn:aws:sns:us-west-2:468094683747:kerewatch-alerts"
     }
   ]

@@ -10,7 +10,7 @@ COPY pipeline/requirements.txt ${LAMBDA_TASK_ROOT}/
 RUN grep -v "^pytest" ${LAMBDA_TASK_ROOT}/requirements.txt > /tmp/req.txt \
     && pip install --no-cache-dir -r /tmp/req.txt
 
-COPY pipeline/kerewatch ${LAMBDA_TASK_ROOT}/kerewatch
+COPY pipeline/jalrekha ${LAMBDA_TASK_ROOT}/jalrekha
 COPY data/lakes ${LAMBDA_TASK_ROOT}/data/lakes
 COPY infra/lambda/handler.py ${LAMBDA_TASK_ROOT}/
 

@@ -1,19 +1,20 @@
 """Lambda entry point: run one lake and upload its results to S3.
 
 Event: {"lake": "subedeharana-kere", "years": [2019, ..., 2026]}  (years optional)
-Env:   RESULTS_BUCKET (required), LAKES_FILE, ALERTS_TOPIC_ARN (optional)
+Env:   RESULTS_BUCKET (required), LAKES_FILE, ALERTS_TOPIC_ARN, LAKES_TABLE (optional)
 """
 
 import json
 import os
 import shutil
+from decimal import Decimal
 from pathlib import Path
 
 import boto3
 
-from kerewatch import export
-from kerewatch.config import YEARS
-from kerewatch.run import run
+from jalrekha import export
+from jalrekha.config import YEARS
+from jalrekha.run import run
 
 
 def _latest_dry(stats: dict) -> str:
@@ -48,9 +49,9 @@ def _alert_new_flags(lake_dir: Path, lake_id: str, previous_latest: str | None) 
     area = sum(f["area_ac"] for f in new)
     boto3.client("sns").publish(
         TopicArn=topic,
-        Subject=f"KereWatch: new change at {stats['name']}",
+        Subject=f"JalRekha: new change at {stats['name']}",
         Message=(
-            f"KereWatch found {len(new)} new change flag(s) at {stats['name']} "
+            f"JalRekha found {len(new)} new change flag(s) at {stats['name']} "
             f"in the {latest} imagery, about {area:.2f} acres in total.\n\n"
             "This is change detected from satellite imagery, not proof of encroachment. "
             "Open the lake page for images, coordinates and an evidence pack."
@@ -58,6 +59,27 @@ def _alert_new_flags(lake_dir: Path, lake_id: str, previous_latest: str | None) 
         MessageAttributes={"lake": {"DataType": "String", "StringValue": lake_id}},
     )
     return len(new)
+
+
+def _store_in_dynamodb(lake_dir: Path, lake_id: str, entry: dict) -> int:
+    """Lake summary, per-season statistics and flags, one item each (pk = lake id)."""
+    table = os.environ.get("LAKES_TABLE")
+    if not table:
+        return 0
+    ddb = boto3.resource("dynamodb").Table(table)
+    stats = json.loads((lake_dir / "stats.json").read_text(encoding="utf-8"), parse_float=Decimal)
+    flags = json.loads((lake_dir / "flags.geojson").read_text(encoding="utf-8"), parse_float=Decimal)["features"]
+    items = [{"pk": lake_id, "sk": "summary", **json.loads(json.dumps(entry), parse_float=Decimal),
+              "as_of": stats["as_of"], "reference_area_ac": stats["reference_area_ac"]}]
+    for season in stats["seasons"]:
+        row = {k: v for k, v in season.items() if k != "scene_ids" and v is not None}
+        items.append({"pk": lake_id, "sk": f"season#{season['season']}", **row, "scenes": len(season["scene_ids"])})
+    for f in flags:
+        p = {k: v for k, v in f["properties"].items() if k != "scene_ids"}
+        items.append({"pk": lake_id, "sk": f"flag#{p['flag_id']}", **p})
+    for item in items:
+        ddb.put_item(Item=item)
+    return len(items)
 
 
 def handler(event, context):
@@ -76,4 +98,5 @@ def handler(event, context):
     (lake_dir / "summary.json").write_text(json.dumps(entry, indent=2), encoding="utf-8")
     n = export.upload_dir(lake_dir, bucket, prefix=f"lakes/{lake_id}/")
     alerts = _alert_new_flags(lake_dir, lake_id, previous_latest)
-    return {"lake": lake_id, "files": n, "bucket": bucket, "new_flags_alerted": alerts}
+    stored = _store_in_dynamodb(lake_dir, lake_id, entry)
+    return {"lake": lake_id, "files": n, "bucket": bucket, "new_flags_alerted": alerts, "dynamodb_items": stored}
