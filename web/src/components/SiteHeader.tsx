@@ -3,19 +3,9 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
+import Logo from "@/components/Brand";
 import { ANALYSED_META } from "@/lib/catalog";
 import { loadIndex } from "@/lib/data";
-
-export function Logo() {
-  return (
-    <svg width="36" height="36" viewBox="0 0 36 36" aria-hidden="true">
-      <rect width="36" height="36" rx="8" fill="#121212" />
-      <path d="M7 15c3-3 6-3 9 0s6 3 9 0" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
-      <path d="M7 22c3-3 6-3 9 0s6 3 9 0" fill="none" stroke="#fff" strokeWidth="2.2" strokeLinecap="round" />
-      <rect x="25" y="6" width="5" height="5" rx="1" fill="#F2683A" />
-    </svg>
-  );
-}
 
 export function Arrow({ size = 18 }: { size?: number }) {
   return (
@@ -49,7 +39,8 @@ export default function SiteHeader() {
       })
       .catch(() => {});
   }, []);
-  const on = (p: string) => (path === p || path === p.replace(/\/$/, "") ? "page" : undefined);
+  const on = (p: string) => (path?.startsWith(p) ? "page" : undefined);
+
   return (
     <>
       <div className="announce">
@@ -58,24 +49,20 @@ export default function SiteHeader() {
             {analysed.n} lakes analysed in {analysed.cities} {analysed.cities === 1 ? "city" : "cities"}
           </strong>
         )}
-        {catalogSize > 0 && <> · {catalogSize.toLocaleString("en-IN")} lakes across India catalogued</>} · results as of 9 Oct 2026
+        {analysed && " · "}
+        {catalogSize > 0 && <>{catalogSize.toLocaleString("en-IN")} lakes across India catalogued · </>}
+        results as of 9 Oct 2026
       </div>
       <header className="site">
         <nav aria-label="Main">
-          <Link href="/" className="brand">
-            <Logo />
-            <span>
-              <span className="brand-name">KereWatch</span>
-              <span className="brand-sub">Lake evidence from space</span>
-            </span>
-          </Link>
+          <Link href="/" className="brand" aria-label="JalRekha home"><Logo /></Link>
           <div className="nav-links">
-            <Link className="link" href="/lakes/" aria-current={on("/lakes/")}>All lakes</Link>
-            <Link className="link" href="/#method">How it works</Link>
-            <Link className="link" href="/#evidence">Evidence pack</Link>
-            <Link className="pill-search" href="/lakes/"><SearchIcon />Search a lake</Link>
-            <Link className="button" href="/lakes/" style={{ minHeight: 40, padding: "10px 16px", borderRadius: 8 }}>
-              Watch a lake
+            <Link className="link" href="/lakes/" aria-current={on("/lake")}>Lakes</Link>
+            <Link className="link" href="/#how">How it works</Link>
+            <Link className="link" href="/#method">Methodology</Link>
+            <Link className="link" href="/watchlist/" aria-current={on("/watchlist")}>Watchlist</Link>
+            <Link className="button" href="/lakes/" style={{ minHeight: 40, padding: "9px 16px", marginLeft: 6 }}>
+              Explore lakes
             </Link>
           </div>
         </nav>

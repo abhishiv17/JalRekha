@@ -31,7 +31,7 @@ Regenerate this kit after any pipeline run: `cd pipeline && python scripts/make_
 - **not confirmed**: the area looks the same across dates (still water or the same weeds), or the change is something the pipeline shouldn't count (a shadow, a cloud artefact, seasonal water level only).
 - **can't tell**: no clear high-resolution image for the right years, or the change is too small to judge at that resolution.
 
-Works such as desilting, bunds, walkways or sewage plants still count as **confirmed change**: KereWatch reports change, not legality. Write "works" in `what_you_see` so we can say so on screen (Bellandur is the main case).
+Works such as desilting, bunds, walkways or sewage plants still count as **confirmed change**: JalRekha reports change, not legality. Write "works" in `what_you_see` so we can say so on screen (Bellandur is the main case).
 
 ## The score
 

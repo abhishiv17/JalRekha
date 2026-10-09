@@ -1,10 +1,13 @@
-# Web app
+# JalRekha web app
 
 Next.js (static export) + MapLibre. It reads finished results only (see `contracts/README.md`) and never calls Earth Search.
 
-- `/`: lakes ranked by flagged area and recency, with search
-- `/lake/<id>/`: map with year slider and class overlay, area chart, flags, buffer switch (30 m law vs 2025 bill), before/after swipe, "Watch this lake"
-- `/lake/<id>/evidence/`: print-ready evidence pack (Save as PDF) with filled complaint and RTI drafts
+- `/`: home: the problem, how it works, analysed lakes, evidence workflow, methodology and credits
+- `/lakes/`: analysed lakes and the India catalogue: search, status and category filters, sorting, India map
+- `/lake/<id>/`: lake analysis: map with dry-season timeline and layers, change summary, buffer (30 m law vs proposed), before/after swipe, flags, methodology, watch
+- `/lake/<id>/evidence/`: evidence pack: PDF via print, GeoJSON, KML, scene list, complaint and RTI drafts
+- `/lakes/view/?id=…`: a catalogued lake that is queued, not yet analysed
+- `/watchlist/`: lakes watched from this browser, with stop watching
 
 ```bash
 npm install

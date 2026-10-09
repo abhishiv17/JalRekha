@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import LakeCard from "@/components/LakeCard";
 import LakeShape from "@/components/LakeShape";
+import Jal, { EmptyState, Loader } from "@/components/Mascot";
 import { type Card, cards, loadCatalog, placeLabel } from "@/lib/catalog";
 import { loadIndex } from "@/lib/data";
 
@@ -43,12 +44,13 @@ export default function QueuedLake() {
     };
   }, [all, lake]);
 
-  if (!all) return <main><p className="muted">Loading lake…</p></main>;
+  if (!all) return <main><Loader label="Loading lake…" /></main>;
   if (!lake) {
     return (
       <main>
-        <h1>Lake not found</h1>
-        <p className="lede">This lake isn&apos;t in the catalog. <Link href="/lakes/">Browse all lakes</Link>.</p>
+        <EmptyState title="Lake not found">
+          <p>This lake isn&apos;t in the catalogue. <Link href="/lakes/">Browse all lakes</Link>.</p>
+        </EmptyState>
       </main>
     );
   }
@@ -66,7 +68,7 @@ export default function QueuedLake() {
           <h1>{lake.name}</h1>
           <p className="lede" style={{ marginBottom: 6 }}>{placeLabel(lake)}</p>
         </div>
-        <span className="pill" style={{ marginBottom: 12 }}>Queued · not analysed yet</span>
+        <span className="pill" style={{ marginBottom: 12 }}>Queued for analysis</span>
       </div>
 
       <dl className="stat-tiles">
@@ -96,9 +98,12 @@ export default function QueuedLake() {
 
         <section>
           <div className="card">
-            <h2 style={{ marginTop: 0 }}>Not analysed yet</h2>
+            <div className="row" style={{ gap: 14, alignItems: "center" }}>
+              <Jal size={72} />
+              <h2 style={{ margin: 0 }}>This lake has not been analysed yet</h2>
+            </div>
             <p className="small" style={{ color: "var(--body)" }}>
-              KereWatch has this lake&apos;s outline but hasn&apos;t run the satellite analysis, so there are no change
+              JalRekha has this lake&apos;s outline but hasn&apos;t run the satellite analysis, so there are no change
               numbers yet. Getting results takes three steps:
             </p>
             <ol className="small" style={{ paddingLeft: 18, color: "var(--body)", lineHeight: 1.6 }}>

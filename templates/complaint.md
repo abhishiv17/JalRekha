@@ -27,4 +27,4 @@ Yours faithfully,
 [Name], on behalf of [lake group / RWA]
 [Contact]
 
-Attachments: KereWatch evidence pack ({{pack_id}})
+Attachments: JalRekha evidence pack ({{pack_id}})

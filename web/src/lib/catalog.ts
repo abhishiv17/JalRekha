@@ -5,7 +5,7 @@
 // - A few catalog lakes also carry a real 2026 Sentinel-2 thumbnail (FEATURED).
 // Queued lakes never show change numbers: they have not been analysed.
 
-import { type LakeSummary, lakeUrl } from "./data";
+import { type LakeSummary, lakeUrl, loadFlags } from "./data";
 
 export type Place = { city: string; state: string };
 
@@ -62,6 +62,7 @@ export type Card = Place & {
   note?: string;
   lat?: number;
   lon?: number;
+  kinds?: string[]; // change categories among the lake's flags (analysed lakes only)
 };
 
 /** Where a card links: analysed lakes have full pages, the rest a catalog page. */
@@ -137,10 +138,33 @@ export function cards(analysed: LakeSummary[], osm: OsmLake[] = []): Card[] {
   return [...done, ...queued];
 }
 
-export type Status = { label: string; tone: "changed" | "steady" | "queued" };
+export type Status = { label: string; tone: "changed" | "steady" | "queued" | "nodata"; key: StatusKey };
+export type StatusKey = "changed" | "nochange" | "nodata" | "queued";
 
+/** Never treats "not analysed" as "no change". */
 export function statusOf(c: Card): Status {
-  if (!c.analysed) return { label: "Queued", tone: "queued" };
-  if (!c.flaggedAc) return { label: "No lasting change", tone: "steady" };
-  return { label: `${c.flaggedAc.toFixed(2)} ac changed`, tone: "changed" };
+  if (!c.analysed) return { label: "Queued for analysis", tone: "queued", key: "queued" };
+  if (c.flaggedAc == null) return { label: "Not enough data", tone: "nodata", key: "nodata" };
+  if (!c.flaggedAc) return { label: "No change detected", tone: "steady", key: "nochange" };
+  return { label: `Change detected · ${c.flaggedAc.toFixed(2)} ac`, tone: "changed", key: "changed" };
+}
+
+export const KIND_LABELS: Record<string, string> = {
+  fill_or_construction: "Fill or construction",
+  vegetated_land: "Lake bed grassed over",
+};
+
+/** Change categories per analysed lake, from its flags. */
+export async function loadKinds(ids: string[]): Promise<Record<string, string[]>> {
+  const pairs = await Promise.all(
+    ids.map(async (id) => {
+      try {
+        const fc = await loadFlags(id);
+        return [id, Array.from(new Set(fc.features.map((f) => f.properties.kind ?? "fill_or_construction")))] as const;
+      } catch {
+        return [id, []] as const;
+      }
+    }),
+  );
+  return Object.fromEntries(pairs);
 }

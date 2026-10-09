@@ -32,7 +32,7 @@ export default function LakeCard({ c, facts = true }: { c: Card; facts?: boolean
         <dl className="lake-facts">
           <div><dt>LAKE</dt><dd>{c.areaAc != null ? fmtAc(c.areaAc) : "—"}</dd></div>
           <div><dt>CHANGED</dt><dd>{c.analysed ? `${(c.flaggedAc ?? 0).toFixed(2)} ac` : "—"}</dd></div>
-          <div><dt>FIRST SEEN</dt><dd>{c.firstSeen ? seasonLabel(c.firstSeen).replace("Dry season ", "") : "—"}</dd></div>
+          <div><dt>LATEST CHANGE</dt><dd>{c.firstSeen ? seasonLabel(c.firstSeen).replace("Dry season ", "") : "—"}</dd></div>
         </dl>
       )}
     </>

@@ -69,7 +69,7 @@ export default function IndiaMap({ lakes }: { lakes: Card[] }) {
             source: "lakes",
             filter: ["==", ["get", "tone"], "queued"],
             paint: {
-              "circle-color": "#2f6fd6",
+              "circle-color": "#4f7fbf",
               "circle-opacity": 0.6,
               // Small dots across India, larger ones as you zoom into a state; area sets the size.
               "circle-radius": [
@@ -87,7 +87,7 @@ export default function IndiaMap({ lakes }: { lakes: Card[] }) {
             source: "lakes",
             filter: ["!=", ["get", "tone"], "queued"],
             paint: {
-              "circle-color": ["match", ["get", "tone"], "changed", "#e2542a", "#1e6b3a"],
+              "circle-color": ["match", ["get", "tone"], "changed", "#f5a524", "nodata", "#8a8f8b", "#1f5c3f"],
               "circle-radius": 7,
               "circle-stroke-width": 2,
               "circle-stroke-color": "#ffffff",
@@ -140,9 +140,9 @@ export default function IndiaMap({ lakes }: { lakes: Card[] }) {
     <div>
       <div ref={el} className="map india-map" />
       <div className="legend">
-        <span><i style={{ background: "#e2542a", borderRadius: 99 }} />Analysed, change found</span>
-        <span><i style={{ background: "#1e6b3a", borderRadius: 99 }} />Analysed, no lasting change</span>
-        <span><i style={{ background: "#2f6fd6", opacity: 0.6, borderRadius: 99 }} />Queued (size = lake area)</span>
+        <span><i style={{ background: "#f5a524", borderRadius: 99 }} />Change detected</span>
+        <span><i style={{ background: "#1f5c3f", borderRadius: 99 }} />No change detected</span>
+        <span><i style={{ background: "#4f7fbf", opacity: 0.6, borderRadius: 99 }} />Queued, not analysed (size = lake area)</span>
       </div>
     </div>
   );
