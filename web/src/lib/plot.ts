@@ -62,9 +62,16 @@ export type Text = { headline: string; summary: string; checks: string[] };
 export type Report = {
   id: string;
   facts: Facts;
-  verdict: { level: Level; reasons: Reason[]; text: Record<Lang, Text>; text_source: "bedrock" | "template"; model: string | null };
+  verdict: { level: Level; reasons: Reason[]; text: Record<Lang, Text>; text_source: "bedrock" | "translate" | "template"; model: string | null };
   made: string;
   seconds: number;
+};
+
+export type Progress = {
+  step: "queued" | "read" | "water" | "flood" | "explain";
+  done: number;
+  total: number;
+  log: string[];
 };
 
 export type Check = {
@@ -75,6 +82,7 @@ export type Check = {
   lon: number;
   created?: string;
   error?: string;
+  progress?: Progress;
   report?: Report;
 };
 

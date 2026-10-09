@@ -1,9 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import CheckMap, { type CatalogLake, type CheckLayers } from "@/components/CheckMap";
-import { Guide, Loader } from "@/components/Mascot";
+import CheckProgress from "@/components/CheckProgress";
+import Jal, { Guide, type Mood } from "@/components/Mascot";
 import { SearchIcon } from "@/components/SiteHeader";
 import Swipe from "@/components/Swipe";
 import { seasonLabel } from "@/lib/data";
@@ -24,7 +26,14 @@ import {
   startCheck,
 } from "@/lib/plot";
 
-const POLL_MS = 5000;
+const POLL_MS = 2500;
+
+const LEVEL_MOOD: Record<Report["verdict"]["level"], Mood> = {
+  high: "worried",
+  watch: "cautious",
+  low: "celebrate",
+  unknown: "thinking",
+};
 const DISCLAIMER =
   "Satellite evidence of where water has been, measured from the water's edge seen from space. Not a land survey, not the legal lake boundary (FTL), and not legal advice. Verify with the planning authority and a lawyer before paying.";
 
@@ -43,6 +52,9 @@ function km(lat1: number, lon1: number, lat2: number, lon2: number) {
     Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin(((lon2 - lon1) * r) / 2) ** 2;
   return 12742 * Math.asin(Math.sqrt(a));
 }
+
+/** Radius in km of a circle with the lake's area (the catalogue has no outline). */
+const km2radius = (ha: number) => Math.sqrt((ha * 0.01) / Math.PI);
 
 const inside = (b: [number, number, number, number], lon: number, lat: number) =>
   lon >= b[0] && lon <= b[2] && lat >= b[1] && lat <= b[3];
@@ -65,6 +77,11 @@ export default function CheckView() {
   const [events, setEvents] = useState<FloodEvent[]>([]);
   const [lakes, setLakes] = useState<CatalogLake[] | undefined>();
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    const lat = Number(params.get("lat")), lon = Number(params.get("lon"));
+    if (!id && Number.isFinite(lat) && Number.isFinite(lon) && params.get("lat")) setPin([lon, lat]);
+  }, [id, params]);
 
   useEffect(() => {
     loadFloodEvents().then(setEvents).catch(() => setEvents([]));
@@ -175,12 +192,12 @@ export default function CheckView() {
   return (
     <main className="check">
       <div className="no-print">
-        <span className="eyebrow">Plot Check · for buyers and renters</span>
-        <h1>Is this land on a lake, or does it flood?</h1>
+        <span className="eyebrow">Plot Check · before you buy or rent</span>
+        <h1>Was this land part of a lake?</h1>
         <p className="lede" style={{ maxWidth: 760 }}>
-          Drop a pin on a plot, flat or layout. JalRekha reads every Sentinel-2 satellite pass over it since 2019 and
-          tells you whether lake water ever stood there, whether it gets waterlogged after the monsoon, how far the
-          lake&rsquo;s edge is, and whether radar saw it flood. Before you pay, not after.
+          Drop a pin on a plot or building. We read every satellite photo of it since 2019 and tell you if lake water
+          stood there, how close the lake is, and if it flooded. Choosing land that isn&rsquo;t a filled lake keeps your
+          home safe and lets the lake keep doing its job.
         </p>
       </div>
 
@@ -254,6 +271,12 @@ export default function CheckView() {
           <div>
             <strong>{address || `${pin[1].toFixed(5)}, ${pin[0].toFixed(5)}`}</strong>
             <div className="small muted">The check reads a 1.2 km square around this pin.</div>
+            {nearest && km2radius(nearest.lake.ha) > nearest.d && (
+              <div className="small" style={{ color: "var(--danger)" }}>
+                This pin looks like it&rsquo;s in the water of {nearest.lake.name}. Plot Check is for land near a lake:
+                tap the plot or building itself.
+              </div>
+            )}
             {nearest && (nearest.d <= NEAR_CATALOG_KM ? (
               <div className="small" style={{ color: "var(--brand-deep)" }}>
                 Nearest catalogued lake: {nearest.lake.name}, {nearest.d < 1 ? `${Math.round(nearest.d * 1000)} m` : `${nearest.d.toFixed(1)} km`} from the pin.
@@ -279,16 +302,7 @@ export default function CheckView() {
       )}
 
       {check && (check.status === "queued" || check.status === "running") && (
-        <div className="card check-wait">
-          <Loader label={check.status === "queued" ? "Starting the check…" : "Reading satellite passes since 2019…"} />
-          <ol className="small muted">
-            <li>Every Sentinel-2 pass over this spot, January–April and November–December, 2019–2026 (AWS Open Data).</li>
-            <li>Water in each season, at the pin and around it.</li>
-            <li>The lake&rsquo;s largest extent, buffer rules and mapped floods.</li>
-            <li>A plain-language verdict, written by Claude on Amazon Bedrock.</li>
-          </ol>
-          <p className="small muted">This usually takes 2–4 minutes. You can keep this page open or come back to the link.</p>
-        </div>
+        <CheckProgress progress={check.progress} since={check.created} />
       )}
 
       {check?.status === "error" && (
@@ -324,7 +338,10 @@ function ReportPanel({ report, lang, setLang }: { report: Report; lang: Lang; se
   return (
     <section className={`card verdict verdict-${v.level}`} aria-labelledby="verdict-title">
       <div className="row" style={{ justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
-        <span className={`pill level-${v.level}`}>{LEVEL_LABEL[v.level]}</span>
+        <span className="row" style={{ gap: 8 }}>
+          <Jal size={48} mood={LEVEL_MOOD[v.level]} interactive={false} className="no-print" />
+          <span className={`pill level-${v.level}`}>{LEVEL_LABEL[v.level]}</span>
+        </span>
         <div className="segmented no-print" role="group" aria-label="Language">
           {LANGS.map((l) => (
             <button key={l.id} type="button" aria-pressed={lang === l.id} onClick={() => setLang(l.id)} lang={l.id}>
@@ -342,7 +359,7 @@ function ReportPanel({ report, lang, setLang }: { report: Report; lang: Lang; se
       <p className="small muted" style={{ marginTop: 14 }}>
         {report.facts.address && <>{report.facts.address} · </>}
         {report.facts.lat.toFixed(5)}, {report.facts.lon.toFixed(5)} · checked {report.made.slice(0, 10)} ·{" "}
-        {v.text_source === "bedrock" ? "explained by Claude on Amazon Bedrock" : "standard wording"}
+        {{ bedrock: "explained by Claude on Amazon Bedrock", translate: "translated by Amazon Translate", template: "standard wording" }[v.text_source]}
       </p>
     </section>
   );
@@ -383,8 +400,14 @@ function ReportDetails({ report }: { report: Report }) {
   const f = report.facts;
   const d = f.distance_to_extent_m;
   const img = f.images;
+  const onWater = f.dry_seasons_checked > 0 && f.dry_seasons_with_water.length === f.dry_seasons_checked;
   return (
     <section className="section" style={{ marginTop: 28 }}>
+      {onWater && (
+        <Guide size={52} className="section-guide no-print" tone="warn" interactive={false}>
+          {`This pin is on open water in every dry season since 2019: it's ${f.nearest_lake ? f.nearest_lake.name : "the lake"} itself, not land beside it. To check a plot, go back and drop the pin on the plot or building.`}
+        </Guide>
+      )}
       <h2 className="section-title">What the satellites saw</h2>
       <dl className="stat-tiles">
         <div className="stat-tile">
@@ -458,7 +481,7 @@ function ReportDetails({ report }: { report: Report }) {
         </>
       )}
 
-      {img.before?.url && img.after?.url && (
+      {img.before?.url && img.after?.url && !onWater && (
         <>
           <h3 style={{ marginTop: 24 }}>Then and now</h3>
           <Swipe
@@ -470,6 +493,20 @@ function ReportDetails({ report }: { report: Report }) {
           />
           <p className="small muted">Sentinel-2 true colour, 10 m pixels, 1.2 km across. The crosshair is your pin.</p>
         </>
+      )}
+
+      {f.nearest_lake && (
+        <div className="card protect">
+          <Jal size={56} mood="happy" interactive={false} className="no-print" />
+          <div>
+            <h3 style={{ margin: "0 0 4px" }}>Help protect {f.nearest_lake.name}</h3>
+            <p style={{ margin: "0 0 10px" }}>
+              This lake holds rain for everyone around it. If you see soil dumped or walls going up on it, report it to the
+              city. This report, with its dated satellite photos, is your proof.
+            </p>
+            <Link className="button secondary" href={`/lakes/view/?id=${f.nearest_lake.id}`}>See this lake</Link>
+          </div>
+        </div>
       )}
 
       <details className="small" style={{ marginTop: 20 }}>

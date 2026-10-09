@@ -374,3 +374,60 @@ footer.site .wordmark-name span { font-size: inherit; color: var(--brand); }
   .verdict { break-inside: avoid; }
 }
 .lake-pop { font-size: 13px; color: var(--text); }
+.check-cta { display: flex; justify-content: space-between; align-items: center; gap: 12px; flex-wrap: wrap; margin: 4px 0 20px; border-color: var(--brand-soft); background: var(--brand-tint); }
+
+/* Jal moods (Mascot.tsx) */
+.jal-orbit { transform-origin: 60px 52px; animation: jal-orbit 2.4s ease-in-out infinite alternate; }
+svg:has(.jal-orbit) { overflow: visible; }
+.jal-dots circle { animation: jal-dot 1.4s ease-in-out infinite; }
+.jal-dots circle:nth-child(2) { animation-delay: 0.2s; }
+.jal-dots circle:nth-child(3) { animation-delay: 0.4s; }
+.jal-drop { animation: jal-drop 1.8s ease-in-out infinite; }
+.jal-sparkle path { transform-box: fill-box; transform-origin: center; animation: jal-twinkle 1.6s ease-in-out infinite; }
+.jal-sparkle path:nth-child(2) { animation-delay: 0.5s; }
+.jal-sparkle path:nth-child(3) { animation-delay: 1s; }
+@keyframes jal-orbit { from { transform: rotate(-50deg); } to { transform: rotate(50deg); } }
+@keyframes jal-dot { 0%, 100% { opacity: 0.25; } 50% { opacity: 1; } }
+@keyframes jal-drop { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(3px); } }
+@keyframes jal-twinkle { 0%, 100% { transform: scale(0.7); opacity: 0.6; } 50% { transform: scale(1.1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .jal-orbit, .jal-dots circle, .jal-drop, .jal-sparkle path { animation: none; }
+}
+
+/* Plot Check live progress (CheckProgress.tsx) */
+.progress { margin-top: 16px; }
+.progress-head { display: flex; align-items: center; gap: 14px; }
+.progress-say { font-family: var(--display); font-weight: 700; font-size: 1.15rem; }
+.progress-steps { list-style: none; padding: 0; margin: 14px 0 10px; display: grid; gap: 8px; }
+.progress-steps li { display: flex; align-items: center; gap: 10px; color: var(--muted); }
+.progress-steps li.done { color: var(--body); }
+.progress-steps li.now { color: var(--text); font-weight: 600; }
+.progress-dot { flex: none; width: 22px; height: 22px; border-radius: 50%; border: 2px solid var(--line-strong); display: inline-grid; place-items: center; font-size: 12px; color: #fff; }
+.progress-steps li.done .progress-dot { background: var(--brand); border-color: var(--brand); }
+.progress-steps li.now .progress-dot { border-color: var(--brand); border-top-color: transparent; animation: spin 0.9s linear infinite; }
+.progress-bar { height: 8px; border-radius: 999px; background: var(--chip); overflow: hidden; margin: 4px 0 12px; }
+.progress-bar span { display: block; height: 100%; background: var(--brand-soft); transition: width 0.6s ease; }
+.progress-log { list-style: none; margin: 0; padding: 10px 12px; border-radius: 10px; background: var(--surface); font-family: var(--mono); font-size: 12.5px; color: var(--muted); display: grid; gap: 3px; }
+.progress-log li.latest { color: var(--text); animation: log-in 0.4s ease; }
+.progress-log li::before { content: "› "; color: var(--brand-soft); }
+@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes log-in { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: none; } }
+@media (prefers-reduced-motion: reduce) { .progress-steps li.now .progress-dot, .progress-log li.latest { animation: none; } }
+
+/* Home: three steps, example results, plain list */
+.steps3 { list-style: none; padding: 0; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 16px; }
+.steps3 li { display: flex; flex-direction: column; gap: 6px; padding: 20px; background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); }
+.steps3 b { font-family: var(--display); font-size: 1.15rem; }
+.steps3 span { color: var(--body); }
+.examples { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 14px; }
+.example { display: flex; gap: 12px; align-items: flex-start; padding: 16px; border: 2px solid var(--line); border-radius: var(--radius); background: var(--card); text-decoration: none; color: var(--text); }
+.example:hover { color: var(--text); box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06); }
+.example > span { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+.example .small { color: var(--body); }
+.example-high { border-color: var(--danger); }
+.example-watch { border-color: var(--flag); }
+.example-low { border-color: var(--brand-soft); }
+.plain-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 10px; max-width: 760px; font-size: 1.05rem; color: var(--body); }
+.plain-list b { color: var(--text); }
+.why-stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 220px), 1fr)); gap: 16px; }
+.protect { display: flex; gap: 14px; align-items: flex-start; margin-top: 24px; border-color: var(--brand-soft); background: var(--brand-tint); }
