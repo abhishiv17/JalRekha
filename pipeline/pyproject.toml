@@ -1,0 +1,9 @@
+[project]
+name = "kerewatch"
+version = "0.1.0"
+description = "Lake change detection for Bengaluru from Sentinel-2 imagery"
+requires-python = ">=3.11"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["."]
