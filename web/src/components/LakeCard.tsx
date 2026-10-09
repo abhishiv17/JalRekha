@@ -1,6 +1,6 @@
 import Link from "next/link";
 import LakeShape from "@/components/LakeShape";
-import { type Card, placeLabel, statusOf } from "@/lib/catalog";
+import { type Card, cardHref, placeLabel, statusOf } from "@/lib/catalog";
 import { seasonLabel } from "@/lib/data";
 
 const fmtAc = (ac: number) => (ac >= 100 ? Math.round(ac).toLocaleString("en-IN") : ac.toFixed(1)) + " ac";
@@ -37,9 +37,5 @@ export default function LakeCard({ c, facts = true }: { c: Card; facts?: boolean
       )}
     </>
   );
-  return c.analysed ? (
-    <Link href={`/lake/${c.id}/`} className="lake-card">{body}</Link>
-  ) : (
-    <article className="lake-card">{body}</article>
-  );
+  return <Link href={cardHref(c)} className="lake-card">{body}</Link>;
 }

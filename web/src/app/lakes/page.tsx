@@ -1,11 +1,14 @@
 "use client";
 
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import LakeCard from "@/components/LakeCard";
 import { SearchIcon } from "@/components/SiteHeader";
 import { type OsmLake, cards, loadCatalog, placeLabel } from "@/lib/catalog";
 import { type LakeSummary, loadIndex } from "@/lib/data";
+
+const IndiaMap = dynamic(() => import("@/components/IndiaMap"), { ssr: false });
 
 type StatusFilter = "all" | "analysed" | "queued";
 type Sort = "relevance" | "largest" | "name";
@@ -60,9 +63,11 @@ export default function AllLakes() {
     );
     if (sort === "largest") return [...list].sort((a, b) => (b.areaAc ?? 0) - (a.areaAc ?? 0));
     if (sort === "name") return [...list].sort((a, b) => a.name.localeCompare(b.name));
-    // Relevance: analysed first, then lakes with satellite images, then largest.
+    // Relevance: analysed lakes by changed area, then lakes with satellite images, then largest.
     const rank = (c: (typeof list)[number]) => (c.analysed ? 0 : c.thumb ? 1 : 2);
-    return [...list].sort((a, b) => rank(a) - rank(b) || (b.areaAc ?? 0) - (a.areaAc ?? 0));
+    return [...list].sort(
+      (a, b) => rank(a) - rank(b) || (b.flaggedAc ?? 0) - (a.flaggedAc ?? 0) || (b.areaAc ?? 0) - (a.areaAc ?? 0),
+    );
   }, [all, state, status, sort, q]);
 
   useEffect(() => setLimit(PAGE), [state, status, sort, q]);
@@ -111,7 +116,7 @@ export default function AllLakes() {
           </select>
           <label className="small" style={{ fontWeight: 600 }} htmlFor="sort">Sort</label>
           <select id="sort" value={sort} onChange={(e) => setSort(e.target.value as Sort)} style={{ width: "auto" }}>
-            <option value="relevance">Analysed first</option>
+            <option value="relevance">Most change first</option>
             <option value="largest">Largest first</option>
             <option value="name">A to Z</option>
           </select>
@@ -124,6 +129,12 @@ export default function AllLakes() {
           ))}
         </div>
       </div>
+
+      {!loading && shown.length > 0 && (
+        <div style={{ marginBottom: 32 }}>
+          <IndiaMap lakes={shown} />
+        </div>
+      )}
 
       {loading ? (
         <p className="muted">Loading lakes…</p>

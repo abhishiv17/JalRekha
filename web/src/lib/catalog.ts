@@ -60,7 +60,12 @@ export type Card = Place & {
   flaggedAc?: number;
   firstSeen?: string | null;
   note?: string;
+  lat?: number;
+  lon?: number;
 };
+
+/** Where a card links: analysed lakes have full pages, the rest a catalog page. */
+export const cardHref = (c: Card) => (c.analysed ? `/lake/${c.id}/` : `/lakes/view/?id=${encodeURIComponent(c.id)}`);
 
 export const placeLabel = (p: Place) =>
   !p.city ? p.state : p.city === p.state ? p.city : `${p.city}, ${p.state}`;
@@ -94,6 +99,8 @@ export function cards(analysed: LakeSummary[], osm: OsmLake[] = []): Card[] {
       flaggedAc: l.flagged_ac,
       firstSeen: l.latest_first_seen,
       note: meta?.note,
+      lat: meta?.lat ?? l.centroid[1],
+      lon: meta?.lon ?? l.centroid[0],
     };
   });
   const analysedSpots = Object.values(ANALYSED_META);
@@ -117,12 +124,14 @@ export function cards(analysed: LakeSummary[], osm: OsmLake[] = []): Card[] {
       thumb: f?.thumb,
       shapeState: stateKey(o.state),
       areaAc: o.ha / HA_PER_AC,
+      lat: o.lat,
+      lon: o.lon,
     });
   }
   // Without the catalog (or if OSM lacks one), featured lakes still show.
   for (const f of FEATURED) {
     if (!featuredUsed.has(f.name)) {
-      queued.push({ id: `featured-${stateKey(f.name)}`, name: f.name, city: f.city, state: f.state, analysed: false, thumb: f.thumb });
+      queued.push({ id: `featured-${stateKey(f.name)}`, name: f.name, city: f.city, state: f.state, analysed: false, thumb: f.thumb, lat: f.lat, lon: f.lon });
     }
   }
   return [...done, ...queued];
