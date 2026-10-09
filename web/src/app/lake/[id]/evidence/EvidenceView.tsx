@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { BrandMark, Wordmark } from "@/components/Brand";
-import { JalIcon, Loader } from "@/components/Mascot";
+import { StaticLogo } from "@/components/Brand";
+import { Guide, JalIcon, Loader } from "@/components/Mascot";
 import OutlinedImage from "@/components/OutlinedImage";
 import { ANALYSED_META, KIND_LABELS, placeLabel } from "@/lib/catalog";
 import {
@@ -119,7 +119,7 @@ export default function EvidenceView({ id }: { id: string }) {
       </main>
     );
   }
-  if (!stats || !templates || !geo) return <main><Loader label="Building evidence pack…" /></main>;
+  if (!stats || !templates || !geo) return <main><Loader label="Gathering the evidence for this lake…" /></main>;
 
   const place = ANALYSED_META[id];
   const usable = drySeasons(stats).filter((s) => s.status === "ok");
@@ -185,8 +185,14 @@ export default function EvidenceView({ id }: { id: string }) {
         </div>
       </div>
 
+      <Guide size={52} className="no-print evidence-guide">
+        {flags.length
+          ? `I put together everything behind the ${flags.length} flag${flags.length === 1 ? "" : "s"} at ${stats.name}: dated images, areas, coordinates and the exact satellite scenes, so anyone can re-check it. Save it as a PDF, or take the flags into Google Earth with the KML.`
+          : `I found no lasting change at ${stats.name}, and this pack shows how I checked: every dry season, the scenes I used and the method. A clean record is evidence too.`}
+      </Guide>
+
       <header className="report-head">
-        <span className="brand"><BrandMark size={32} /><Wordmark sub={false} /></span>
+        <StaticLogo size={40} />
         <span className="small muted" style={{ textAlign: "right" }}>
           Evidence pack {packId}<br />Generated {generatedAt.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })} · results as of {stats.as_of}
         </span>
@@ -321,7 +327,7 @@ export default function EvidenceView({ id }: { id: string }) {
       {saved && (
         <div className="toast no-print" role="status">
           <JalIcon size={40} />
-          <span>Downloaded the {saved} for {stats.name}.</span>
+          <span>There you go: the {saved} for {stats.name} is in your downloads.</span>
         </div>
       )}
     </main>

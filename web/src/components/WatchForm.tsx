@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { type FormEvent, useState } from "react";
+import { Guide } from "@/components/Mascot";
 import { API_URL } from "@/lib/data";
 import { addWatched } from "@/lib/watchlist";
 
@@ -52,9 +53,10 @@ export default function WatchForm({ lake, name }: { lake: string; name: string }
       </div>
       {!API_URL && <p className="small muted" role="status">Alerts are unavailable in this build (no alerts API configured).</p>}
       {state === "done" && (
-        <p className="small" role="status">
-          Subscribed. Check {email} for a confirmation email from AWS Notifications. <Link href="/watchlist/">Your watchlist</Link>
-        </p>
+        <Guide size={44} tone="info" className="watch-guide">
+          <>I&apos;ll keep watch. Confirm the email AWS Notifications just sent to <strong>{email}</strong>; after that I&apos;ll write
+          only when a new dry season brings new change. <Link href="/watchlist/">Your watchlist</Link></>
+        </Guide>
       )}
       {state === "error" && <p className="small" role="alert" style={{ color: "var(--danger)" }}>Could not subscribe: {error}</p>}
     </form>

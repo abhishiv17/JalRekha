@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import LakeCard from "@/components/LakeCard";
 import LakeShape from "@/components/LakeShape";
-import Jal, { EmptyState, Loader } from "@/components/Mascot";
+import { EmptyState, Guide, Loader } from "@/components/Mascot";
 import { type Card, cards, loadCatalog, placeLabel } from "@/lib/catalog";
 import { loadIndex } from "@/lib/data";
 
@@ -44,7 +44,7 @@ export default function QueuedLake() {
     };
   }, [all, lake]);
 
-  if (!all) return <main><Loader label="Loading lake…" /></main>;
+  if (!all) return <main><Loader label="Finding this lake on the map…" /></main>;
   if (!lake) {
     return (
       <main>
@@ -98,14 +98,15 @@ export default function QueuedLake() {
 
         <section>
           <div className="card">
-            <div className="row" style={{ gap: 14, alignItems: "center" }}>
-              <Jal size={72} />
-              <h2 style={{ margin: 0 }}>This lake has not been analysed yet</h2>
-            </div>
-            <p className="small" style={{ color: "var(--body)" }}>
-              JalRekha has this lake&apos;s outline but hasn&apos;t run the satellite analysis, so there are no change
-              numbers yet. Getting results takes three steps:
-            </p>
+            <h2 style={{ marginTop: 0 }}>This lake has not been analysed yet</h2>
+            <Guide size={56}>
+              {`I have ${lake.name}'s outline, but I haven't studied it from space yet, so I can't say how it has changed. ${
+                nearby.analysed[0]
+                  ? `The closest lake I have analysed is ${nearby.analysed[0].name}, ${Math.round(km(lake, nearby.analysed[0]))} km away.`
+                  : "No lake near it has been analysed yet either."
+              }`}
+            </Guide>
+            <p className="small" style={{ color: "var(--body)", marginTop: 16 }}>Getting results takes three steps:</p>
             <ol className="small" style={{ paddingLeft: 18, color: "var(--body)", lineHeight: 1.6 }}>
               <li>Check the outline against the lake as it was in 2019.</li>
               <li>Run the same pipeline as every analysed lake: eight dry seasons of Sentinel-2 on AWS, about two minutes.</li>

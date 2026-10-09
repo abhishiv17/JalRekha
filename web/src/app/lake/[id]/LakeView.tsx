@@ -5,7 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import AreaChart from "@/components/AreaChart";
 import type { Layers } from "@/components/LakeMap";
-import { Loader } from "@/components/Mascot";
+import { Guide, Loader } from "@/components/Mascot";
 import { Outlines } from "@/components/OutlinedImage";
 import Swipe from "@/components/Swipe";
 import WatchForm from "@/components/WatchForm";
@@ -48,6 +48,8 @@ export default function LakeView({ id }: { id: string }) {
   const [zoomTo, setZoomTo] = useState<string | null>(null);
   const [before, setBefore] = useState<string | null>(null);
   const [after, setAfter] = useState<string | null>(null);
+  // What Jal last reacted to; drives the narration next to the map.
+  const [said, setSaid] = useState<{ kind: "intro" | "season" | "flag" | "buffer" | "landcover"; ref?: string | number }>({ kind: "intro" });
 
   useEffect(() => {
     Promise.all([loadStats(id), loadFlags(id), loadReference(id), loadBounds(id)])
@@ -72,7 +74,7 @@ export default function LakeView({ id }: { id: string }) {
       </main>
     );
   }
-  if (!data || !season) return <main><Loader label="Loading satellite results…" /></main>;
+  if (!data || !season) return <main><Loader label="Pulling up every dry season since 2019…" /></main>;
 
   const { stats, flags, reference, bounds } = data;
   const place = ANALYSED_META[id];
@@ -97,12 +99,64 @@ export default function LakeView({ id }: { id: string }) {
   const statusText = status === "nodata" ? "Not enough data" : status === "changed" ? "Change detected" : "No change detected";
   const last = usable.at(-1)!.season;
 
+  const narration = (() => {
+    const base = usable[0];
+    const baseYear = base ? yearOf(base.season) : "2019";
+    const earliestYear = earliest ? yearOf(earliest) : null;
+    if (said.kind === "flag") {
+      const f = fs.find((x) => x.flag_id === said.ref);
+      if (f) {
+        const n = f.flag_id.split("-").at(-1);
+        const what = f.kind === "vegetated_land" ? "lake bed that is now grassed land" : "fill or construction";
+        const where = f.zone === "buffer" ? "in the 30 m buffer" : "inside the lake bed";
+        return `Flag ${n}: ${ac(f.area_ac)} of ${what}, ${where}. I first saw it in the ${yearOf(f.first_seen)} dry season${
+          f.status === "confirmed" ? " and it was still there the next dry season, so it's confirmed" : ", and it has only been there one dry season so far, so it's new"
+        }. Confidence: ${f.confidence}.`;
+      }
+    }
+    if (said.kind === "buffer") {
+      return bufferWidth === 30
+        ? `The law in force protects 30 m around every lake. ${inBuffer > 0 ? `${ac(inBuffer)} of the change I flagged sits inside that ring.` : "None of the change I flagged sits inside that ring; it's all in the lake bed."}`
+        : `The proposed rule would protect only ${bufferWidth} m here, and it isn't law yet. ${inBuffer > 0 ? `${ac(inBuffer)} of flagged change falls inside that narrower ring.` : "None of the flagged change falls inside that narrower ring."}`;
+    }
+    if (said.kind === "landcover") {
+      return "Now every pixel is coloured: blue is open water, green is floating weeds (still lake), red is bare or built land.";
+    }
+    if (said.kind === "season") {
+      const label = seasonLabel(season);
+      const lake = `${ac(sel.water_ac ?? 0)} of open water and ${ac(sel.floating_veg_ac ?? 0)} of floating weeds`;
+      if (BASELINE.includes(yearOf(season))) {
+        return `${label} is part of my baseline: ${lake}. I count both as lake, and compare every later year against this.`;
+      }
+      const g = sel.land_veg_ac ?? 0, g0 = base?.land_veg_ac ?? 0, b = sel.bare_built_ac ?? 0, b0 = base?.bare_built_ac ?? 0;
+      const shifts = [
+        g - g0 >= 0.2 ? `${ac(g)} of lake bed is grassed land, up from ${ac(g0)} in ${baseYear}` : null,
+        b - b0 >= 0.2 ? `${ac(b)} is bare or built, up from ${ac(b0)}` : null,
+      ].filter(Boolean);
+      const flagNote = earliestYear
+        ? Number(yearOf(season)) < Number(earliestYear)
+          ? ` The amber patch isn't land yet in ${yearOf(season)}; it first holds as land in ${earliestYear}.`
+          : ` The amber outline marks what had turned to land by ${earliestYear}.`
+        : "";
+      return `${label}: ${lake}. ${shifts.length ? `${shifts.join("; ")}.` : `No big jump in grassed or bare lake bed compared with ${baseYear}.`}${flagNote}`;
+    }
+    if (status === "nodata") return "I don't have enough clear dry seasons after the baseline to judge this lake yet.";
+    if (total > 0) {
+      return `I compared ${usable.length} dry seasons here. ${ac(total)} of this lake turned to land and stayed. Pick a year below to watch it happen, or select a flag to fly to it.`;
+    }
+    return `I compared ${usable.length} dry seasons here, and nothing in the lake bed turned to land and stayed. Pick a year and see for yourself.`;
+  })();
+
   const zoom = (flagId: string) => {
+    setSaid({ kind: "flag", ref: flagId });
     setZoomTo(flagId);
     setFocusFlag(flagId);
     document.getElementById("lake-map")?.scrollIntoView({ behavior: "smooth", block: "center" });
   };
-  const toggle = (k: keyof Layers) => setLayers((l) => ({ ...l, [k]: !l[k] }));
+  const toggle = (k: keyof Layers) => {
+    if (k === "landcover" && !layers.landcover) setSaid({ kind: "landcover" });
+    setLayers((l) => ({ ...l, [k]: !l[k] }));
+  };
 
   return (
     <main>
@@ -167,10 +221,11 @@ export default function LakeView({ id }: { id: string }) {
           {mapError && <p className="notice error">{mapError}</p>}
 
           <div className="card" style={{ marginTop: 12 }}>
-            <div className="row" style={{ justifyContent: "space-between" }}>
+            <Guide size={50}>{narration}</Guide>
+            <div className="row" style={{ justifyContent: "space-between", marginTop: 14 }}>
               <strong>Dry season</strong>
               {zoomTo && (
-                <button type="button" className="ghost" onClick={() => { setZoomTo(null); setFocusFlag(null); }}>Show whole lake</button>
+                <button type="button" className="ghost" onClick={() => { setZoomTo(null); setFocusFlag(null); setSaid({ kind: "intro" }); }}>Show whole lake</button>
               )}
             </div>
             <div className="timeline" role="group" aria-label="Choose a dry season">
@@ -180,7 +235,7 @@ export default function LakeView({ id }: { id: string }) {
                 return (
                   <button key={s.season} type="button" aria-pressed={s.season === season} disabled={!ok}
                     title={ok ? seasonLabel(s.season) : `${seasonLabel(s.season)}: not enough clear images`}
-                    onClick={() => setSeason(s.season)}>
+                    onClick={() => { setSeason(s.season); setSaid({ kind: "season", ref: s.season }); }}>
                     {yearOf(s.season)}
                     <small>{tag}</small>
                   </button>
@@ -242,9 +297,9 @@ export default function LakeView({ id }: { id: string }) {
           <div className="card">
             <h2 style={{ marginTop: 0 }}>Buffer zone</h2>
             <div className="segmented" role="group" aria-label="Buffer width" style={{ width: "fit-content" }}>
-              <button type="button" aria-pressed={bufferWidth === 30} onClick={() => setBufferWidth(30)}>30 m · law in force</button>
+              <button type="button" aria-pressed={bufferWidth === 30} onClick={() => { setBufferWidth(30); setSaid({ kind: "buffer", ref: 30 }); }}>30 m · law in force</button>
               {bill > 0 && bill !== 30 && (
-                <button type="button" aria-pressed={bufferWidth === bill} onClick={() => setBufferWidth(bill)}>{bill} m · proposed</button>
+                <button type="button" aria-pressed={bufferWidth === bill} onClick={() => { setBufferWidth(bill); setSaid({ kind: "buffer", ref: bill }); }}>{bill} m · proposed</button>
               )}
             </div>
             <p style={{ margin: "14px 0 6px" }}>
@@ -284,7 +339,10 @@ export default function LakeView({ id }: { id: string }) {
                 </select>
               </div>
             </div>
-            <div style={{ maxWidth: 760, margin: "0 auto" }}>
+            <Guide size={44} className="guide-compare">
+              {`Drag the white line: left is the ${yearOf(before)} dry season, right is ${yearOf(after)}. White traces the lake; amber is where I found change.`}
+            </Guide>
+            <div style={{ maxWidth: 760, margin: "16px auto 0" }}>
               <Swipe
                 before={lakeUrl(id, `truecolor/${before}.png`)}
                 after={lakeUrl(id, `truecolor/${after}.png`)}
@@ -293,9 +351,7 @@ export default function LakeView({ id }: { id: string }) {
                 overlay={<Outlines bounds={bounds} reference={reference} flags={layers.flags ? flags : undefined} />}
               />
             </div>
-            <p className="small muted" style={{ marginBottom: 0 }}>
-              Same extent and scale on both sides. White: lake outline. Amber: change flags from the latest analysis.
-            </p>
+            <p className="small muted" style={{ marginBottom: 0 }}>Same extent and scale on both sides; flags are from the latest analysis.</p>
           </div>
         </section>
       )}

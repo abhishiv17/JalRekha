@@ -3,9 +3,9 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import LakeCard from "@/components/LakeCard";
-import Jal from "@/components/Mascot";
+import { Guide } from "@/components/Mascot";
 import { Arrow } from "@/components/SiteHeader";
-import { cards } from "@/lib/catalog";
+import { cards, statusOf } from "@/lib/catalog";
 import { type LakeSummary, loadIndex } from "@/lib/data";
 
 const COLLAGE: { thumb: string; city: string; alt: string }[] = [
@@ -45,6 +45,9 @@ export default function Home() {
     () => cards(lakes).filter((c) => c.analysed).sort((a, b) => (b.flaggedAc ?? 0) - (a.flaggedAc ?? 0)),
     [lakes],
   );
+  const changed = analysed.filter((c) => statusOf(c).key === "changed");
+  const steady = analysed.filter((c) => statusOf(c).key === "nochange");
+  const subede = analysed.find((c) => c.id === "subedeharana-kere");
   const preview = [
     ...analysed.filter((c) => c.id === "subedeharana-kere"),
     ...analysed.filter((c) => c.id !== "subedeharana-kere"),
@@ -55,7 +58,6 @@ export default function Home() {
       {/* Hero */}
       <section className="wrap hero" aria-labelledby="hero-title">
         <div className="hero-copy">
-          <Jal size={84} />
           <span className="eyebrow">Public lake monitoring</span>
           <h1 id="hero-title" className="hero-title">See how our lakes <em>change</em> over time.</h1>
           <p>
@@ -83,12 +85,16 @@ export default function Home() {
               <span className="label">DRY SEASON 2026</span>
             </div>
           </div>
-          <figcaption className="hero-caption">
-            <strong>0.94 ac</strong>
-            <span>
-              <span className="flag-key" />of Subedeharana Kere&apos;s bed has turned to grassed land, lasting since the
-              2025 dry season. Real pipeline output; field check pending. <Link href="/lake/subedeharana-kere/">Open this lake</Link>
-            </span>
+          <figcaption>
+            <Guide size={60}>
+              <span className="hero-caption">
+                <strong>{(subede?.flaggedAc ?? 0.94).toFixed(2)} ac</strong>
+                <span>
+                  <span className="flag-key" />of Subedeharana Kere&apos;s bed turned to grassed land in the 2025 dry season,
+                  and it&apos;s still there. A field check is pending. <Link href="/lake/subedeharana-kere/">Show me</Link>
+                </span>
+              </span>
+            </Guide>
           </figcaption>
         </figure>
       </section>
@@ -147,7 +153,11 @@ export default function Home() {
           <li><b>Persist and filter</b><span>Lake bed that turns to land for two dry seasons running, in patches of 500 m² or more.</span></li>
           <li><b>Show and export</b><span>Flags on the map, dated before/after images and a downloadable evidence pack.</span></li>
         </ol>
-        <p className="small muted" style={{ marginTop: 18 }}>
+        <Guide size={52} className="section-guide">
+          I re-check every lake once a month. When a new dry season adds change that stays, everyone watching that lake
+          gets an email.
+        </Guide>
+        <p className="small muted" style={{ marginTop: 14 }}>
           Runs on AWS: a Lambda container per lake (about two minutes), Step Functions across lakes, results in S3 and
           DynamoDB, a monthly EventBridge re-scan and SNS email alerts.
         </p>
@@ -168,6 +178,11 @@ export default function Home() {
           </div>
           <Link href="/lakes/" className="button secondary">See all lakes <Arrow size={16} /></Link>
         </div>
+        {analysed.length > 0 && (
+          <Guide size={52} className="section-guide" interactive={false}>
+            {`In ${changed.length} of these ${analysed.length} lakes I found lake bed that turned to land and stayed; ${steady.length} held steady. Amber cards are the ones to look at first.`}
+          </Guide>
+        )}
         <div className="lake-grid">{preview.map((c) => <LakeCard key={c.id} c={c} facts={false} />)}</div>
       </section>
 
@@ -246,10 +261,10 @@ export default function Home() {
           <div><dt>Not a land survey</dt><dd>Change is measured against the lake&apos;s historical water extent, not the revenue boundary. Legal works also show as change.</dd></div>
           <div><dt>Verification</dt><dd>Every flag needs checking against high-resolution imagery, on the ground and in official records.</dd></div>
         </dl>
-        <div className="mascot-note" style={{ marginTop: 24 }}>
-          <Jal size={64} />
-          <p><strong>Satellite-detected change is not proof of illegal encroachment.</strong> Verify on the ground and in official records.</p>
-        </div>
+        <Guide size={60} tone="info" className="section-guide">
+          <strong>Satellite-detected change is not proof of illegal encroachment.</strong> I can tell you where and when a
+          lake changed; verify it on the ground and in official records before acting.
+        </Guide>
       </section>
 
       {/* G. Data sources and credits */}

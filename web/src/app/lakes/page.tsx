@@ -3,7 +3,7 @@
 import dynamic from "next/dynamic";
 import { useEffect, useMemo, useState } from "react";
 import LakeCard from "@/components/LakeCard";
-import { EmptyState } from "@/components/Mascot";
+import { EmptyState, Guide } from "@/components/Mascot";
 import { SearchIcon } from "@/components/SiteHeader";
 import { type Card, KIND_LABELS, type OsmLake, type StatusKey, cards, loadCatalog, loadKinds, placeLabel, statusOf } from "@/lib/catalog";
 import { type LakeSummary, loadIndex } from "@/lib/data";
@@ -115,6 +115,26 @@ export default function AllLakes() {
     : queuedShown;
   const loading = lakes === null || osm === null;
   const analysedTotal = all.filter((c) => c.analysed).length;
+  // Jal reacts to whatever the filters currently show.
+  const guide = (() => {
+    const a = analysedShown.length, n = queuedShown.length;
+    const where = state === "All" ? "" : ` in ${state}`;
+    if (q.trim()) {
+      const m = shown.length === 1 ? `1 lake matches "${q.trim()}".` : `${shown.length.toLocaleString("en-IN")} lakes match "${q.trim()}".`;
+      if (shown.length === 1) return a ? `${m} I've analysed it; open it to see every dry season since 2019.` : `${m} I haven't analysed it yet, so it's queued with no numbers.`;
+      return a
+        ? `${m} ${a === shown.length ? "I've analysed all of them" : `${a} of them I've analysed`}; open one to see every dry season since 2019.`
+        : `${m} I haven't analysed any of them yet, so they're queued with no numbers.`;
+    }
+    if (status === "changed") return `${a} lakes${where} where lake bed turned to land and stayed. Biggest change is first.`;
+    if (status === "nochange") return `${a} lakes${where} where nothing in the lake bed turned to land and stayed since 2019.`;
+    if (status === "nodata") return `${a} lakes${where} where clouds left me too few clear dry seasons to judge. I won't guess.`;
+    if (status === "queued") return `${n.toLocaleString("en-IN")} lakes${where} I haven't analysed yet. Queued doesn't mean unchanged; it means I haven't looked.`;
+    if (kind !== "any") return `Lakes with at least one flag of ${(KIND_LABELS[kind] ?? kind).toLowerCase()}${where}.`;
+    if (state !== "All" && a === 0) return `I haven't analysed a lake in ${state} yet. The ${n.toLocaleString("en-IN")} below are mapped and queued.`;
+    if (state !== "All") return `${state}: ${a} analysed, ${n.toLocaleString("en-IN")} queued. Amber means I found change that stayed.`;
+    return "Amber means I found lake bed that turned to land and stayed; green means the lake held steady. Blue dots on the map are lakes still in my queue.";
+  })();
   const reset = () => {
     setState("All");
     setStatus("all");
@@ -190,6 +210,7 @@ export default function AllLakes() {
         </EmptyState>
       ) : (
         <>
+          <Guide size={52} className="catalog-guide">{guide}</Guide>
           {analysedShown.length > 0 && (
             <section aria-labelledby="analysed-title" style={{ marginBottom: 56 }}>
               <div className="count-head">

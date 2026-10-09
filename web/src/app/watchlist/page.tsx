@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useState } from "react";
-import { EmptyState } from "@/components/Mascot";
+import { EmptyState, Guide } from "@/components/Mascot";
 import { API_URL } from "@/lib/data";
 import { type Watched, readWatchlist, removeWatched } from "@/lib/watchlist";
 
@@ -48,6 +48,12 @@ export default function Watchlist() {
         <li>Confirm the subscription from the AWS Notifications email (alerts only start after you confirm).</li>
         <li>Each alert names the lake, the season and the flagged area. Re-scans of the same season never repeat it.</li>
       </ol>
+
+      {items && items.length > 0 && (
+        <Guide size={52} className="section-guide" interactive={false}>
+          {`I'm watching ${items.length === 1 ? items[0].name : `${items.length} lakes`} for you from this browser. If a new dry season brings new change, you'll hear from me once, not every month.`}
+        </Guide>
+      )}
 
       {!API_URL && <p className="notice">Alerts are unavailable in this build: no alerts API is configured.</p>}
       {message && <p className={`notice ${message.error ? "error" : "info"}`} role="status">{message.text}</p>}
