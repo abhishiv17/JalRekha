@@ -85,7 +85,7 @@ export default function QueuedLake() {
           <div className="lake-thumb" style={{ aspectRatio: "4 / 3" }}>
             {lake.thumb ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={lake.thumb} alt={`Satellite view of ${lake.name}, 2026 dry season`} />
+              <img src={lake.thumb} crossOrigin="anonymous" alt={`Satellite view of ${lake.name}, 2026 dry season`} />
             ) : lake.shapeState ? (
               <LakeShape id={lake.id} state={lake.shapeState} label={lake.name} />
             ) : null}

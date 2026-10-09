@@ -16,10 +16,11 @@ export default function Swipe({ before, after, beforeLabel, afterLabel, overlay 
     <div>
       <div className="swipe-frame">
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={before} alt={`${beforeLabel}, satellite true colour`} onError={() => setMissing(beforeLabel)} />
+        <img src={before} crossOrigin="anonymous" alt={`${beforeLabel}, satellite true colour`} onError={() => setMissing(beforeLabel)} />
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
           src={after}
+          crossOrigin="anonymous"
           alt={`${afterLabel}, satellite true colour`}
           onError={() => setMissing(afterLabel)}
           style={{ position: "absolute", inset: 0, clipPath: `inset(0 0 0 ${pos}%)` }}

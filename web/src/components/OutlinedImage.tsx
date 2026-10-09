@@ -36,7 +36,7 @@ export default function OutlinedImage({ src, alt, ...outline }: OutlineProps & {
   return (
     <div className="outlined">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt} />
+      <img src={src} crossOrigin="anonymous" alt={alt} />
       <Outlines {...outline} />
     </div>
   );

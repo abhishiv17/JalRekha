@@ -14,7 +14,7 @@ export default function LakeCard({ c, facts = true }: { c: Card; facts?: boolean
       <div className="lake-thumb">
         {c.thumb ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={c.thumb} alt={`Satellite view of ${c.name}`} loading="lazy" />
+          <img src={c.thumb} crossOrigin="anonymous" alt={`Satellite view of ${c.name}`} loading="lazy" />
         ) : c.shapeState ? (
           <LakeShape id={c.id} state={c.shapeState} label={c.name} />
         ) : null}
