@@ -1,4 +1,5 @@
-// JalRekha identity: a lake-contour symbol and the wordmark, usable separately.
+// JalRekha identity: Jal (the mascot) is the logo; the wordmark sits beside it.
+import Jal, { JalIcon } from "@/components/Mascot";
 
 /** Three nested lake contours (rekha = line) with an amber change mark. */
 export function BrandMark({ size = 34, title }: { size?: number; title?: string }) {
@@ -25,11 +26,22 @@ export function Wordmark({ sub = true }: { sub?: boolean }) {
   );
 }
 
+/** Header logo: Jal (eyes follow the cursor) plus the wordmark. */
 export default function Logo() {
   return (
     <span className="brand">
-      <BrandMark />
+      <Jal size={44} title="JalRekha" />
       <Wordmark />
+    </span>
+  );
+}
+
+/** Static logo for footers and printed reports. */
+export function StaticLogo({ size = 36, sub = false }: { size?: number; sub?: boolean }) {
+  return (
+    <span className="brand">
+      <JalIcon size={size} />
+      <Wordmark sub={sub} />
     </span>
   );
 }

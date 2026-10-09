@@ -3,7 +3,7 @@ import { Figtree, JetBrains_Mono, Schibsted_Grotesk } from "next/font/google";
 import Link from "next/link";
 import "maplibre-gl/dist/maplibre-gl.css";
 import "./globals.css";
-import { BrandMark, Wordmark } from "@/components/Brand";
+import { StaticLogo } from "@/components/Brand";
 import SiteHeader from "@/components/SiteHeader";
 
 const display = Schibsted_Grotesk({ subsets: ["latin"], weight: ["700", "800", "900"], variable: "--font-display" });
@@ -40,7 +40,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
         <footer className="site">
           <div className="wrap">
             <div style={{ flex: "1 1 320px", minWidth: 0, display: "flex", flexDirection: "column", gap: 12 }}>
-              <span className="brand"><BrandMark size={30} /><Wordmark sub={false} /></span>
+              <StaticLogo size={40} />
               <p style={{ margin: 0, maxWidth: 380 }}>
                 See how our lakes change over time. Built for WeMakeDevs Environmental Hacks, Heat and Water track.
               </p>

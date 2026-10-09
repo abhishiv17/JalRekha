@@ -2,8 +2,8 @@
 
 // "Jal", the lake guardian: a chibi Indian freshwater pond turtle, head and shoulders,
 // whose shell carries lake-contour lines. The eyes follow the cursor and it blinks
-// when poked (both off under reduced motion). Used sparingly: home, empty and
-// loading states. Kept out of evidence reports.
+// when poked (both off under reduced motion). Jal is the logo and a quiet guide at each
+// step (see Guide); it stays out of the printed evidence report.
 
 import { useEffect, useId, useRef, useState } from "react";
 
@@ -138,6 +138,30 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
       <Jal size={104} />
       <h3 style={{ margin: "8px 0 6px" }}>{title}</h3>
       <div className="muted" style={{ maxWidth: 520, margin: "0 auto" }}>{children}</div>
+    </div>
+  );
+}
+
+/**
+ * Jal speaking: the mascot beside a speech bubble. Used as a quiet narrator at each
+ * step; everything it says is computed from the data on screen. The bubble re-animates
+ * when its text changes (key), and is announced politely to screen readers.
+ */
+export function Guide({ children, size = 52, interactive = true, className, tone }: {
+  children: React.ReactNode;
+  size?: number;
+  interactive?: boolean;
+  className?: string;
+  tone?: "info" | "warn";
+}) {
+  const text = typeof children === "string" ? children : undefined;
+  return (
+    <div className={`guide${tone ? ` guide-${tone}` : ""}${className ? ` ${className}` : ""}`}>
+      <Jal size={size} interactive={interactive} />
+      <div className="guide-bubble" role="status" aria-live="polite" key={text}>
+        <span className="sr-only">Jal says: </span>
+        {children}
+      </div>
     </div>
   );
 }
