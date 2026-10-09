@@ -1,0 +1,38 @@
+{
+  "type": "FeatureCollection",
+  "sample": true,
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "flag_id": "subedeharana-kere-1",
+        "zone": "lakebed",
+        "area_ac": 1.4,
+        "first_seen": "2024-dry",
+        "status": "confirmed",
+        "confidence": "high",
+        "scene_ids": []
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[77.6260, 12.8740], [77.6275, 12.8740], [77.6275, 12.8752], [77.6260, 12.8752], [77.6260, 12.8740]]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "flag_id": "subedeharana-kere-2",
+        "zone": "buffer",
+        "area_ac": 0.4,
+        "first_seen": "2025-dry",
+        "status": "new",
+        "confidence": "low",
+        "scene_ids": []
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[[77.6278, 12.8770], [77.6284, 12.8770], [77.6284, 12.8776], [77.6278, 12.8776], [77.6278, 12.8770]]]
+      }
+    }
+  ]
+}

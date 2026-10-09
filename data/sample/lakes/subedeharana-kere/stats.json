@@ -1,0 +1,24 @@
+{
+  "sample": true,
+  "id": "subedeharana-kere",
+  "name": "Subedeharana Kere",
+  "reference_area_ac": 12.4,
+  "thresholds": { "mndwi": 0.0, "veg_ndvi": 0.4, "bare_ndvi": 0.2, "ndbi": 0.0, "min_flag_px": 5 },
+  "seasons": [
+    { "season": "2019-dry", "clear_looks": 8, "status": "ok", "water_ac": 11.6, "floating_veg_ac": 0.6, "bare_built_ac": 0.0, "scene_ids": [] },
+    { "season": "2020-dry", "clear_looks": 9, "status": "ok", "water_ac": 11.4, "floating_veg_ac": 0.8, "bare_built_ac": 0.0, "scene_ids": [] },
+    { "season": "2021-dry", "clear_looks": 6, "status": "ok", "water_ac": 11.0, "floating_veg_ac": 1.1, "bare_built_ac": 0.1, "scene_ids": [] },
+    { "season": "2022-dry", "clear_looks": 2, "status": "not_enough_data", "water_ac": null, "floating_veg_ac": null, "bare_built_ac": null, "scene_ids": [] },
+    { "season": "2023-dry", "clear_looks": 7, "status": "ok", "water_ac": 11.2, "floating_veg_ac": 0.9, "bare_built_ac": 0.1, "scene_ids": [] },
+    { "season": "2024-dry", "clear_looks": 7, "status": "ok", "water_ac": 9.6, "floating_veg_ac": 1.0, "bare_built_ac": 1.6, "scene_ids": [] },
+    { "season": "2025-dry", "clear_looks": 8, "status": "ok", "water_ac": 9.3, "floating_veg_ac": 1.1, "bare_built_ac": 1.8, "scene_ids": [] },
+    { "season": "2026-dry", "clear_looks": 6, "status": "ok", "water_ac": 9.2, "floating_veg_ac": 1.2, "bare_built_ac": 1.8, "scene_ids": [] }
+  ],
+  "flags_total_ac": 1.8,
+  "buffer": {
+    "current_law_m": 30,
+    "bill_2025_m": 6,
+    "change_in_buffer_ac": { "30": 0.4, "6": 0.1 }
+  },
+  "as_of": "2026-10-09"
+}

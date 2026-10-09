@@ -1,0 +1,15 @@
+{
+  "sample": true,
+  "generated": "2026-10-09T00:00:00Z",
+  "lakes": [
+    {
+      "id": "subedeharana-kere",
+      "name": "Subedeharana Kere",
+      "area_ac": 12.4,
+      "flagged_ac": 1.8,
+      "flagged_share": 0.145,
+      "latest_first_seen": "2024-dry",
+      "centroid": [77.6255, 12.8755]
+    }
+  ]
+}
