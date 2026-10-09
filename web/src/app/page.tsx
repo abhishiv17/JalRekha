@@ -62,11 +62,12 @@ export default function Home() {
           <h1 id="hero-title" className="hero-title">See how our lakes <em>change</em> over time.</h1>
           <p>
             Explore historical satellite imagery, examine persistent changes in lake beds and surrounding buffer zones,
-            and access reproducible evidence to support lake conservation.
+            and access reproducible evidence to support lake conservation. Buying or renting? Check any plot for lake
+            water, monsoon waterlogging and flooding before you pay.
           </p>
-          <div className="row" style={{ gap: 12 }}>
-            <Link href="/lakes/" className="button big">Explore monitored lakes <Arrow /></Link>
-            <Link href="#how" className="button big secondary">How it works</Link>
+          <div className="row" style={{ gap: 12, flexWrap: "wrap" }}>
+            <Link href="/check/" className="button big">Check a plot <Arrow /></Link>
+            <Link href="/lakes/" className="button big secondary">Explore monitored lakes</Link>
           </div>
           <ul className="tags" aria-label="About the data">
             <li>SENTINEL-2 L2A</li><li>10 M PIXELS</li><li>DRY SEASONS 2019–2026</li><li>OPEN DATA</li><li>BUILT ON AWS</li>
