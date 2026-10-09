@@ -42,7 +42,7 @@ export default function WatchForm({ lake, name }: { lake: string; name: string }
     <form onSubmit={submit}>
       <label htmlFor="watch-email" className="small"><strong>Watch this lake</strong></label>
       <p className="small muted" style={{ margin: "2px 0 8px" }}>
-        An email when a newly processed dry season brings a new change flag. You confirm by email first.
+        One email when a new summer shows more of this lake turning to land. You confirm by email first.
       </p>
       <div className="row">
         <input id="watch-email" type="email" required placeholder="you@example.com" value={email}
@@ -55,7 +55,7 @@ export default function WatchForm({ lake, name }: { lake: string; name: string }
       {state === "done" && (
         <Guide size={44} tone="info" className="watch-guide">
           <>I&apos;ll keep watch. Confirm the email AWS Notifications just sent to <strong>{email}</strong>; after that I&apos;ll write
-          only when a new dry season brings new change. <Link href="/watchlist/">Your watchlist</Link></>
+          only when a new summer brings new change. <Link href="/watchlist/">Your watchlist</Link></>
         </Guide>
       )}
       {state === "error" && <p className="small" role="alert" style={{ color: "var(--danger)" }}>Could not subscribe: {error}</p>}

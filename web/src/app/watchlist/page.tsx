@@ -36,22 +36,24 @@ export default function Watchlist() {
 
   return (
     <main>
-      <span className="eyebrow">Watchlist</span>
-      <h1>Lakes you watch</h1>
-      <p className="lede" style={{ maxWidth: 720 }}>
-        JalRekha re-checks every analysed lake on the 5th of each month. When a newly processed dry season brings a new
-        change flag, everyone watching that lake gets one email.
-      </p>
+      <div className="ripples" style={{ display: "grid", gap: 12, maxWidth: 760 }}>
+        <span className="kicker">My alerts</span>
+        <h1 style={{ margin: 0 }}>We&apos;ll keep an eye on it for you.</h1>
+        <p className="lede">
+          On the 5th of every month we look at every lake again. If a new summer shows more of your lake turning to land,
+          you get one short email with where, how much and since when. No newsletters, no repeats.
+        </p>
+      </div>
 
-      <ol className="small" style={{ color: "var(--body)", maxWidth: 720, lineHeight: 1.7, paddingLeft: 20 }}>
-        <li>Open an analysed lake and enter your email under &ldquo;Watch this lake&rdquo;.</li>
-        <li>Confirm the subscription from the AWS Notifications email (alerts only start after you confirm).</li>
-        <li>Each alert names the lake, the season and the flagged area. Re-scans of the same season never repeat it.</li>
+      <ol className="acts" style={{ listStyle: "none", padding: 0, margin: "28px 0" }}>
+        <li className="act"><h3>Pick your lake</h3><p>Open its page and type your email under &ldquo;Alert me&rdquo;.</p></li>
+        <li className="act"><h3>Confirm once</h3><p>Click the link in the email from AWS Notifications. Alerts start only after you confirm.</p></li>
+        <li className="act"><h3>Hear only what&apos;s new</h3><p>Each alert names the lake, the summer and the area. The same change is never sent twice.</p></li>
       </ol>
 
       {items && items.length > 0 && (
         <Guide size={52} className="section-guide" interactive={false}>
-          {`I'm watching ${items.length === 1 ? items[0].name : `${items.length} lakes`} for you from this browser. If a new dry season brings new change, you'll hear from me once, not every month.`}
+          {`I'm watching ${items.length === 1 ? items[0].name : `${items.length} lakes`} for you from this browser. If a new summer brings new change, you'll hear from me once, not every month.`}
         </Guide>
       )}
 

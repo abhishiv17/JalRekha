@@ -7,9 +7,11 @@ import { Guide, JalIcon, Loader } from "@/components/Mascot";
 import OutlinedImage from "@/components/OutlinedImage";
 import { ANALYSED_META, KIND_LABELS, placeLabel } from "@/lib/catalog";
 import {
+  type Checks,
   type FeatureCollection,
   type FlagProps,
   type Stats,
+  loadChecks,
   drySeasons,
   kindLabel,
   lakeUrl,
@@ -83,9 +85,11 @@ export default function EvidenceView({ id }: { id: string }) {
   const [templates, setTemplates] = useState<{ complaint: string; rti: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
+  const [checks, setChecks] = useState<Checks["flags"]>({});
   const [generatedAt] = useState(() => new Date());
 
   useEffect(() => {
+    loadChecks(id).then((c) => setChecks(c.flags));
     Promise.all([
       loadStats(id),
       loadFlags(id),
@@ -188,8 +192,20 @@ export default function EvidenceView({ id }: { id: string }) {
       <Guide size={52} className="no-print evidence-guide">
         {flags.length
           ? `I put together everything behind the ${flags.length} flag${flags.length === 1 ? "" : "s"} at ${stats.name}: dated images, areas, coordinates and the exact satellite scenes, so anyone can re-check it. Save it as a PDF, or take the flags into Google Earth with the KML.`
-          : `I found no lasting change at ${stats.name}, and this pack shows how I checked: every dry season, the scenes I used and the method. A clean record is evidence too.`}
+          : `I found no lasting change at ${stats.name}, and this pack shows how I checked: every summer, the scenes I used and the method. A clean record is evidence too.`}
       </Guide>
+
+      {flags.length > 0 && (
+        <div className="howto no-print" aria-label="How to use this pack">
+          <div><b>Go and look</b><span>Visit the coordinates below and photograph what&apos;s there today, with the date.</span></div>
+          <a href="#letters"><b>Send the complaint</b><span>Fill the [brackets] in the draft letter and send it to the custodian with your photos.</span></a>
+          <a href="#letters"><b>Ask what was approved</b><span>File the RTI letter to learn whether any work there was sanctioned.</span></a>
+          <button type="button" className="secondary" style={{ height: "100%", textAlign: "left", justifyContent: "flex-start", alignItems: "flex-start", flexDirection: "column", padding: "16px 18px" }}
+            onClick={() => window.print()}>
+            <b>Keep a copy</b><span style={{ fontWeight: 400 }}>Save this page as a PDF to attach to letters and emails.</span>
+          </button>
+        </div>
+      )}
 
       <header className="report-head">
         <StaticLogo size={40} />
@@ -238,7 +254,7 @@ export default function EvidenceView({ id }: { id: string }) {
       <h2>Change flags</h2>
       <div className="table-scroll"><table>
         <thead>
-          <tr><th>Flag</th><th>Zone</th><th>Category</th><th className="num">Acres</th><th>First seen</th><th>Persistence</th><th>Confidence</th><th>Centre (lat, lon)</th></tr>
+          <tr><th>Flag</th><th>Zone</th><th>Category</th><th className="num">Acres</th><th>First seen</th><th>Persistence</th><th>Confidence</th><th>High-res photo check</th><th>Centre (lat, lon)</th></tr>
         </thead>
         <tbody>
           {flags.map((f) => {
@@ -253,11 +269,16 @@ export default function EvidenceView({ id }: { id: string }) {
                 <td>{seasonLabel(p.first_seen)}</td>
                 <td>{p.status === "confirmed" ? "Confirmed (2+ seasons)" : "New (1 season)"}</td>
                 <td>{p.confidence}</td>
+                <td>
+                  {checks[p.flag_id]
+                    ? `${checks[p.flag_id].verdict} (${checks[p.flag_id].by === "person" ? "by a person" : "AI-assisted"}; photos ${checks[p.flag_id].dates})`
+                    : "not yet checked"}
+                </td>
                 <td>{lat.toFixed(5)}, {lon.toFixed(5)}</td>
               </tr>
             );
           })}
-          {flags.length === 0 && <tr><td colSpan={8}>No lasting change detected.</td></tr>}
+          {flags.length === 0 && <tr><td colSpan={9}>No lasting change detected.</td></tr>}
         </tbody>
       </table></div>
 

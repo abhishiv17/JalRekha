@@ -74,11 +74,25 @@ export const loadReference = (id: string) =>
 export const loadBounds = (id: string) =>
   getJson<{ bounds: [number, number, number, number] }>(`lakes/${id}/bounds.json`);
 
+/** A flag compared with high-resolution historical photos (research/flags_checked.csv, published per lake). */
+export type FlagCheck = {
+  verdict: "confirmed" | "not confirmed" | "can't tell";
+  note: string;
+  dates: string;
+  source: string;
+  by: "person" | "ai";
+};
+export type Checks = { as_of: string; flags: Record<string, FlagCheck> };
+
+/** Checks are optional: a lake without them simply shows "not checked yet". */
+export const loadChecks = (id: string) =>
+  getJson<Checks>(`lakes/${id}/checks.json`).catch((): Checks => ({ as_of: "", flags: {} }));
+
 export const drySeasons = (s: Stats) => s.seasons.filter((x) => x.season.endsWith("-dry"));
 
 export const seasonLabel = (season: string) => {
   const [year, kind] = season.split("-");
-  return `${kind === "dry" ? "Dry season" : "Post-monsoon"} ${year}`;
+  return `${kind === "dry" ? "Jan–Apr" : "Nov–Dec"} ${year}`;
 };
 
 export const kindLabel = (kind?: string) =>

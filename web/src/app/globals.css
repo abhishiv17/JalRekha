@@ -457,3 +457,4 @@ footer.site .wordmark-name span { font-size: inherit; color: var(--brand); }
 .dist { font-size: 13px; color: var(--muted); }
 
 .lake-thumb img { image-rendering: pixelated; }
+.lake-thumb.raw img { object-fit: contain; background: #2a3a2f; }

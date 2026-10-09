@@ -30,6 +30,10 @@ export const ANALYSED_META: Record<string, AnalysedMeta> = {
   "durgam-cheruvu": { city: "Hyderabad", state: "Telangana", thumb: "/thumbs/durgam-cheruvu.png", lat: 17.43021, lon: 78.38991, osmId: "osm-w28131043" },
   ameenpur: { city: "Hyderabad", state: "Telangana", thumb: "/thumbs/ameenpur.png", lat: 17.52312, lon: 78.33316, osmId: "osm-w115772000" },
   chembarambakkam: { city: "Chennai", state: "Tamil Nadu", thumb: "/thumbs/chembarambakkam.jpg", lat: 13.00825, lon: 80.05548, osmId: "osm-w25453624" },
+  mallathahalli: {
+    city: "Bengaluru", state: "Karnataka", thumb: lakeUrl("mallathahalli", "truecolor/2026-dry.png"), lat: 12.96509, lon: 77.49455, osmId: "osm-w37898906",
+    note: "Most flagged change here is the lake's own development works: a perimeter path and road, a plaza, a filled corner pond and a built-up island. In March 2023 the Karnataka High Court barred construction in this lake; compare the dates here with that order, and verify each flag before acting.",
+  },
 };
 
 /** Catalog lakes with a real satellite thumbnail, matched to OSM lakes by location. */
@@ -143,10 +147,10 @@ export type StatusKey = "changed" | "nochange" | "nodata" | "queued";
 
 /** Never treats "not analysed" as "no change". */
 export function statusOf(c: Card): Status {
-  if (!c.analysed) return { label: "Queued for analysis", tone: "queued", key: "queued" };
-  if (c.flaggedAc == null) return { label: "Not enough data", tone: "nodata", key: "nodata" };
-  if (!c.flaggedAc) return { label: "No change detected", tone: "steady", key: "nochange" };
-  return { label: `Change detected · ${c.flaggedAc.toFixed(2)} ac`, tone: "changed", key: "changed" };
+  if (!c.analysed) return { label: "Not checked yet", tone: "queued", key: "queued" };
+  if (c.flaggedAc == null) return { label: "Too cloudy to judge", tone: "nodata", key: "nodata" };
+  if (!c.flaggedAc) return { label: "Holding steady", tone: "steady", key: "nochange" };
+  return { label: `${c.flaggedAc.toFixed(1)} ac turned to land`, tone: "changed", key: "changed" };
 }
 
 export const KIND_LABELS: Record<string, string> = {

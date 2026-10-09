@@ -11,7 +11,7 @@ export default function LakeCard({ c, facts = true }: { c: Card; facts?: boolean
   const tag = (c.city || c.state).toUpperCase();
   const body = (
     <>
-      <div className="lake-thumb">
+      <div className={`lake-thumb${c.thumb?.includes("/truecolor/") ? " raw" : ""}`}>
         {c.thumb ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={c.thumb} alt={`Satellite view of ${c.name}`} loading="lazy" />
@@ -30,9 +30,9 @@ export default function LakeCard({ c, facts = true }: { c: Card; facts?: boolean
       {facts && c.note && <p className="lake-note">{c.note}</p>}
       {facts && (
         <dl className="lake-facts">
-          <div><dt>LAKE</dt><dd>{c.areaAc != null ? fmtAc(c.areaAc) : "—"}</dd></div>
-          <div><dt>CHANGED</dt><dd>{c.analysed ? `${(c.flaggedAc ?? 0).toFixed(2)} ac` : "—"}</dd></div>
-          <div><dt>LATEST CHANGE</dt><dd>{c.firstSeen ? seasonLabel(c.firstSeen).replace("Dry season ", "") : "—"}</dd></div>
+          <div><dt>SIZE</dt><dd>{c.areaAc != null ? fmtAc(c.areaAc) : "—"}</dd></div>
+          <div><dt>TURNED TO LAND</dt><dd>{c.analysed ? `${(c.flaggedAc ?? 0).toFixed(2)} ac` : "not checked"}</dd></div>
+          <div><dt>LATEST</dt><dd>{c.firstSeen ? seasonLabel(c.firstSeen).replace("Jan–Apr ", "") : "—"}</dd></div>
         </dl>
       )}
     </>

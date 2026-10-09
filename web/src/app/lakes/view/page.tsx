@@ -85,11 +85,11 @@ export default function QueuedLake() {
           <div className="lake-thumb" style={{ aspectRatio: "4 / 3" }}>
             {lake.thumb ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={lake.thumb} alt={`Satellite view of ${lake.name}, 2026 dry season`} />
+              <img src={lake.thumb} alt={`Satellite view of ${lake.name}, early 2026`} />
             ) : lake.shapeState ? (
               <LakeShape id={lake.id} state={lake.shapeState} label={lake.name} />
             ) : null}
-            <span className="label">{lake.thumb ? "SENTINEL-2 · DRY SEASON 2026" : "OUTLINE · OPENSTREETMAP"}</span>
+            <span className="label">{lake.thumb ? "SENTINEL-2 · JAN–APR 2026" : "OUTLINE · OPENSTREETMAP"}</span>
           </div>
           <div style={{ marginTop: 16 }}>
             <IndiaMap lakes={[lake, ...nearby.queued]} />
@@ -109,7 +109,7 @@ export default function QueuedLake() {
             <p className="small" style={{ color: "var(--body)", marginTop: 16 }}>Getting results takes three steps:</p>
             <ol className="small" style={{ paddingLeft: 18, color: "var(--body)", lineHeight: 1.6 }}>
               <li>Check the outline against the lake as it was in 2019.</li>
-              <li>Run the same pipeline as every analysed lake: eight dry seasons of Sentinel-2 on AWS, about two minutes.</li>
+              <li>Run the same pipeline as every analysed lake: eight summers of Sentinel-2 photos on AWS, about two minutes.</li>
               <li>Hand-check every flag before it is shown.</li>
             </ol>
             <div className="row" style={{ gap: 10, marginTop: 8 }}>

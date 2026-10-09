@@ -1,15 +1,25 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Metadata } from "next";
+import { DATA_URL } from "@/lib/data";
 import LakeView from "./LakeView";
 
-function lakes(): { id: string; name: string; flagged_ac: number }[] {
+type Entry = { id: string; name: string; flagged_ac: number };
+
+// The lake list comes from wherever the app reads results: the live API (S3 behind it)
+// when DATA_URL is a URL, otherwise the files synced into public/data for offline work.
+async function lakes(): Promise<Entry[]> {
+  if (/^https?:\/\//.test(DATA_URL)) {
+    const res = await fetch(`${DATA_URL}/index.json`, { cache: "no-store" });
+    if (!res.ok) throw new Error(`lake list from ${DATA_URL}: ${res.status}`);
+    return (await res.json()).lakes;
+  }
   return JSON.parse(readFileSync(join(process.cwd(), "public", "data", "index.json"), "utf-8")).lakes;
 }
 
 export async function generateMetadata({ params }: { params: Promise<{ id: string }> }): Promise<Metadata> {
   const { id } = await params;
-  const lake = lakes().find((l) => l.id === id);
+  const lake = (await lakes()).find((l) => l.id === id);
   return {
     title: lake ? `${lake.name}: lake analysis` : "Lake analysis",
     description: lake
@@ -18,9 +28,9 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   };
 }
 
-// Static export needs every lake id at build time; `prebuild` syncs public/data first.
-export function generateStaticParams() {
-  return lakes().map((l) => ({ id: l.id }));
+// Static export needs every lake id at build time.
+export async function generateStaticParams() {
+  return (await lakes()).map((l) => ({ id: l.id }));
 }
 
 export default async function LakePage({ params }: { params: Promise<{ id: string }> }) {
