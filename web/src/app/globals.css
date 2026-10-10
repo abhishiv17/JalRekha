@@ -26,8 +26,9 @@
   --bare: #dc5032;
   --land: #a4752f;
   --radius: 12px;
-  --display: var(--font-display), "Helvetica Neue", sans-serif;
-  --sans: var(--font-sans), system-ui, sans-serif;
+  --indic: var(--font-deva), var(--font-knda), var(--font-telu);
+  --display: var(--font-display), var(--indic), "Helvetica Neue", sans-serif;
+  --sans: var(--font-sans), var(--indic), system-ui, sans-serif;
   --mono: var(--font-mono), ui-monospace, monospace;
   color-scheme: light;
 }
@@ -73,7 +74,7 @@ h1, h2, h3 { font-family: var(--display); letter-spacing: -0.03em; color: var(--
 h1 { font-size: clamp(40px, 5.5vw, 72px); font-weight: 900; line-height: 0.98; margin: 10px 0 8px; letter-spacing: -0.045em; }
 h2 { font-size: 26px; font-weight: 800; margin: 40px 0 14px; line-height: 1.12; }
 h3 { font-size: 20px; font-weight: 700; margin: 0; }
-.eyebrow { font-family: var(--mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; color: var(--brand); text-transform: uppercase; }
+.eyebrow { font-family: var(--sans); font-size: 15px; font-weight: 600; letter-spacing: 0; color: var(--brand-soft); }
 .section-title { font-size: clamp(32px, 4vw, 46px); font-weight: 800; line-height: 1.04; margin: 6px 0 12px; }
 .lede { font-size: 18px; color: var(--body); margin: 0; }
 .muted { color: var(--muted); }
@@ -178,8 +179,10 @@ td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; }
 .flow-step div.text { padding: 14px 16px 18px; }
 .flow-step b { display: block; font-family: var(--display); font-size: 17px; margin-bottom: 4px; }
 .flow-step span { font-size: 14.5px; color: var(--body); }
-.reasons { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 16px; }
-.reason { padding: 22px; border-radius: 14px; background: var(--card); border: 1px solid var(--line); }
+.reasons { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr)); gap: 8px 40px; }
+.reason { padding: 18px 0 8px; border-top: 3px solid var(--brand); }
+.reason:nth-child(2) { border-top-color: var(--flag); }
+.reason:nth-child(3) { border-top-color: var(--water); }
 .reason h3 { margin: 0 0 8px; font-size: 19px; }
 .reason p { margin: 0; color: var(--body); font-size: 15.5px; }
 .reason .src { margin-top: 10px; font-size: 13px; color: var(--muted); }
@@ -669,7 +672,7 @@ svg:has(.jal-orbit) { overflow: visible; }
   background: repeating-radial-gradient(circle at 88% 22%, transparent 0 26px, rgba(31, 92, 63, 0.055) 26px 27px);
   mask-image: radial-gradient(circle at 88% 22%, #000 0, #000 30%, transparent 70%);
 }
-.kicker { display: inline-flex; align-items: center; gap: 10px; font-family: var(--mono); font-size: 12.5px; font-weight: 600; letter-spacing: 0.12em; color: var(--brand); text-transform: uppercase; }
+.kicker { display: inline-flex; align-items: center; gap: 10px; font-family: var(--sans); font-size: 15px; font-weight: 600; letter-spacing: 0; color: var(--brand-soft); }
 .kicker::before { content: ""; width: 28px; height: 8px; background: var(--wave) repeat-x center / 28px 8px; }
 .local-word { font-family: var(--sans); font-weight: 600; letter-spacing: 0; text-transform: none; color: var(--brand-soft); }
 
@@ -774,3 +777,173 @@ svg:has(.jal-orbit) { overflow: visible; }
 
 .lake-thumb img { image-rendering: pixelated; }
 .lake-thumb.raw img { object-fit: contain; background: #2a3a2f; }
+
+
+/* ---------- Four languages ----------
+   Devanagari, Kannada and Telugu need room above and below the line and must not be squeezed
+   together the way the Latin display face is. */
+html:not([lang="en"]) :is(h1, h2, h3, .hero-title, .section-title, .lake-verdict, .stat, .big-stat b, .ledger b) {
+  letter-spacing: 0; line-height: 1.32;
+}
+html:not([lang="en"]) .hero-title { font-size: clamp(38px, 5.2vw, 72px); }
+html:not([lang="en"]) body { line-height: 1.7; }
+
+/* Header tools: language and the Jal guide switch */
+.nav-links { order: 2; }
+.nav-tools { order: 3; display: flex; align-items: center; gap: 8px; }
+.lang-menu { position: relative; }
+.lang-button { min-height: 40px; padding: 8px 12px; background: transparent; color: var(--text); border-color: var(--line-strong); gap: 6px; font-size: 15px; }
+.lang-button:hover { background: var(--surface); color: var(--text); border-color: var(--line-strong); }
+.lang-button.busy svg { animation: spin 1.4s linear infinite; }
+.lang-pop { position: absolute; right: 0; top: calc(100% + 8px); z-index: 50; width: 240px; padding: 6px; background: var(--card);
+  border: 1px solid var(--line); border-radius: 14px; box-shadow: 0 18px 40px rgba(29, 35, 32, 0.14); }
+.lang-pop button { width: 100%; justify-content: space-between; background: transparent; color: var(--text); border: 0; min-height: 44px; padding: 8px 12px; border-radius: 9px; font-weight: 500; }
+.lang-pop button b { font-weight: 700; font-size: 16px; }
+.lang-pop button span { color: var(--muted); font-size: 13px; }
+.lang-pop button:hover { background: var(--surface); color: var(--text); }
+.lang-pop button[aria-checked="true"] { background: var(--brand-tint); color: var(--brand-deep); }
+.lang-pop p { margin: 6px 10px; font-size: 12px; color: var(--muted); line-height: 1.4; }
+
+.jal-toggle { min-height: 40px; padding: 4px 8px 4px 4px; gap: 8px; background: var(--card); color: var(--text); border: 1px solid var(--line-strong); border-radius: 999px; position: relative; }
+.jal-toggle:hover { background: var(--brand-tint); color: var(--text); border-color: var(--brand-soft); }
+.jal-toggle-face { width: 32px; height: 32px; border-radius: 999px; background: var(--brand-tint); display: grid; place-items: center; overflow: hidden; }
+.jal-toggle-label { font-size: 14.5px; white-space: nowrap; }
+header.site .brand { flex: none; }
+.jal-switch { width: 34px; height: 20px; border-radius: 999px; background: var(--line-strong); position: relative; transition: background 0.2s; }
+.jal-switch i { position: absolute; top: 2px; left: 2px; width: 16px; height: 16px; border-radius: 999px; background: #fff; box-shadow: 0 1px 3px rgba(0, 0, 0, 0.25); transition: transform 0.2s; }
+.jal-toggle.on { background: var(--brand); color: #fff; border-color: var(--brand); }
+.jal-toggle.on .jal-switch { background: #7fc69a; }
+.jal-toggle.on .jal-switch i { transform: translateX(14px); }
+.jal-toggle:not(.on)::after { /* a ring that ripples outwards a few times, so it gets noticed */
+  content: ""; position: absolute; inset: -4px; border-radius: 999px; border: 2px solid var(--brand-soft); opacity: 0;
+  animation: jal-ring 2.8s ease-out 1.2s 3; pointer-events: none;
+}
+@keyframes jal-ring { 0% { opacity: 0.7; transform: scale(0.96); } 100% { opacity: 0; transform: scale(1.18); } }
+
+@media (max-width: 1400px) { .jal-toggle-label { display: none; } }
+/* Translated menu words run longer: tighten the header so it stays on one line. */
+html:not([lang="en"]) .nav-links a.link { padding: 10px 8px; font-size: 14.5px; }
+@media (min-width: 1101px) { header.site nav { flex-wrap: nowrap; } .nav-links { flex-wrap: nowrap; white-space: nowrap; } }
+@media (max-width: 760px) {
+  header.site nav { gap: 6px; }
+  .nav-tools { margin-left: auto; gap: 6px; }
+  .menu-toggle { order: 4; width: 42px; padding: 0; }
+  .lang-button { padding: 8px 9px; gap: 4px; }
+  .jal-toggle { padding: 3px 6px 3px 3px; gap: 6px; }
+  header.site .wordmark-sub { display: none; }
+}
+
+/* ---------- Jal guide ---------- */
+.jal-spot { position: relative; scroll-margin: 120px; }
+/* A soft glow that says "this part", then fades: no frame left around the section. */
+.jal-spot::after {
+  content: ""; position: absolute; inset: -12px; border-radius: 22px; pointer-events: none; z-index: 1; opacity: 0;
+  background: radial-gradient(ellipse at 20% 0%, rgba(79, 143, 105, 0.12), transparent 60%);
+  box-shadow: 0 0 0 2px rgba(79, 143, 105, 0.35);
+  animation: jal-spot 1.8s ease-out;
+}
+@keyframes jal-spot { 0% { opacity: 0; } 20% { opacity: 1; } 100% { opacity: 0; } }
+
+.jal-dock {
+  position: fixed; right: 20px; bottom: 20px; z-index: 60; width: min(380px, calc(100vw - 32px));
+  background: var(--card); border: 1px solid var(--line); border-radius: 22px; padding: 16px 18px 14px;
+  box-shadow: 0 24px 60px rgba(22, 63, 44, 0.22); overflow: hidden;
+  animation: jal-dock-in 0.45s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+@keyframes jal-dock-in { from { opacity: 0; transform: translateY(24px) scale(0.96); } to { opacity: 1; transform: none; } }
+.jal-dock-water { position: absolute; left: 0; right: 0; top: 0; height: 70px; pointer-events: none; overflow: hidden;
+  background: linear-gradient(180deg, var(--brand-tint), transparent); }
+.jal-dock-water::after { content: ""; position: absolute; left: -120px; right: 0; bottom: 4px; height: 12px;
+  background: var(--wave) repeat-x 0 50% / 120px 12px; animation: jal-wave 6s linear infinite; opacity: 0.8; }
+@keyframes jal-wave { to { transform: translateX(120px); } }
+.jal-dock-head { position: relative; display: flex; align-items: center; gap: 10px; }
+.jal-avatar { flex: none; margin: -8px 0 -6px -6px; }
+.jal-dock.talking .jal-avatar svg { animation: jal-talk 0.32s ease-in-out infinite alternate; transform-origin: 50% 90%; }
+@keyframes jal-talk { to { transform: translateY(-2px) scale(1.03); } }
+.jal-dock-who { display: flex; flex-direction: column; line-height: 1.2; min-width: 0; }
+.jal-dock-who strong { font-family: var(--display); font-size: 20px; }
+.jal-dock-who span { font-size: 13px; color: var(--muted); }
+.jal-eq { display: inline-flex; align-items: flex-end; gap: 3px; height: 18px; margin-left: auto; }
+.jal-eq i { width: 4px; border-radius: 2px; background: var(--brand-soft); animation: jal-eq 0.9s ease-in-out infinite; }
+.jal-eq i:nth-child(2) { animation-delay: 0.15s; }
+.jal-eq i:nth-child(3) { animation-delay: 0.3s; }
+.jal-eq i:nth-child(4) { animation-delay: 0.45s; }
+@keyframes jal-eq { 0%, 100% { height: 4px; } 50% { height: 18px; } }
+.jal-x { position: relative; margin-left: auto; width: 34px; height: 34px; min-height: 0; padding: 0; border-radius: 999px; border: 0;
+  background: rgba(255, 255, 255, 0.7); color: var(--muted); font-size: 22px; line-height: 1; }
+.jal-eq + .jal-x { margin-left: 8px; }
+.jal-x:hover { background: var(--surface); color: var(--text); }
+.jal-line { position: relative; margin: 12px 0 10px; font-size: 17px; line-height: 1.55; color: var(--text); max-height: 40vh; overflow: auto; animation: bubble-in 0.3s ease-out; }
+.jal-novoice { margin: -4px 0 10px; font-size: 12.5px; color: var(--muted); }
+.jal-dots { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+.jal-dots button { width: 9px; height: 9px; min-height: 0; padding: 0; border: 0; border-radius: 999px; background: var(--line-strong); transition: width 0.25s, background 0.25s; }
+.jal-dots button.done { background: var(--sage); }
+.jal-dots button.on { width: 26px; background: var(--brand); }
+.jal-controls { display: flex; gap: 8px; align-items: center; }
+.jal-controls > button { flex: 1 1 0; min-height: 42px; padding: 8px 10px; font-size: 14.5px; }
+.jal-controls > button.ghost { flex: 0 1 auto; }
+.jal-play { background: var(--card); color: var(--brand-deep); border-color: var(--brand-soft); }
+.jal-play:hover { background: var(--brand-tint); color: var(--brand-deep); }
+.jal-play.on { background: var(--brand-tint); }
+.jal-langs { display: flex; gap: 4px; margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line); }
+.jal-langs button { flex: 1 1 0; min-height: 34px; padding: 4px 6px; font-size: 14px; font-weight: 600; background: transparent; color: var(--body); border-color: transparent; border-radius: 8px; }
+.jal-langs button:hover { background: var(--surface); color: var(--text); }
+.jal-langs button[aria-pressed="true"] { background: var(--brand-tint); color: var(--brand-deep); }
+
+.jal-invite {
+  position: fixed; right: 24px; bottom: 24px; z-index: 55; width: min(340px, calc(100vw - 32px)); padding: 46px 20px 16px;
+  background: var(--brand-deep); color: #e6f0e9; border-radius: 22px; box-shadow: 0 24px 60px rgba(22, 63, 44, 0.35);
+  animation: jal-dock-in 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.2);
+}
+.jal-invite-peek { position: absolute; left: 16px; top: -50px; animation: jal-peek 0.9s cubic-bezier(0.2, 0.9, 0.3, 1.3) 0.2s both; }
+@keyframes jal-peek { from { transform: translateY(40px) rotate(-8deg); opacity: 0; } to { transform: none; opacity: 1; } }
+.jal-invite .jal-x { position: absolute; top: 10px; right: 10px; background: rgba(255, 255, 255, 0.12); color: #fff; }
+.jal-invite-title { margin: 0 0 4px; font-family: var(--display); font-weight: 800; font-size: 22px; color: #fff; }
+.jal-invite-text { margin: 0 0 14px; font-size: 15px; line-height: 1.5; }
+.jal-invite-langs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.jal-invite-langs button { background: #fff; color: var(--brand-deep); border-color: #fff; min-height: 44px; font-size: 16px; }
+.jal-invite-langs button:hover { background: var(--brand-tint); color: var(--brand-deep); border-color: var(--brand-tint); }
+.jal-later { width: 100%; margin-top: 8px; min-height: 36px; background: transparent; border: 0; color: #b9d3c2; font-weight: 500; }
+.jal-later:hover { background: transparent; color: #fff; text-decoration: underline; }
+
+/* Listen button on Jal's speech bubbles */
+.guide-listen { display: inline-flex; vertical-align: -3px; margin-left: 8px; width: 28px; height: 28px; min-height: 0; padding: 0; border-radius: 999px;
+  background: var(--brand-tint); color: var(--brand); border: 0; }
+.guide-listen:hover, .guide-listen[aria-pressed="true"] { background: var(--brand); color: #fff; }
+.guide.talking > svg { animation: jal-talk 0.32s ease-in-out infinite alternate; transform-origin: 50% 90%; }
+
+@media (max-width: 760px) {
+  .jal-dock { left: 8px; right: 8px; bottom: 8px; width: auto; border-radius: 20px; padding: 12px 14px calc(12px + env(safe-area-inset-bottom)); }
+  .jal-line { font-size: 16px; max-height: 26vh; }
+  .jal-avatar svg { width: 50px; height: 50px; }
+  body.jal-on .action-bar { display: none; }
+  body.jal-on main { padding-bottom: 300px; }
+  .jal-invite { left: 12px; right: 12px; bottom: 12px; width: auto; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .jal-spot::after, .jal-dock, .jal-invite, .jal-invite-peek, .jal-dock-water::after, .jal-eq i, .jal-toggle::after,
+  .jal-dock.talking .jal-avatar svg, .guide.talking > svg { animation: none !important; }
+}
+@media print { .jal-dock, .jal-invite, .nav-tools, .guide-listen { display: none !important; } .jal-spot::after { display: none; } }
+
+/* Hero: read in your language, or let Jal guide */
+.read-in { display: flex; align-items: center; gap: 10px 14px; flex-wrap: wrap; margin-top: 4px; }
+.read-in-label { font-size: 14px; color: var(--muted); }
+.read-in-langs { display: inline-flex; padding: 3px; gap: 2px; border-radius: 12px; background: var(--chip); }
+.read-in-langs button { min-height: 36px; padding: 6px 12px; font-size: 15px; font-weight: 600; background: transparent; color: var(--body); border: 0; border-radius: 9px; }
+.read-in-langs button:hover { background: rgba(255, 255, 255, 0.6); color: var(--text); }
+.read-in-langs button[aria-pressed="true"] { background: var(--card); color: var(--brand-deep); box-shadow: 0 1px 3px rgba(29, 35, 32, 0.12); }
+.read-in-jal { min-height: 42px; padding: 4px 14px 4px 6px; background: var(--brand-tint); color: var(--brand-deep); border: 1px dashed var(--brand-soft); border-radius: 999px; }
+.read-in-jal:hover { background: var(--brand); color: #fff; border-style: solid; }
+
+/* "Why it matters": numbers set like a newspaper margin, not a third row of identical cards */
+.why-stats .big-stat { background: none; border: 0; border-left: 3px solid var(--water); border-radius: 0; padding: 2px 0 2px 18px; box-shadow: none; }
+.why-stats .big-stat:nth-child(2) { border-left-color: var(--flag); }
+.why-stats .big-stat:nth-child(3) { border-left-color: var(--brand-soft); }
+
+/* When a page can't be translated right now */
+.translate-notice { position: fixed; left: 50%; top: 84px; transform: translateX(-50%); z-index: 70; display: flex; align-items: center; gap: 12px;
+  max-width: calc(100vw - 24px); padding: 10px 10px 10px 16px; background: var(--text); color: #fff; border-radius: 14px; font-size: 15px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25); animation: jal-dock-in 0.35s ease-out; }
+.translate-notice button { min-height: 36px; padding: 6px 12px; background: #fff; color: var(--text); border-color: #fff; white-space: nowrap; }
+.translate-notice .jal-x { background: rgba(255, 255, 255, 0.15); color: #fff; width: 32px; height: 32px; }
