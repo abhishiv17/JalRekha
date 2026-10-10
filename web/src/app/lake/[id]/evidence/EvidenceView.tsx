@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { StaticLogo } from "@/components/Brand";
 import { Guide, JalIcon, Loader } from "@/components/Mascot";
 import OutlinedImage from "@/components/OutlinedImage";
-import { ANALYSED_META, KIND_LABELS, placeLabel } from "@/lib/catalog";
+import { ANALYSED_META, KIND_LABELS, type Place, placeLabel } from "@/lib/catalog";
 import {
   type Checks,
   type FeatureCollection,
@@ -56,6 +56,34 @@ function download(name: string, type: string, text: string) {
   setTimeout(() => URL.revokeObjectURL(url), 1000);
 }
 
+/** Who to write to and which law applies, by state. Check the exact office before sending. */
+const LETTER_BY_STATE: Record<string, { authority: string; law: string }> = {
+  Karnataka: {
+    authority: "the lake custodian (city lake division / BDA / Forest Department / Tahsildar)",
+    law: "the Karnataka Tank Conservation and Development Authority Act, 2014",
+  },
+  Delhi: {
+    authority: "the Delhi State Wetland Authority / Delhi Development Authority (DDA) / the area Sub-Divisional Magistrate",
+    law: "the Wetlands (Conservation and Management) Rules, 2017, and other applicable law",
+  },
+  Haryana: {
+    authority: "the Haryana Pond and Waste Water Management Authority / the Municipal Corporation",
+    law: "the Wetlands (Conservation and Management) Rules, 2017, and other applicable law",
+  },
+  Telangana: {
+    authority: "the HMDA Lake Protection Committee / GHMC / HYDRAA",
+    law: "the HMDA full-tank-level notification for this lake and other applicable law",
+  },
+  "Tamil Nadu": {
+    authority: "the Water Resources Department / Greater Chennai Corporation / Tahsildar",
+    law: "the Tamil Nadu Protection of Tanks and Eviction of Encroachment Act, 2007",
+  },
+};
+const LETTER_DEFAULT = {
+  authority: "the city's lake or water department / District Collector",
+  law: "the Wetlands (Conservation and Management) Rules, 2017, and other applicable law",
+};
+
 function fill(template: string, values: Record<string, string>) {
   return template.replace(/\{\{(\w+)\}\}/g, (m, k) => values[k] ?? m);
 }
@@ -75,7 +103,7 @@ function Letter({ title, text }: { title: string; text: string }) {
   );
 }
 
-export default function EvidenceView({ id }: { id: string }) {
+export default function EvidenceView({ id, place: placeProp }: { id: string; place?: Place }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [flags, setFlags] = useState<Flag[]>([]);
   const [geo, setGeo] = useState<{
@@ -125,7 +153,7 @@ export default function EvidenceView({ id }: { id: string }) {
   }
   if (!stats || !templates || !geo) return <main><Loader label="Gathering the evidence for this lake…" /></main>;
 
-  const place = ANALYSED_META[id];
+  const place: (Place & { osmId?: string }) | undefined = ANALYSED_META[id] ?? (placeProp && { ...placeProp, osmId: id });
   const usable = drySeasons(stats).filter((s) => s.status === "ok");
   const first = usable[0];
   const last = usable.at(-1);
@@ -148,7 +176,9 @@ export default function EvidenceView({ id }: { id: string }) {
       centroid_lat: lat.toFixed(5),
       centroid_lon: lon.toFixed(5),
       area_ac: f ? f.properties.area_ac.toFixed(2) : "",
-      zone: f?.properties.zone === "buffer" ? "30-metre no-build zone" : "lakebed",
+      zone: f?.properties.zone === "buffer" ? "within 30 metres of the lake" : "lake bed",
+      authority: (LETTER_BY_STATE[place?.state ?? ""] ?? LETTER_DEFAULT).authority,
+      law: (LETTER_BY_STATE[place?.state ?? ""] ?? LETTER_DEFAULT).law,
       first_seen: f ? seasonLabel(f.properties.first_seen) : "",
       status: f?.properties.status ?? "",
       confidence: f?.properties.confidence ?? "",
@@ -267,7 +297,7 @@ export default function EvidenceView({ id }: { id: string }) {
                 <td>{kindLabel(p.kind)}</td>
                 <td className="num">{p.area_ac.toFixed(2)}</td>
                 <td>{seasonLabel(p.first_seen)}</td>
-                <td>{p.status === "confirmed" ? "Yes, 2+ years" : "Only 1 year so far"}</td>
+                <td>{p.status === "confirmed" ? "Yes, 2+ years in a row" : p.first_seen.slice(0, 4) === (last?.season ?? "").slice(0, 4) ? "New this year" : "On and off"}</td>
                 <td>{{ high: "Sure", medium: "Fairly sure", low: "Not sure yet" }[p.confidence] ?? p.confidence}</td>
                 <td>
                   {checks[p.flag_id]

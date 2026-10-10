@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import LakeCard from "@/components/LakeCard";
+import { BhalswaStory } from "@/components/LakeStory";
 import Jal, { Guide, type Mood } from "@/components/Mascot";
 import { Arrow } from "@/components/SiteHeader";
 import { cards } from "@/lib/catalog";
@@ -142,27 +143,14 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How it works: three steps */}
+      {/* How it works: a scroll story on one real lake */}
       <section id="how" className="wrap section" aria-labelledby="how-title">
         <span className="eyebrow">How it works</span>
-        <h2 id="how-title" className="section-title" style={{ marginBottom: 28 }}>Three steps. No maps skills needed.</h2>
-        <ol className="steps3">
-          <li>
-            <Jal size={72} interactive={false} />
-            <b>1. Drop a pin</b>
-            <span>Search an address or tap the plot on the map.</span>
-          </li>
-          <li>
-            <Jal size={72} mood="scanning" interactive={false} />
-            <b>2. We look back 8 years</b>
-            <span>We read every satellite photo of that spot since 2019, plus radar flood maps.</span>
-          </li>
-          <li>
-            <Jal size={72} mood="celebrate" interactive={false} />
-            <b>3. You get a clear answer</b>
-            <span>High risk, Be careful or Low risk, with what to do next. In 4 languages.</span>
-          </li>
-        </ol>
+        <h2 id="how-title" className="section-title" style={{ marginBottom: 8 }}>Watch it work on a real Delhi lake.</h2>
+        <p className="lede" style={{ maxWidth: 680, marginBottom: 28 }}>
+          Scroll down. Each step adds one layer to the real satellite photo of Bhalswa Lake.
+        </p>
+        <BhalswaStory />
       </section>
 
       {/* Real results */}

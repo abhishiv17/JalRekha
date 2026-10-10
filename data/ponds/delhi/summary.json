@@ -1,0 +1,36 @@
+{
+  "city": "Delhi",
+  "bbox": [
+    76.84,
+    28.41,
+    77.34,
+    28.88
+  ],
+  "baseline_years": [
+    2019,
+    2020,
+    2021
+  ],
+  "recent_years": [
+    2024,
+    2025
+  ],
+  "ponds": 331,
+  "alive": 241,
+  "shrank": 31,
+  "vanished": 59,
+  "came_back": 45,
+  "left_out": {
+    "drain_or_canal": 56,
+    "no_clear_recent_look": 0,
+    "outside_city": 494
+  },
+  "vanished_ha": 19.3,
+  "now": {
+    "built_or_bare": 22,
+    "dried_grassed": 43,
+    "unclear": 25
+  },
+  "method": "Sentinel-2 November-January medians; pond = MNDWI > 0.1 in 2 of 3 baseline seasons; still wet = MNDWI > 0.0 in any recent season with a clear look; drains and canals left out.",
+  "made": "2026-10-10"
+}

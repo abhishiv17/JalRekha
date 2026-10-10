@@ -1,0 +1,36 @@
+{
+  "id": "delhi-2023-07",
+  "name": "Yamuna floods, Delhi, July 2023",
+  "date": "2023-07-12",
+  "bounds": [
+    77.04222984988522,
+    28.444237277569414,
+    77.40928788868311,
+    28.855828990474716
+  ],
+  "flood_scene": "S1A_IW_GRDH_1SDV_20230712T005233_20230712T005258_049383_05F03C",
+  "flood_time_utc": "2023-07-12T00:52:45.928829+00:00",
+  "reference_scenes": [
+    "S1A_IW_GRDH_1SDV_20230501T005229_20230501T005254_048333_05D01F",
+    "S1A_IW_GRDH_1SDV_20230513T005230_20230513T005255_048508_05D5C0",
+    "S1A_IW_GRDH_1SDV_20230525T005230_20230525T005255_048683_05DAF1",
+    "S1A_IW_GRDH_1SDV_20230606T005230_20230606T005255_048858_05E029",
+    "S1A_IW_GRDH_1SDV_20230618T005231_20230618T005256_049033_05E580",
+    "S1A_IW_GRDH_1SDV_20231016T005237_20231016T005302_050783_061EC5",
+    "S1A_IW_GRDH_1SDV_20231109T005236_20231109T005301_051133_062AB8"
+  ],
+  "resolution_m": 20,
+  "shift_px": [
+    1,
+    5
+  ],
+  "flooded_km2": 34.32,
+  "thresholds": {
+    "flood_db_max": -15.0,
+    "drop_db": 3.0,
+    "min_flood_px": 4
+  },
+  "source": "Copernicus Sentinel-1 GRD via the Registry of Open Data on AWS (Earth Search)",
+  "limits": "Radar misses water between tall buildings and floods that drained before the pass.",
+  "made": "2026-10-09"
+}

@@ -14,25 +14,32 @@ import { useEffect, useId, useRef, useState } from "react";
 
 const INK = "#24302a";
 
-export type Mood = "happy" | "scanning" | "thinking" | "cautious" | "worried" | "celebrate";
+export type Mood =
+  | "happy" | "scanning" | "thinking" | "cautious" | "worried" | "celebrate"
+  | "curious" | "surprised" | "wink" | "searching" | "writing";
 
 type BustProps = { look: { x: number; y: number }; blink: boolean; mood?: Mood };
 
 function Bust({ look, blink, mood = "happy" }: BustProps) {
   const clip = useId();
   // Where the eyes look by mood (the cursor wins when it moves).
-  const gaze = mood === "thinking" ? { x: 1.8, y: -2 } : mood === "scanning" ? { x: -1.6, y: -1.6 } : { x: 0, y: 0 };
+  const GAZE: Partial<Record<Mood, { x: number; y: number }>> = {
+    thinking: { x: 1.8, y: -2 }, scanning: { x: -1.6, y: -1.6 }, curious: { x: 2, y: 0 },
+    searching: { x: 2, y: -0.5 }, writing: { x: 1, y: 2.2 },
+  };
+  const gaze = GAZE[mood] ?? { x: 0, y: 0 };
   const eyeLook = look.x || look.y ? look : gaze;
+  const big = mood === "surprised";
   const eye = (cx: number) =>
-    mood === "celebrate" ? (
+    mood === "celebrate" || (mood === "wink" && cx > 60) ? (
       <path d={`M${cx - 5.5} 68 q5.5 -7 11 0`} fill="none" stroke={INK} strokeWidth="2.6" strokeLinecap="round" />
     ) : blink ? (
       <path d={`M${cx - 5.5} 67 q5.5 3.5 11 0`} fill="none" stroke={INK} strokeWidth="2.4" strokeLinecap="round" />
     ) : (
       <g>
-        <ellipse cx={cx} cy={66} rx={5.6} ry={6.6} fill="#1d2420" />
+        <ellipse cx={cx} cy={66} rx={big ? 6.6 : 5.6} ry={big ? 7.8 : 6.6} fill="#1d2420" />
         <g transform={`translate(${eyeLook.x * 0.8} ${eyeLook.y * 0.8})`}>
-          <circle cx={cx - 1.8} cy={63.4} r={2.1} fill="#fff" />
+          <circle cx={cx - 1.8} cy={63.4} r={big ? 2.6 : 2.1} fill="#fff" />
           <circle cx={cx + 2} cy={68.4} r={1} fill="#fff" />
         </g>
       </g>
@@ -66,7 +73,8 @@ function Bust({ look, blink, mood = "happy" }: BustProps) {
       <path d="M30 98c-4 6-4 12 2 14 6 1 11-2 12-8" fill={SKIN} stroke={INK} strokeWidth="2.2" strokeLinejoin="round" />
       <path d="M90 98c4 6 4 12-2 14-6 1-11-2-12-8" fill={SKIN} stroke={INK} strokeWidth="2.2" strokeLinejoin="round" />
       <path d="M31 109l-2 3M35 111l-1 3M89 109l2 3M85 111l1 3" stroke={INK} strokeWidth="1.6" strokeLinecap="round" />
-      {/* neck and head, poking out in front of the shell */}
+      {/* neck and head, poking out in front of the shell (tilted when curious) */}
+      <g transform={mood === "curious" ? "rotate(-9 60 72)" : undefined}>
       <path d="M48 96c0-8 5-12 12-12s12 4 12 12" fill={SKIN} stroke={INK} strokeWidth="2.2" />
       <path d="M38 70c0-14 10-22 22-22s22 8 22 22c0 13-10 21-22 21S38 83 38 70Z" fill={SKIN} stroke={INK} strokeWidth="2.6" strokeLinejoin="round" />
       {/* yellow head stripes of an Indian pond turtle, and a couple of spots */}
@@ -83,6 +91,7 @@ function Bust({ look, blink, mood = "happy" }: BustProps) {
       <ellipse cx="76" cy="76" rx="4" ry="2.4" fill="#f2a196" opacity="0.7" />
       <Mouth mood={mood} />
       <Brows mood={mood} />
+      </g>
       <Extras mood={mood} />
     </>
   );
@@ -94,6 +103,16 @@ function Mouth({ mood }: { mood: Mood }) {
     case "thinking":
     case "scanning":
       return <ellipse cx="61" cy="80" rx="2.2" ry="1.9" fill={INK} />;
+    case "searching":
+      return <ellipse cx="61" cy="80" rx="2.2" ry="1.9" fill={INK} />;
+    case "surprised":
+      return <ellipse cx="60" cy="81" rx="3" ry="3.8" fill={INK} />;
+    case "curious":
+      return <path d="M56 80q4 2 8 -1" {...line} />;
+    case "writing":
+      return <path d="M56 80h7" {...line} />;
+    case "wink":
+      return <path d="M53 78q7 6 14 0" {...line} />;
     case "cautious":
       return <path d="M55 80h10" {...line} />;
     case "worried":
@@ -110,6 +129,8 @@ function Brows({ mood }: { mood: Mood }) {
   if (mood === "worried") return <g {...line}><path d="M45 54l9 3" /><path d="M75 54l-9 3" /></g>;
   if (mood === "cautious") return <g {...line}><path d="M46 56h9" /><path d="M65 54q4.5 -3.5 9 0" /></g>;
   if (mood === "thinking") return <g {...line}><path d="M46 55q4.5 -2.5 9 0" /><path d="M65 54q4.5 -2.5 9 1" /></g>;
+  if (mood === "surprised") return <g {...line}><path d="M45 53q5 -4 10 -1" /><path d="M65 52q5 -3 10 1" /></g>;
+  if (mood === "curious") return <g {...line}><path d="M46 56h9" /><path d="M65 52q5 -4 10 0" /></g>;
   return null;
 }
 
@@ -137,8 +158,37 @@ function Extras({ mood }: { mood: Mood }) {
       </g>
     );
   }
+  if (mood === "searching") {
+    // A magnifying glass held up to the right eye.
+    return (
+      <g className="jal-peek">
+        <circle cx="71" cy="66" r="10" fill="#e8f4ff" fillOpacity="0.35" stroke={INK} strokeWidth="3" />
+        <path d="M79 74l11 11" stroke={INK} strokeWidth="5" strokeLinecap="round" />
+        <path d="M79 74l11 11" stroke="#a4752f" strokeWidth="3" strokeLinecap="round" />
+      </g>
+    );
+  }
+  if (mood === "writing") {
+    // A little report and a pencil that moves as it writes.
+    return (
+      <g>
+        <rect x="70" y="86" width="34" height="26" rx="3" fill="#fff" stroke={INK} strokeWidth="2" transform="rotate(-8 87 99)" />
+        <path d="M76 94h18M76 100h14M76 106h16" stroke="#9aa59f" strokeWidth="1.6" transform="rotate(-8 87 99)" />
+        <g className="jal-pencil">
+          <path d="M94 104l14 -18 5 4 -14 18z" fill="#f5c542" stroke={INK} strokeWidth="1.6" strokeLinejoin="round" />
+          <path d="M94 104l-1 6 6 -2z" fill={INK} />
+        </g>
+      </g>
+    );
+  }
+  if (mood === "wink") {
+    return <path className="jal-sparkle" d="M100 30l2 5 5 2 -5 2 -2 5 -2 -5 -5 -2 5 -2z" fill="#f5c542" stroke={INK} strokeWidth="1.1" />;
+  }
+  if (mood === "surprised") {
+    return <g stroke={INK} strokeWidth="2.2" strokeLinecap="round"><path d="M98 22l5 -6" /><path d="M104 30l7 -2" /><path d="M92 18l1 -7" /></g>;
+  }
   if (mood === "worried") {
-    return <path className="jal-drop" d="M85 49c3 5 5 8 5 10a5 5 0 0 1-10 0c0-2 2-5 5-10Z" fill="#8cc8f0" stroke={INK} strokeWidth="1.6" />;
+    return <path className="jal-drop" d="M82 56c3 5 5 8 5 10a5 5 0 0 1-10 0c0-2 2-5 5-10Z" fill="#8cc8f0" stroke={INK} strokeWidth="1.6" />;
   }
   if (mood === "celebrate") {
     const star = (x: number, y: number, r: number) =>

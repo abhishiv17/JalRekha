@@ -88,8 +88,9 @@ build() {  # MODE [NAME=value ...]
   for kv in "$@"; do vars+=",{\"name\":\"${kv%%=*}\",\"value\":\"${kv#*=}\"}"; done
   vars+="]"
   local id
+  # COMPUTE=BUILD_GENERAL1_LARGE for heavier jobs (many lakes at once).
   id=$(aws codebuild start-build --project-name jalrekha-build --environment-variables-override "$vars" \
-    --query build.id --output text)
+    ${COMPUTE:+--compute-type-override "$COMPUTE"} --query build.id --output text)
   echo "CodeBuild $mode: $id"
   local status=IN_PROGRESS
   while [ "$status" = IN_PROGRESS ]; do

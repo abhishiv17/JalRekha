@@ -38,7 +38,7 @@ const LAKE_RADIUS: maplibregl.ExpressionSpecification = [
   18, ["max", 7, ["*", ["get", "r"], 262144 / 151000]],
 ];
 
-const BENGALURU: [number, number] = [77.59, 12.97];
+const DELHI: [number, number] = [77.209, 28.6139];
 const corners = ([w, s, e, n]: Bounds) =>
   [[w, n], [e, n], [e, s], [w, s]] as [[number, number], [number, number], [number, number], [number, number]];
 const BLANK = "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNkYPhfDwAChwGA60e6kgAAAABJRU5ErkJggg==";
@@ -74,7 +74,7 @@ export default function CheckMap(p: Props) {
     const placeholder = [0, 0, 0.001, 0.001] as Bounds;
     const m = new maplibregl.Map({
       container: el.current,
-      center: p.pin ?? BENGALURU,
+      center: p.pin ?? DELHI,
       zoom: p.pin ? 15 : 11,
       maxZoom: 18,
       attributionControl: { compact: true },
