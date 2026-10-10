@@ -29,7 +29,8 @@
       "Effect": "Allow",
       "Action": [
         "dynamodb:PutItem",
-        "dynamodb:DeleteItem"
+        "dynamodb:DeleteItem",
+        "dynamodb:Scan"
       ],
       "Resource": "arn:aws:dynamodb:us-west-2:468094683747:table/kerewatch-watchers"
     },
@@ -40,6 +41,7 @@
         "sns:Subscribe",
         "sns:ListSubscriptionsByTopic",
         "sns:GetSubscriptionAttributes",
+        "sns:SetSubscriptionAttributes",
         "sns:Unsubscribe"
       ],
       "Resource": "arn:aws:sns:us-west-2:468094683747:kerewatch-alerts"
