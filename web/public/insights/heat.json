@@ -1,0 +1,866 @@
+{
+ "bhalswa": {
+  "id": "bhalswa",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 33,
+  "water_c": 33.3,
+  "near_c": 39.9,
+  "far_c": 40.8,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": 0.9,
+  "filled_ac": 8.15,
+  "filled_c": 36.1,
+  "filled_hotter_c": 2.8,
+  "scale_c": [
+   34.7,
+   45.0
+  ],
+  "image": "/insights/bhalswa-heat.png",
+  "bounds": [
+   77.152417,
+   28.727283,
+   77.193992,
+   28.762345
+  ]
+ },
+ "bellandur": {
+  "id": "bellandur",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 20,
+  "water_c": 37.9,
+  "near_c": 36.9,
+  "far_c": 38.7,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": 1.8,
+  "filled_ac": 128.79,
+  "filled_c": 32.7,
+  "filled_hotter_c": -5.2,
+  "scale_c": [
+   31.7,
+   44.0
+  ],
+  "image": "/insights/bellandur-heat.png",
+  "bounds": [
+   77.630947,
+   12.916069,
+   77.692159,
+   12.956097
+  ]
+ },
+ "najafgarh-jheel": {
+  "id": "najafgarh-jheel",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 33,
+  "water_c": 34.7,
+  "near_c": 42.1,
+  "far_c": 43.0,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": 0.9,
+  "filled_ac": 41.32,
+  "filled_c": 38.8,
+  "filled_hotter_c": 4.1,
+  "scale_c": [
+   31.5,
+   46.9
+  ],
+  "image": "/insights/najafgarh-jheel-heat.png",
+  "bounds": [
+   76.907509,
+   28.481364,
+   76.988942,
+   28.526759
+  ]
+ },
+ "ameenpur": {
+  "id": "ameenpur",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 18,
+  "water_c": 32.6,
+  "near_c": 42.2,
+  "far_c": 43.7,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": 1.5,
+  "filled_ac": 3.92,
+  "filled_c": 36.5,
+  "filled_hotter_c": 3.9,
+  "scale_c": [
+   31.7,
+   47.7
+  ],
+  "image": "/insights/ameenpur-heat.png",
+  "bounds": [
+   78.312437,
+   17.506297,
+   78.35457,
+   17.541001
+  ]
+ },
+ "mallathahalli": {
+  "id": "mallathahalli",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 20,
+  "water_c": 34.3,
+  "near_c": 40.2,
+  "far_c": 39.0,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": -1.2,
+  "filled_ac": 3.66,
+  "filled_c": 40.5,
+  "filled_hotter_c": 6.2,
+  "scale_c": [
+   36.3,
+   41.8
+  ],
+  "image": "/insights/mallathahalli-heat.png",
+  "bounds": [
+   77.480705,
+   12.950879,
+   77.508623,
+   12.979071
+  ]
+ },
+ "jakkur": {
+  "id": "jakkur",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 20,
+  "water_c": 31.1,
+  "near_c": 39.7,
+  "far_c": 40.1,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": 0.4,
+  "filled_ac": 2.59,
+  "filled_c": 34.9,
+  "filled_hotter_c": 3.8,
+  "scale_c": [
+   32.5,
+   43.9
+  ],
+  "image": "/insights/jakkur-heat.png",
+  "bounds": [
+   77.593837,
+   13.067404,
+   77.62742,
+   13.105821
+  ]
+ },
+ "yele-mallappa-shetty": {
+  "id": "yele-mallappa-shetty",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 20,
+  "water_c": 31.2,
+  "near_c": 39.3,
+  "far_c": 40.0,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": 0.7,
+  "filled_ac": 2.2,
+  "filled_c": 32.6,
+  "filled_hotter_c": 1.4,
+  "scale_c": [
+   30.1,
+   42.7
+  ],
+  "image": "/insights/yele-mallappa-shetty-heat.png",
+  "bounds": [
+   77.708445,
+   13.005522,
+   77.747626,
+   13.049825
+  ]
+ },
+ "varthur": {
+  "id": "varthur",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 20,
+  "water_c": 36.3,
+  "near_c": 38.8,
+  "far_c": 38.6,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": -0.2,
+  "filled_ac": 2.03,
+  "filled_c": 35.6,
+  "filled_hotter_c": -0.7,
+  "scale_c": [
+   32.7,
+   41.9
+  ],
+  "image": "/insights/varthur-heat.png",
+  "bounds": [
+   77.71011,
+   12.929623,
+   77.759151,
+   12.967319
+  ]
+ },
+ "subedeharana-kere": {
+  "id": "subedeharana-kere",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 20,
+  "water_c": 33.3,
+  "near_c": 40.6,
+  "far_c": 40.1,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": -0.5,
+  "filled_ac": 0.94,
+  "filled_c": null,
+  "filled_hotter_c": null,
+  "scale_c": [
+   36.0,
+   44.2
+  ],
+  "image": "/insights/subedeharana-kere-heat.png",
+  "bounds": [
+   77.602878,
+   12.846695,
+   77.630491,
+   12.872438
+  ]
+ },
+ "sanjay-lake": {
+  "id": "sanjay-lake",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 18,
+  "water_c": 36.8,
+  "near_c": 39.4,
+  "far_c": 39.8,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": 0.4,
+  "filled_ac": 0.79,
+  "filled_c": null,
+  "filled_hotter_c": null,
+  "scale_c": [
+   36.3,
+   42.6
+  ],
+  "image": "/insights/sanjay-lake-heat.png",
+  "bounds": [
+   77.276846,
+   28.602358,
+   77.32251,
+   28.62865
+  ]
+ },
+ "neeli-jheel": {
+  "id": "neeli-jheel",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 18,
+  "water_c": 33.1,
+  "near_c": 39.1,
+  "far_c": 40.4,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": 1.3,
+  "filled_ac": 0.42,
+  "filled_c": null,
+  "filled_hotter_c": null,
+  "scale_c": [
+   36.7,
+   42.6
+  ],
+  "image": "/insights/neeli-jheel-heat.png",
+  "bounds": [
+   77.234054,
+   28.434974,
+   77.26463,
+   28.461537
+  ]
+ },
+ "pattandur-agrahara": {
+  "id": "pattandur-agrahara",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 20,
+  "water_c": 34.2,
+  "near_c": 38.3,
+  "far_c": 38.5,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": 0.2,
+  "filled_ac": 0.25,
+  "filled_c": null,
+  "filled_hotter_c": null,
+  "scale_c": [
+   35.2,
+   43.2
+  ],
+  "image": "/insights/pattandur-agrahara-heat.png",
+  "bounds": [
+   77.724606,
+   12.96687,
+   77.751419,
+   12.992875
+  ]
+ },
+ "naini-lake-delhi": {
+  "id": "naini-lake-delhi",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 33,
+  "water_c": null,
+  "near_c": 38.5,
+  "far_c": 37.7,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": -0.8,
+  "filled_ac": 0.25,
+  "filled_c": null,
+  "filled_hotter_c": null,
+  "scale_c": [
+   32.7,
+   42.0
+  ],
+  "image": "/insights/naini-lake-delhi-heat.png",
+  "bounds": [
+   77.179986,
+   28.694359,
+   77.208771,
+   28.720148
+  ]
+ },
+ "kaikondrahalli": {
+  "id": "kaikondrahalli",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 20,
+  "water_c": 32.3,
+  "near_c": 38.5,
+  "far_c": 37.0,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": -1.5,
+  "filled_ac": 0.15,
+  "filled_c": null,
+  "filled_hotter_c": null,
+  "scale_c": [
+   32.5,
+   41.2
+  ],
+  "image": "/insights/kaikondrahalli-heat.png",
+  "bounds": [
+   77.657288,
+   12.898728,
+   77.688263,
+   12.927681
+  ]
+ },
+ "chembarambakkam": {
+  "id": "chembarambakkam",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 13,
+  "water_c": 31.8,
+  "near_c": 40.6,
+  "far_c": 43.2,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": 2.6,
+  "filled_ac": 0.15,
+  "filled_c": null,
+  "filled_hotter_c": null,
+  "scale_c": [
+   31.2,
+   48.2
+  ],
+  "image": "/insights/chembarambakkam-heat.png",
+  "bounds": [
+   80.006832,
+   12.965952,
+   80.094756,
+   13.049818
+  ]
+ },
+ "ambalipura-kelagina": {
+  "id": "ambalipura-kelagina",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 20,
+  "water_c": 34.0,
+  "near_c": 36.5,
+  "far_c": 37.1,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": 0.6,
+  "filled_ac": 0.0,
+  "filled_c": null,
+  "filled_hotter_c": null,
+  "scale_c": [
+   32.9,
+   41.0
+  ],
+  "image": "/insights/ambalipura-kelagina-heat.png",
+  "bounds": [
+   77.65182,
+   12.904204,
+   77.678061,
+   12.929683
+  ]
+ },
+ "dariyapur-pond": {
+  "id": "dariyapur-pond",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 33,
+  "water_c": 36.4,
+  "near_c": 41.3,
+  "far_c": 40.7,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": -0.6,
+  "filled_ac": 0.0,
+  "filled_c": null,
+  "filled_hotter_c": null,
+  "scale_c": [
+   37.7,
+   43.8
+  ],
+  "image": "/insights/dariyapur-pond-heat.png",
+  "bounds": [
+   76.999125,
+   28.805162,
+   77.028504,
+   28.83044
+  ]
+ },
+ "durgam-cheruvu": {
+  "id": "durgam-cheruvu",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 18,
+  "water_c": 32.5,
+  "near_c": 41.6,
+  "far_c": 42.0,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": 0.4,
+  "filled_ac": 0.0,
+  "filled_c": null,
+  "filled_hotter_c": null,
+  "scale_c": [
+   33.9,
+   45.0
+  ],
+  "image": "/insights/durgam-cheruvu-heat.png",
+  "bounds": [
+   78.373904,
+   17.413918,
+   78.406158,
+   17.448208
+  ]
+ },
+ "hauz-khas": {
+  "id": "hauz-khas",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 33,
+  "water_c": 32.8,
+  "near_c": 35.4,
+  "far_c": 38.7,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": 3.3,
+  "filled_ac": 0.0,
+  "filled_c": null,
+  "filled_hotter_c": null,
+  "scale_c": [
+   34.7,
+   41.0
+  ],
+  "image": "/insights/hauz-khas-heat.png",
+  "bounds": [
+   77.176534,
+   28.542018,
+   77.207726,
+   28.56777
+  ]
+ },
+ "naraina": {
+  "id": "naraina",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 33,
+  "water_c": 39.3,
+  "near_c": 41.1,
+  "far_c": 40.9,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": -0.2,
+  "filled_ac": 0.0,
+  "filled_c": null,
+  "filled_hotter_c": null,
+  "scale_c": [
+   38.0,
+   43.7
+  ],
+  "image": "/insights/naraina-heat.png",
+  "bounds": [
+   77.116384,
+   28.615244,
+   77.146988,
+   28.641832
+  ]
+ },
+ "neela-hauz": {
+  "id": "neela-hauz",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 33,
+  "water_c": null,
+  "near_c": 37.6,
+  "far_c": 38.7,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": 1.1,
+  "filled_ac": 0.0,
+  "filled_c": null,
+  "filled_hotter_c": null,
+  "scale_c": [
+   34.8,
+   41.3
+  ],
+  "image": "/insights/neela-hauz-heat.png",
+  "bounds": [
+   77.156693,
+   28.516077,
+   77.185415,
+   28.541604
+  ]
+ },
+ "nehru-vihar-pond": {
+  "id": "nehru-vihar-pond",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 33,
+  "water_c": null,
+  "near_c": 39.2,
+  "far_c": 38.3,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": -0.9,
+  "filled_ac": 0.0,
+  "filled_c": null,
+  "filled_hotter_c": null,
+  "scale_c": [
+   32.3,
+   42.5
+  ],
+  "image": "/insights/nehru-vihar-pond-heat.png",
+  "bounds": [
+   77.21018,
+   28.699554,
+   77.2399,
+   28.725591
+  ]
+ },
+ "osm-w510046937": {
+  "id": "osm-w510046937",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 33,
+  "water_c": null,
+  "near_c": 38.6,
+  "far_c": 40.0,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": 1.4,
+  "filled_ac": 0.0,
+  "filled_c": null,
+  "filled_hotter_c": null,
+  "scale_c": [
+   37.2,
+   42.4
+  ],
+  "image": "/insights/osm-w510046937-heat.png",
+  "bounds": [
+   77.18391,
+   28.661543,
+   77.212351,
+   28.685984
+  ]
+ },
+ "purana-qila": {
+  "id": "purana-qila",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 33,
+  "water_c": null,
+  "near_c": 39.4,
+  "far_c": 39.1,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": -0.3,
+  "filled_ac": 0.0,
+  "filled_c": null,
+  "filled_hotter_c": null,
+  "scale_c": [
+   34.7,
+   43.5
+  ],
+  "image": "/insights/purana-qila-heat.png",
+  "bounds": [
+   77.226744,
+   28.597235,
+   77.255528,
+   28.623827
+  ]
+ },
+ "sadaramangala": {
+  "id": "sadaramangala",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 20,
+  "water_c": 31.9,
+  "near_c": 39.4,
+  "far_c": 39.5,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": 0.1,
+  "filled_ac": 0.0,
+  "filled_c": null,
+  "filled_hotter_c": null,
+  "scale_c": [
+   34.8,
+   43.6
+  ],
+  "image": "/insights/sadaramangala-heat.png",
+  "bounds": [
+   77.712375,
+   12.985698,
+   77.743095,
+   13.014914
+  ]
+ },
+ "shahdara-lake": {
+  "id": "shahdara-lake",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 32,
+  "water_c": 43.6,
+  "near_c": 40.5,
+  "far_c": 40.7,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": 0.2,
+  "filled_ac": 0.0,
+  "filled_c": null,
+  "filled_hotter_c": null,
+  "scale_c": [
+   39.3,
+   42.3
+  ],
+  "image": "/insights/shahdara-lake-heat.png",
+  "bounds": [
+   77.263117,
+   28.662949,
+   77.292514,
+   28.688168
+  ]
+ },
+ "shamshi-talab": {
+  "id": "shamshi-talab",
+  "source": "Landsat 8 and 9 Collection 2 surface temperature, Registry of Open Data on AWS",
+  "period": "April-May 2023-2025, about 10:30 local time",
+  "passes": 33,
+  "water_c": null,
+  "near_c": 39.7,
+  "far_c": 39.4,
+  "near_m": [
+   100,
+   300
+  ],
+  "far_m": [
+   600,
+   1000
+  ],
+  "cooler_near_c": -0.3,
+  "filled_ac": 0.0,
+  "filled_c": null,
+  "filled_hotter_c": null,
+  "scale_c": [
+   36.3,
+   42.0
+  ],
+  "image": "/insights/shamshi-talab-heat.png",
+  "bounds": [
+   77.16313,
+   28.501087,
+   77.191838,
+   28.526071
+  ]
+ }
+}
