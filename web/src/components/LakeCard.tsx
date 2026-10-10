@@ -3,7 +3,7 @@ import LakeShape from "@/components/LakeShape";
 import { type Card, cardHref, placeLabel, statusOf } from "@/lib/catalog";
 import { seasonLabel } from "@/lib/data";
 
-const fmtAc = (ac: number) => (ac >= 100 ? Math.round(ac).toLocaleString("en-IN") : ac.toFixed(1)) + " ac";
+const fmtAc = (ac: number) => (ac >= 100 ? Math.round(ac).toLocaleString("en-IN") : ac.toFixed(1)) + " acres";
 
 /** Gallery card; analysed lakes link to their page, queued ones say what's missing. */
 export default function LakeCard({ c, facts = true }: { c: Card; facts?: boolean }) {
@@ -14,7 +14,7 @@ export default function LakeCard({ c, facts = true }: { c: Card; facts?: boolean
       <div className={`lake-thumb${c.thumb?.includes("/truecolor/") ? " raw" : ""}`}>
         {c.thumb ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={c.thumb} alt={`Satellite view of ${c.name}`} loading="lazy" />
+          <img src={c.thumb} crossOrigin="anonymous" alt={`Satellite view of ${c.name}`} loading="lazy" />
         ) : c.shapeState ? (
           <LakeShape id={c.id} state={c.shapeState} label={c.name} />
         ) : null}
@@ -30,9 +30,9 @@ export default function LakeCard({ c, facts = true }: { c: Card; facts?: boolean
       {facts && c.note && <p className="lake-note">{c.note}</p>}
       {facts && (
         <dl className="lake-facts">
-          <div><dt>SIZE</dt><dd>{c.areaAc != null ? fmtAc(c.areaAc) : "—"}</dd></div>
-          <div><dt>TURNED TO LAND</dt><dd>{c.analysed ? `${(c.flaggedAc ?? 0).toFixed(2)} ac` : "not checked"}</dd></div>
-          <div><dt>LATEST</dt><dd>{c.firstSeen ? seasonLabel(c.firstSeen).replace("Jan–Apr ", "") : "—"}</dd></div>
+          <div><dt>LAKE</dt><dd>{c.areaAc != null ? fmtAc(c.areaAc) : "—"}</dd></div>
+          <div><dt>LAKE LOST</dt><dd>{c.analysed ? `${(c.flaggedAc ?? 0).toFixed(2)} acres` : "—"}</dd></div>
+          <div><dt>LATEST CHANGE</dt><dd>{c.firstSeen ? seasonLabel(c.firstSeen).replace("Dry season ", "") : "—"}</dd></div>
         </dl>
       )}
     </>

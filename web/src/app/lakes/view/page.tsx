@@ -2,7 +2,8 @@
 
 import dynamic from "next/dynamic";
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useEffect, useMemo, useState } from "react";
 import LakeCard from "@/components/LakeCard";
 import LakeShape from "@/components/LakeShape";
 import { EmptyState, Guide, Loader } from "@/components/Mascot";
@@ -19,19 +20,36 @@ function osmLink(id: string) {
   return m ? `https://www.openstreetmap.org/${m[1] === "w" ? "way" : "relation"}/${m[2]}` : null;
 }
 
+// The id lives in ?id=, read on the client (static export).
+export default function QueuedLakePage() {
+  return (
+    <Suspense fallback={<main><Loader label="Finding this lake on the map…" /></main>}>
+      <QueuedLake />
+    </Suspense>
+  );
+}
+
 /** A catalog lake that hasn't been analysed yet. */
-export default function QueuedLake() {
+function QueuedLake() {
+  const router = useRouter();
+  // Read from the URL on every navigation, so links to other lakes on this page work.
+  const id = useSearchParams().get("id");
   const [all, setAll] = useState<Card[] | null>(null);
-  const [id, setId] = useState<string | null>(null);
 
   useEffect(() => {
-    setId(new URLSearchParams(window.location.search).get("id"));
     Promise.all([loadIndex().then((i) => i.lakes).catch(() => []), loadCatalog()]).then(([idx, osm]) =>
       setAll(cards(idx, osm)),
     );
   }, []);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [id]);
+
   const lake = useMemo(() => all?.find((c) => c.id === id), [all, id]);
+  useEffect(() => {
+    if (lake?.analysed) router.replace(`/lake/${lake.id}/`);
+  }, [lake, router]);
   const nearby = useMemo(() => {
     if (!all || !lake || lake.lat == null) return { analysed: [] as Card[], queued: [] as Card[] };
     const withDist = all
@@ -54,26 +72,33 @@ export default function QueuedLake() {
       </main>
     );
   }
-  if (lake.analysed) {
-    window.location.replace(`/lake/${lake.id}/`);
-    return null;
-  }
+  if (lake.analysed) return <main><Loader label={`Opening ${lake.name}…`} /></main>;
 
   const osm = osmLink(lake.id);
   return (
-    <main>
+    <main key={lake.id}>
       <Link href="/lakes/" className="small muted" style={{ textDecoration: "none" }}>← All lakes</Link>
       <div className="row" style={{ alignItems: "flex-end", gap: 16, justifyContent: "space-between" }}>
         <div style={{ minWidth: 0 }}>
           <h1>{lake.name}</h1>
           <p className="lede" style={{ marginBottom: 6 }}>{placeLabel(lake)}</p>
         </div>
-        <span className="pill" style={{ marginBottom: 12 }}>Queued for analysis</span>
+        <span className="pill" style={{ marginBottom: 12 }}>Not tracked yet</span>
       </div>
+
+      {lake.lat != null && (
+        <div className="card check-cta">
+          <div>
+            <strong>Buying or renting near {lake.name}?</strong>
+            <div className="small muted">Check if a plot here was ever lake water or floods. Takes about 2 minutes.</div>
+          </div>
+          <Link className="button" href={`/check/?lat=${lake.lat}&lon=${lake.lon}`}>Check a plot near this lake</Link>
+        </div>
+      )}
 
       <dl className="stat-tiles">
         <div className="stat-tile"><dt>LAKE</dt>
-          <dd>{lake.areaAc != null ? `${Math.round(lake.areaAc).toLocaleString("en-IN")} ac` : "—"}<small>mapped on OpenStreetMap</small></dd></div>
+          <dd>{lake.areaAc != null ? `${Math.round(lake.areaAc).toLocaleString("en-IN")} acres` : "—"}<small>size on OpenStreetMap</small></dd></div>
         <div className="stat-tile"><dt>STATE</dt><dd style={{ fontSize: 22 }}>{lake.state}<small>{lake.city ? `near ${lake.city}` : " "}</small></dd></div>
         <div className="stat-tile"><dt>CENTRE</dt>
           <dd style={{ fontSize: 20 }}>{lake.lat?.toFixed(4)}, {lake.lon?.toFixed(4)}<small>latitude, longitude</small></dd></div>
@@ -85,7 +110,7 @@ export default function QueuedLake() {
           <div className="lake-thumb" style={{ aspectRatio: "4 / 3" }}>
             {lake.thumb ? (
               // eslint-disable-next-line @next/next/no-img-element
-              <img src={lake.thumb} alt={`Satellite view of ${lake.name}, early 2026`} />
+              <img src={lake.thumb} crossOrigin="anonymous" alt={`Satellite view of ${lake.name}, 2026 dry season`} />
             ) : lake.shapeState ? (
               <LakeShape id={lake.id} state={lake.shapeState} label={lake.name} />
             ) : null}
@@ -98,20 +123,14 @@ export default function QueuedLake() {
 
         <section>
           <div className="card">
-            <h2 style={{ marginTop: 0 }}>This lake has not been analysed yet</h2>
+            <h2 style={{ marginTop: 0 }}>We don&rsquo;t track this lake yet</h2>
             <Guide size={56}>
-              {`I have ${lake.name}'s outline, but I haven't studied it from space yet, so I can't say how it has changed. ${
+              {`I know where ${lake.name} is, but I haven't tracked how it changed over the years. ${
                 nearby.analysed[0]
-                  ? `The closest lake I have analysed is ${nearby.analysed[0].name}, ${Math.round(km(lake, nearby.analysed[0]))} km away.`
-                  : "No lake near it has been analysed yet either."
-              }`}
+                  ? `The closest lake I track is ${nearby.analysed[0].name}, ${Math.round(km(lake, nearby.analysed[0]))} km away.`
+                  : "No lake near it is tracked yet either."
+              } You can still check any plot near it.`}
             </Guide>
-            <p className="small" style={{ color: "var(--body)", marginTop: 16 }}>Getting results takes three steps:</p>
-            <ol className="small" style={{ paddingLeft: 18, color: "var(--body)", lineHeight: 1.6 }}>
-              <li>Check the outline against the lake as it was in 2019.</li>
-              <li>Run the same pipeline as every analysed lake: eight summers of Sentinel-2 photos on AWS, about two minutes.</li>
-              <li>Hand-check every flag before it is shown.</li>
-            </ol>
             <div className="row" style={{ gap: 10, marginTop: 8 }}>
               {osm && <a className="button secondary" href={osm} target="_blank" rel="noopener noreferrer">View on OpenStreetMap</a>}
               {lake.lat != null && (

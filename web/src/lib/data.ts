@@ -96,4 +96,4 @@ export const seasonLabel = (season: string) => {
 };
 
 export const kindLabel = (kind?: string) =>
-  kind === "vegetated_land" ? "Lake bed now grassed land" : "Fill or construction";
+  kind === "vegetated_land" ? "Lake bed dried and grassed over" : "Soil dumped or built on";

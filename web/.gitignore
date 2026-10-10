@@ -47,3 +47,5 @@ next-env.d.ts
 /public/catalog
 
 !.env.example
+/public/floods
+/public/hand-checks.json

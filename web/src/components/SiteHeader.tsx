@@ -48,12 +48,12 @@ export default function SiteHeader() {
       <div className="announce">
         {analysed && (
           <strong>
-            {analysed.n} lakes checked in {analysed.cities} {analysed.cities === 1 ? "city" : "cities"}
+            {analysed.n} lakes tracked in {analysed.cities} {analysed.cities === 1 ? "city" : "cities"}
           </strong>
         )}
         {analysed && " · "}
-        {catalogSize > 0 && <>{catalogSize.toLocaleString("en-IN")} more mapped across India · </>}
-        re-checked every month
+        {catalogSize > 0 && <>{catalogSize.toLocaleString("en-IN")} lakes across India on the map · </>}
+        updated 10 Oct 2026
       </div>
       <header className="site">
         <nav aria-label="Main">
@@ -62,12 +62,12 @@ export default function SiteHeader() {
             {open ? "Close" : "Menu"}
           </button>
           <div id="main-links" className={`nav-links${open ? " open" : ""}`}>
-            <Link className="link" href="/lakes/" aria-current={on("/lake")}>Find a lake</Link>
-            <Link className="link" href="/#why">Why lakes matter</Link>
-            <Link className="link" href="/#how">How we check</Link>
-            <Link className="link" href="/watchlist/" aria-current={on("/watchlist")}>My alerts</Link>
-            <Link className="button" href="/lakes/" style={{ minHeight: 40, padding: "9px 16px", marginLeft: 6 }}>
-              Check your lake
+            <Link className="link" href="/lakes/" aria-current={on("/lake")}>Lakes</Link>
+            <Link className="link" href="/#how">How it works</Link>
+            <Link className="link" href="/#method">How sure is it?</Link>
+            <Link className="link" href="/watchlist/" aria-current={on("/watchlist")}>Watchlist</Link>
+            <Link className="button" href="/check/" style={{ minHeight: 40, padding: "9px 16px", marginLeft: 6 }}>
+              Check a plot
             </Link>
           </div>
         </nav>

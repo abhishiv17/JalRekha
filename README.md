@@ -16,9 +16,33 @@ Discover a lake → compare historical satellite observations → inspect detect
 | --- | --- |
 | Analysed (full pipeline, 2019–2026) | 12 lakes in Bengaluru, Hyderabad and Chennai |
 | Catalogued, queued for analysis | 7,165 named lakes across 35 states and union territories (OpenStreetMap) |
-| Flags hand-checked | Not yet: see [`research/`](research/README.md) |
+| Flags hand-checked | 36 checked: 7 confirmed, 20 not confirmed, 9 can't tell (see [`research/`](research/README.md)) |
 
 Demo lake: **Subedeharana Kere, Bengaluru**: 0.94 ac of lake bed turned to grassed land, lasting since the 2025 dry season (reported debris dumping in early 2024).
+
+## Plot Check: before you buy or rent
+
+Drop a pin or search an address at `/check/`. For a 1.2 km square around the pin, JalRekha reads every Sentinel-2 pass since 2019 and answers, for that exact spot:
+
+- **Was it lake water?** Water at the pin in each dry season (Jan–Apr), 2019–2026.
+- **Does it get waterlogged?** Water at the pin after each monsoon (Nov–Dec).
+- **How close is the lake?** Distance to the largest water extent seen since 2019, and whether the spot falls inside the buffer zones (Karnataka 30 m and the proposed size-based tiers; Hyderabad 30 m / 9 m), measured from that edge.
+- **Did it flood?** Sentinel-1 radar flood maps of past events, starting with Bengaluru on 5 Sep 2022 (2.91 km² of standing floodwater outside the lakes).
+- **What does it mean?** A level (High risk / Watch / Low risk) set by fixed rules, explained in English, Kannada, Telugu and Hindi by Claude on Amazon Bedrock, with what to verify before paying. Save as PDF or share the link.
+
+It uses the pipeline's most reliable signal (was water there?), not the harder one (was a lake filled?). The hand-check above shows why: satellite change flags are leads, but water history is evidence.
+
+| Piece | AWS |
+| --- | --- |
+| Address search, reverse geocoding | Amazon Location Service (Places) |
+| `POST /check`, `GET /check/<id>`, `GET /geocode` | API Gateway (HTTP) + Lambda |
+| One pin per run, 2–4 min | Lambda (container from ECR), invoked asynchronously |
+| Imagery | Sentinel-2 L2A and Sentinel-1 GRD from the Registry of Open Data on AWS |
+| Plain-language verdict | Amazon Bedrock (Claude), fixed-template fallback |
+| Reports and images; status and cache | S3 (private, presigned links); DynamoDB |
+| Flood maps, container builds, tests | CodeBuild |
+
+Setup: [`infra/plot/setup.sh`](infra/plot/setup.sh). Code: [`pipeline/jalrekha/plot.py`](pipeline/jalrekha/plot.py), [`verdict.py`](pipeline/jalrekha/verdict.py), [`flood.py`](pipeline/jalrekha/flood.py).
 
 ## Repository layout
 
@@ -87,7 +111,7 @@ cd pipeline && python scripts/osm_india_lakes.py <cache_dir> ../data/catalog
 
 ## Data credits
 
-- Contains modified Copernicus Sentinel data [2019–2026], via the [Registry of Open Data on AWS](https://registry.opendata.aws/sentinel-2-l2a-cogs/) and [Earth Search](https://github.com/element84/earth-search) by Element 84.
+- Contains modified Copernicus Sentinel data [2019–2026], via the [Registry of Open Data on AWS](https://registry.opendata.aws/sentinel-2-l2a-cogs/) (Sentinel-2 L2A; Sentinel-1 GRD from `s3://sentinel-s1-l1c`, requester pays) and [Earth Search](https://github.com/element84/earth-search) by Element 84.
 - Lake outlines: [ATREE-CSEI, Map of Lakes in Bengaluru Urban](https://data.opencity.in/dataset/map-lakes-streams-bengaluru-urban-within-bbmp-area), CC BY; © OpenStreetMap contributors, ODbL.
 
 ## Limitations
@@ -96,7 +120,9 @@ cd pipeline && python scripts/osm_india_lakes.py <cache_dir> ../data/catalog
 - 10 m pixels: a 30 m buffer is three pixels wide; small sheds and walls are missed.
 - History starts in 2019 (Sentinel-2 L2A is global from December 2018).
 - Legal works (walkways, sewage plants, desilting) also show as change.
-- Flags are not yet hand-checked.
+- Flags are leads, not findings: of 36 hand-checked, 7 were confirmed (see `research/flags_checked.csv`).
+- Plot Check measures buffers from the water seen since 2019, not the notified Full Tank Level or revenue map.
+- Radar flood maps miss water between tall buildings and floods that drained before the satellite passed; "not seen" is not "flood-free".
 
 ## AI tools used
 

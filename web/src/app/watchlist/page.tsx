@@ -11,7 +11,9 @@ export default function Watchlist() {
   const [busy, setBusy] = useState<string | null>(null);
   const [message, setMessage] = useState<{ text: string; error?: boolean } | null>(null);
 
-  useEffect(() => setItems(readWatchlist()), []);
+  useEffect(() => {
+    setItems(readWatchlist());
+  }, []);
 
   async function unwatch(w: Watched) {
     if (!API_URL) return;

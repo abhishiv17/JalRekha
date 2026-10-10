@@ -13,11 +13,11 @@ const IndiaMap = dynamic(() => import("@/components/IndiaMap"), { ssr: false });
 type StatusFilter = "all" | StatusKey;
 type Sort = "change" | "recent" | "largest" | "name";
 const STATUS_LABELS: Record<StatusFilter, string> = {
-  all: "Any",
-  changed: "Turned to land",
-  nochange: "Holding steady",
-  nodata: "Too cloudy to judge",
-  queued: "Not checked yet",
+  all: "All lakes",
+  changed: "Shrinking",
+  nochange: "Stable",
+  nodata: "Too cloudy to tell",
+  queued: "Not tracked yet",
 };
 const km = (a: { lat: number; lon: number }, b: { lat?: number; lon?: number }) =>
   b.lat == null || b.lon == null
@@ -121,7 +121,8 @@ export default function AllLakes() {
         (!needle || `${c.name} ${placeLabel(c)}`.toLowerCase().includes(needle)),
     );
     const by: Record<Sort, (a: Card, b: Card) => number> = {
-      change: (a, b) => (b.flaggedAc ?? -1) - (a.flaggedAc ?? -1) || (b.areaAc ?? 0) - (a.areaAc ?? 0),
+      // Delhi first (the hackathon's home), then most lake lost.
+      change: (a, b) => Number(b.city === "Delhi") - Number(a.city === "Delhi") || (b.flaggedAc ?? -1) - (a.flaggedAc ?? -1) || (b.areaAc ?? 0) - (a.areaAc ?? 0),
       recent: (a, b) => (b.firstSeen ?? "").localeCompare(a.firstSeen ?? "") || (b.flaggedAc ?? -1) - (a.flaggedAc ?? -1),
       largest: (a, b) => (b.areaAc ?? 0) - (a.areaAc ?? 0),
       name: (a, b) => a.name.localeCompare(b.name),
@@ -151,19 +152,19 @@ export default function AllLakes() {
     }
     if (q.trim()) {
       const m = shown.length === 1 ? `1 lake matches "${q.trim()}".` : `${shown.length.toLocaleString("en-IN")} lakes match "${q.trim()}".`;
-      if (shown.length === 1) return a ? `${m} I've analysed it; open it to see every summer since 2019.` : `${m} I haven't analysed it yet, so it's queued with no numbers.`;
+      if (shown.length === 1) return a ? `${m} I track it; open it to see every year since 2019.` : `${m} I don't track it yet, but you can still check plots near it.`;
       return a
-        ? `${m} ${a === shown.length ? "I've analysed all of them" : `${a} of them I've analysed`}; open one to see every summer since 2019.`
-        : `${m} I haven't analysed any of them yet, so they're queued with no numbers.`;
+        ? `${m} ${a === shown.length ? "I track all of them" : `I track ${a} of them`}; open one to see every year since 2019.`
+        : `${m} I don't track these yet, but you can still check plots near them.`;
     }
-    if (status === "changed") return `${a} lakes${where} where lake bed turned to land and stayed. Biggest change is first.`;
-    if (status === "nochange") return `${a} lakes${where} where nothing in the lake bed turned to land and stayed since 2019.`;
-    if (status === "nodata") return `${a} lakes${where} where clouds left me too few clear summers to judge. I won't guess.`;
-    if (status === "queued") return `${n.toLocaleString("en-IN")} lakes${where} I haven't analysed yet. Queued doesn't mean unchanged; it means I haven't looked.`;
-    if (kind !== "any") return `Lakes with at least one flag of ${(KIND_LABELS[kind] ?? kind).toLowerCase()}${where}.`;
-    if (state !== "All" && a === 0) return `I haven't analysed a lake in ${state} yet. The ${n.toLocaleString("en-IN")} below are mapped and queued.`;
-    if (state !== "All") return `${state}: ${a} analysed, ${n.toLocaleString("en-IN")} queued. Amber means I found change that stayed.`;
-    return "Amber means I found lake bed that turned to land and stayed; green means the lake held steady. Blue dots on the map are lakes still in my queue.";
+    if (status === "changed") return `${a} lakes${where} where part of the lake turned into land. Most lost first.`;
+    if (status === "nochange") return `${a} lakes${where} that kept their size since 2019.`;
+    if (status === "nodata") return `${a} lakes${where} where clouds hid too many years. I won't guess.`;
+    if (status === "queued") return `${n.toLocaleString("en-IN")} lakes${where} I don't track yet. That doesn't mean they're fine; I just haven't looked.`;
+    if (kind !== "any") return `Lakes with at least one spot of ${(KIND_LABELS[kind] ?? kind).toLowerCase()}${where}.`;
+    if (state !== "All" && a === 0) return `I don't track a lake in ${state} yet. The ${n.toLocaleString("en-IN")} below are on the map.`;
+    if (state !== "All") return `${state}: ${a} tracked, ${n.toLocaleString("en-IN")} more on the map. Orange means the lake is shrinking.`;
+    return "Orange means the lake is shrinking; green means it kept its size. Blue dots on the map are lakes I don't track yet.";
   })();
   const reset = () => {
     setState("All");
@@ -177,17 +178,17 @@ export default function AllLakes() {
   return (
     <main>
       <div className="find-head ripples" style={{ marginBottom: 20 }}>
-        <span className="kicker">Find your lake</span>
-        <h1 style={{ margin: 0 }}>Which lake do you live near?</h1>
+        <span className="eyebrow">Lakes</span>
+        <h1 style={{ margin: 0 }}>Lakes</h1>
         <p className="lede">
           {loading
             ? "Loading lakes…"
-            : `${analysedTotal} lakes checked every summer since 2019, and ${(all.length - analysedTotal).toLocaleString("en-IN")} more mapped across ${states.length} states and union territories.`}
+            : `${analysedTotal} lakes tracked closely · ${(all.length - analysedTotal).toLocaleString("en-IN")} more on the map across ${states.length} states and union territories.`}
         </p>
         <label htmlFor="lake-search" className="sr-only">Search by lake, area, town or state</label>
         <div className="search-pill">
           <SearchIcon />
-          <input id="lake-search" type="search" placeholder="Lake, area or town, e.g. Mallathahalli, Jakkur, Udaipur" value={q}
+          <input id="lake-search" type="search" placeholder="Lake, area or town, e.g. Bhalswa, Mallathahalli, Jakkur" value={q}
             onChange={(e) => { setQ(e.target.value); setHere(null); }} />
         </div>
         <div className="row" style={{ gap: 16 }}>
@@ -217,7 +218,7 @@ export default function AllLakes() {
           </select>
         </div>
         <div className="field" style={{ flex: "1 1 180px" }}>
-          <label htmlFor="kind">Kind of change</label>
+          <label htmlFor="kind">What happened</label>
           <select id="kind" value={kind} onChange={(e) => setKind(e.target.value)}>
             <option value="any">Any</option>
             {Object.entries(KIND_LABELS).map(([k, v]) => <option key={k} value={k}>{v}</option>)}
@@ -226,15 +227,15 @@ export default function AllLakes() {
         <div className="field" style={{ flex: "1 1 170px" }}>
           <label htmlFor="sort">Sort</label>
           <select id="sort" value={sort} onChange={(e) => setSort(e.target.value as Sort)}>
-            <option value="change">Most change first</option>
-            <option value="recent">Most recent change</option>
+            <option value="change">Most lake lost first</option>
+            <option value="recent">Most recent first</option>
             <option value="largest">Largest lake</option>
             <option value="name">A to Z</option>
           </select>
         </div>
       </div>
 
-      {failed && <p className="notice error">Analysis results could not be loaded. The catalogue below is still available.</p>}
+      {failed && <p className="notice error">Tracked lakes could not be loaded. The map of all lakes below still works.</p>}
 
       {loading ? (
         <Skeleton />
@@ -249,8 +250,8 @@ export default function AllLakes() {
           {analysedShown.length > 0 && (
             <section aria-labelledby="analysed-title" style={{ marginBottom: 56 }}>
               <div className="count-head">
-                <h2 id="analysed-title">Lakes we&apos;ve checked</h2>
-                <span className="muted">{analysedShown.length} · every summer since 2019 · flags checked against high-resolution photos</span>
+                <h2 id="analysed-title">Lakes we track</h2>
+                <span className="muted">{analysedShown.length} with results from the full pipeline · each lake page says which spots were checked on sharper photos</span>
               </div>
               <div className="lake-grid">{analysedShown.map((c) => <LakeCard key={c.id} c={c} />)}</div>
             </section>
@@ -259,7 +260,7 @@ export default function AllLakes() {
           {queuedSorted.length > 0 && (
             <section aria-labelledby="queued-title">
               <div className="count-head">
-                <h2 id="queued-title">Mapped, not checked yet</h2>
+                <h2 id="queued-title">All lakes in India</h2>
                 <span className="muted">
                   {queuedSorted.length.toLocaleString("en-IN")} named lakes from OpenStreetMap · no results yet, which isn&apos;t the same as no change
                 </span>

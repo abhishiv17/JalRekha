@@ -148,7 +148,7 @@ export default function EvidenceView({ id }: { id: string }) {
       centroid_lat: lat.toFixed(5),
       centroid_lon: lon.toFixed(5),
       area_ac: f ? f.properties.area_ac.toFixed(2) : "",
-      zone: f?.properties.zone === "buffer" ? "30 m buffer" : "lakebed",
+      zone: f?.properties.zone === "buffer" ? "30-metre no-build zone" : "lakebed",
       first_seen: f ? seasonLabel(f.properties.first_seen) : "",
       status: f?.properties.status ?? "",
       confidence: f?.properties.confidence ?? "",
@@ -183,8 +183,8 @@ export default function EvidenceView({ id }: { id: string }) {
       <div className="row no-print" style={{ justifyContent: "space-between", marginBottom: 14 }}>
         <Link href={`/lake/${id}/`}>← Back to {stats.name}</Link>
         <div className="row">
-          <button className="secondary" onClick={geojson} disabled={!flags.length}>Download GeoJSON</button>
-          <button className="secondary" onClick={kml} disabled={!flags.length}>Download KML</button>
+          <button className="secondary" onClick={geojson} disabled={!flags.length}>Download map file (GeoJSON)</button>
+          <button className="secondary" onClick={kml} disabled={!flags.length}>Open in Google Earth (KML)</button>
           <button onClick={() => window.print()}>Save as PDF (print)</button>
         </div>
       </div>
@@ -222,12 +222,12 @@ export default function EvidenceView({ id }: { id: string }) {
       <h2>Summary</h2>
       <table>
         <tbody>
-          <tr><th>Observation period</th><td>Sentinel-2 dry seasons (January–April) 2019–2026; {usable.length} of {drySeasons(stats).length} with clear imagery</td></tr>
-          <tr><th>Baseline</th><td>Dry seasons 2019 and 2020</td></tr>
-          <tr><th>Compared through</th><td>{last ? seasonLabel(last.season) : "—"}</td></tr>
-          <tr><th>Reference lake area</th><td>{stats.reference_area_ac.toFixed(2)} acres (mapped outline plus water present in both baseline seasons)</td></tr>
-          <tr><th>Area flagged as changed</th><td>{stats.flags_total_ac.toFixed(2)} acres in {flags.length} flag{flags.length === 1 ? "" : "s"}{byKind.length ? `: ${byKind.map((x) => `${x.area.toFixed(2)} ac ${x.label.toLowerCase()}`).join(", ")}` : ""}</td></tr>
-          <tr><th>Inside the 30 m buffer (KTCDA Act, 2014)</th><td>{(stats.buffer.change_in_buffer_ac["30"] ?? 0).toFixed(2)} acres</td></tr>
+          <tr><th>Years checked</th><td>2019–2026, January to April each year (Sentinel-2 satellite); clear photos in {usable.length} of {drySeasons(stats).length} years</td></tr>
+          <tr><th>Starting point</th><td>2019 and 2020</td></tr>
+          <tr><th>Checked up to</th><td>{last ? seasonLabel(last.season) : "—"}</td></tr>
+          <tr><th>Lake size in 2019–2020</th><td>{stats.reference_area_ac.toFixed(2)} acres (mapped outline plus water seen in both 2019 and 2020)</td></tr>
+          <tr><th>Lake lost since 2019</th><td>{stats.flags_total_ac.toFixed(2)} acres in {flags.length} spot{flags.length === 1 ? "" : "s"}{byKind.length ? `: ${byKind.map((x) => `${x.area.toFixed(2)} ac ${x.label.toLowerCase()}`).join(", ")}` : ""}</td></tr>
+          <tr><th>Within 30 metres of the lake (no-build zone, KTCDA Act, 2014)</th><td>{(stats.buffer.change_in_buffer_ac["30"] ?? 0).toFixed(2)} acres</td></tr>
         </tbody>
       </table>
 
@@ -240,21 +240,21 @@ export default function EvidenceView({ id }: { id: string }) {
                 <OutlinedImage src={lakeUrl(id, `truecolor/${s.season}.png`)} alt={`${stats.name}, ${seasonLabel(s.season)}`}
                   bounds={geo.bounds} reference={geo.reference}
                   flags={s === last ? { type: "FeatureCollection", features: flags } : undefined} />
-                <figcaption className="small" style={{ marginTop: 6 }}>{seasonLabel(s.season)} · Sentinel-2 median of {s.clear_looks} clear looks</figcaption>
+                <figcaption className="small" style={{ marginTop: 6 }}>{seasonLabel(s.season)} · satellite photo ({s.clear_looks} clear days combined)</figcaption>
               </figure>
             ))}
           </div>
           <div className="legend">
             <span><i style={{ border: "2px solid #fff", background: "#8a958f" }} />Lake outline</span>
-            <span><i style={{ border: "2px solid var(--flag)", background: "rgba(245,165,36,.25)" }} />Change flag (after image only)</span>
+            <span><i style={{ border: "2px solid var(--flag)", background: "rgba(245,165,36,.25)" }} />Where the lake was lost (on the later photo)</span>
           </div>
         </>
       )}
 
-      <h2>Change flags</h2>
+      <h2>Places where the lake was lost</h2>
       <div className="table-scroll"><table>
         <thead>
-          <tr><th>Flag</th><th>Zone</th><th>Category</th><th className="num">Acres</th><th>First seen</th><th>Persistence</th><th>Confidence</th><th>High-res photo check</th><th>Centre (lat, lon)</th></tr>
+          <tr><th>Spot</th><th>Where</th><th>What happened</th><th className="num">Acres</th><th>First seen</th><th>Lasted?</th><th>How sure</th><th>Checked on sharper photos</th><th>Map point (latitude, longitude)</th></tr>
         </thead>
         <tbody>
           {flags.map((f) => {
@@ -263,22 +263,22 @@ export default function EvidenceView({ id }: { id: string }) {
             return (
               <tr key={p.flag_id}>
                 <td>{p.flag_id}</td>
-                <td>{p.zone === "buffer" ? "30 m buffer" : "Lake bed"}</td>
+                <td>{p.zone === "buffer" ? "Within 30 metres of the lake" : "Inside the lake"}</td>
                 <td>{kindLabel(p.kind)}</td>
                 <td className="num">{p.area_ac.toFixed(2)}</td>
                 <td>{seasonLabel(p.first_seen)}</td>
-                <td>{p.status === "confirmed" ? "Confirmed (2+ seasons)" : "New (1 season)"}</td>
-                <td>{p.confidence}</td>
+                <td>{p.status === "confirmed" ? "Yes, 2+ years" : "Only 1 year so far"}</td>
+                <td>{{ high: "Sure", medium: "Fairly sure", low: "Not sure yet" }[p.confidence] ?? p.confidence}</td>
                 <td>
                   {checks[p.flag_id]
                     ? `${checks[p.flag_id].verdict} (${checks[p.flag_id].by === "person" ? "by a person" : "AI-assisted"}; photos ${checks[p.flag_id].dates})`
-                    : "not yet checked"}
+                    : "Not yet"}
                 </td>
                 <td>{lat.toFixed(5)}, {lon.toFixed(5)}</td>
               </tr>
             );
           })}
-          {flags.length === 0 && <tr><td colSpan={9}>No lasting change detected.</td></tr>}
+          {flags.length === 0 && <tr><td colSpan={9}>None found. The lake kept its size since 2019.</td></tr>}
         </tbody>
       </table></div>
 
@@ -309,12 +309,12 @@ export default function EvidenceView({ id }: { id: string }) {
 
       <h2>Method</h2>
       <p className="small" style={{ color: "var(--body)" }}>
-        Sentinel-2 Level-2A imagery (10 m) from the Registry of Open Data on AWS, found through Earth Search. Clouds,
+        Sentinel-2 Level-2A imagery (10 metres) from the Registry of Open Data on AWS, found through Earth Search. Clouds,
         cloud shadows and building shadows removed. For each year, a median composite of January–April. Each pixel is
         classed as water (MNDWI above a per-lake threshold), floating vegetation (NDVI ≥ {stats.thresholds.veg_ndvi} with low
         shortwave-infrared reflectance, counted as lake), land vegetation, or bare/built (NDVI &lt; {stats.thresholds.bare_ndvi}
         and NDBI &gt; {stats.thresholds.ndbi}). A lake-bed pixel is flagged only if it was lake in every 2019–2020 dry season
-        and is land in its latest dry seasons; two seasons in a row is &ldquo;confirmed&rdquo;. In the 30 m buffer, only
+        and is land in its latest dry seasons; two seasons in a row is &ldquo;confirmed&rdquo;. In the 30-metre no-build zone, only
         natural ground that turned bare or built is flagged. Patches under {stats.thresholds.min_flag_px} pixels
         ({stats.thresholds.min_flag_px * 100} m²) are dropped.
       </p>
@@ -331,7 +331,7 @@ export default function EvidenceView({ id }: { id: string }) {
       <h2>Limitations</h2>
       <ul className="small" style={{ color: "var(--body)", paddingLeft: 18 }}>
         <li>Not a land survey: change is measured against the lake&apos;s historical water extent, not the revenue boundary.</li>
-        <li>10 m pixels: small structures and walls can be missed; areas are approximate.</li>
+        <li>10-metre pixels: small structures and walls can be missed; areas are approximate.</li>
         <li>Legal works (desilting, walkways, treatment plants) also appear as change.</li>
         <li>Losses before 2019 are outside this record.</li>
       </ul>

@@ -11,17 +11,17 @@ const sans = Figtree({ subsets: ["latin"], weight: ["400", "500", "600", "700"],
 const mono = JetBrains_Mono({ subsets: ["latin"], weight: ["500", "600"], variable: "--font-mono" });
 
 const description =
-  "Is your lake being filled in? JalRekha compares satellite photos of every summer since 2019, shows where a lake has turned to land, and helps residents act with dated evidence and ready letters.";
+  "Satellite photos that show where lakes are being filled in, so buyers can check a plot before paying, citizens can report it, and cities can act before the monsoon.";
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "http://localhost:3000"),
-  title: { default: "JalRekha · Is your lake being filled in?", template: "%s · JalRekha" },
+  title: { default: "JalRekha · Lakes protect our cities. Let’s protect lakes.", template: "%s · JalRekha" },
   description,
   applicationName: "JalRekha",
   openGraph: {
     type: "website",
     siteName: "JalRekha",
-    title: "JalRekha · Is your lake being filled in?",
+    title: "JalRekha · Lakes protect our cities. Let’s protect lakes.",
     description,
     images: [{ url: "/brand/og.png", width: 1200, height: 630, alt: "JalRekha: satellite view of a lake with a detected change outlined" }],
   },
@@ -42,26 +42,25 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
             <div style={{ flex: "1 1 320px", minWidth: 0, display: "flex", flexDirection: "column", gap: 12 }}>
               <StaticLogo size={40} />
               <p style={{ margin: 0, maxWidth: 380 }}>
-                <em>Jal</em> is water, <em>rekha</em> is a line. We keep watch on the line where a lake ends, so the people
-                who live beside it notice when that line moves.
+                Lakes protect our cities. Let’s protect lakes. Built for WeMakeDevs Environmental Hacks, Heat and Water track.
               </p>
               <p style={{ margin: 0, maxWidth: 380 }}>
-                Satellites show that land changed, not who changed it or whether it was allowed. Verify on the ground and in
-                official records. Built for WeMakeDevs Environmental Hacks, Heat and Water track.
+                A satellite shows where a lake changed, not who changed it or whether it was allowed. Check on the ground and in official records.
               </p>
             </div>
             <nav aria-label="Footer">
-              <span className="footer-title">Lakes</span>
-              <Link href="/lakes/">Find a lake</Link>
-              <Link href="/lakes/?status=changed">Lakes that changed</Link>
-              <Link href="/watchlist/">My alerts</Link>
+              <span className="footer-title">Explore</span>
+              <Link href="/check/">Check a plot</Link>
+              <Link href="/lakes/">Lakes we track</Link>
+              <Link href="/lakes/?status=queued">All lakes in India</Link>
+              <Link href="/watchlist/">Your watchlist</Link>
             </nav>
             <nav aria-label="About">
-              <span className="footer-title">How we work</span>
-              <Link href="/#how">How we check</Link>
+              <span className="footer-title">About</span>
+              <Link href="/#how">How it works</Link>
+              <Link href="/#method">How sure is it?</Link>
               <Link href="/#honest">How often we&apos;re right</Link>
-              <Link href="/#method">The fine print</Link>
-              <Link href="/#credits">Data and credits</Link>
+              <Link href="/#credits">Where the data comes from</Link>
             </nav>
             <div style={{ flex: "0 1 340px", minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}>
               <span className="footer-title">Data</span>

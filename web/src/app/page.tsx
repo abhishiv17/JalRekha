@@ -1,12 +1,11 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { type FormEvent, useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import LakeCard from "@/components/LakeCard";
-import { Guide } from "@/components/Mascot";
-import { Arrow, SearchIcon } from "@/components/SiteHeader";
-import { cards, statusOf } from "@/lib/catalog";
+import Jal, { Guide, type Mood } from "@/components/Mascot";
+import { Arrow } from "@/components/SiteHeader";
+import { cards } from "@/lib/catalog";
 import { type LakeSummary, loadIndex } from "@/lib/data";
 
 const COLLAGE: { thumb: string; city: string; alt: string }[] = [
@@ -35,25 +34,29 @@ const SCALLOP = (() => {
   return d + " L1440 24 Z";
 })();
 
+// Real Plot Check results (stored by the Plot Check API), one per level.
+const EXAMPLES: { id: string; place: string; level: "high" | "watch" | "low"; label: string; mood: Mood; why: string }[] = [
+  {
+    id: "28.7471_77.1774", place: "Edge of Bhalswa Lake, Delhi", level: "high", label: "High risk", mood: "worried",
+    why: "Lake water stood here in 6 of 8 years. This is probably old lake bed.",
+  },
+  {
+    id: "28.5536_77.1952", place: "Hauz Khas Village, Delhi", level: "watch", label: "Be careful", mood: "cautious",
+    why: "Hauz Khas Lake comes within 67 metres. The spot itself stayed dry every year.",
+  },
+  {
+    id: "28.7462_77.1676", place: "West of Bhalswa Lake, Delhi", level: "low", label: "Low risk", mood: "celebrate",
+    why: "Dry in every satellite photo since 2019. The lake is 277 metres away.",
+  },
+];
+
 // Every flag the pipeline raised on the analysed lakes, checked against high-resolution
 // historical photos (research/flags_checked.csv, 9 Oct 2026).
 const LEDGER = { total: 44, confirmed: 13, notConfirmed: 21, unsure: 10, byPerson: 11, byAi: 33 };
 
-function Icon({ d }: { d: string }) {
-  return (
-    <span className="icon" aria-hidden="true">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-        <path d={d} />
-      </svg>
-    </span>
-  );
-}
-
 export default function Home() {
-  const router = useRouter();
   const [lakes, setLakes] = useState<LakeSummary[]>([]);
   const [catalogSize, setCatalogSize] = useState(0);
-  const [q, setQ] = useState("");
   useEffect(() => {
     loadIndex().then((i) => setLakes(i.lakes)).catch(() => setLakes([]));
     fetch("/catalog/meta.json").then((r) => r.json()).then((m) => setCatalogSize(m.lakes ?? 0)).catch(() => {});
@@ -62,78 +65,149 @@ export default function Home() {
     () => cards(lakes).filter((c) => c.analysed).sort((a, b) => (b.flaggedAc ?? 0) - (a.flaggedAc ?? 0)),
     [lakes],
   );
-  const changed = analysed.filter((c) => statusOf(c).key === "changed");
-  const steady = analysed.filter((c) => statusOf(c).key === "nochange");
-  const subede = analysed.find((c) => c.id === "subedeharana-kere");
+  // Delhi lakes first, most lake lost first.
   const preview = [
-    ...analysed.filter((c) => c.id === "subedeharana-kere" || c.id === "mallathahalli"),
-    ...analysed.filter((c) => c.id !== "subedeharana-kere" && c.id !== "mallathahalli"),
-  ].slice(0, 6);
-  const search = (e: FormEvent) => {
-    e.preventDefault();
-    router.push(q.trim() ? `/lakes/?q=${encodeURIComponent(q.trim())}` : "/lakes/");
-  };
+    ...analysed.filter((c) => c.city === "Delhi"),
+    ...analysed.filter((c) => c.city !== "Delhi"),
+  ].slice(0, 3);
+
   const pct = (n: number) => `${(n / LEDGER.total) * 100}%`;
 
   return (
     <main className="home">
-      {/* Hero: the one question a resident has */}
-      <section className="ripples" aria-labelledby="hero-title">
-        <div className="wrap hero">
-          <div className="hero-copy">
-            <span className="kicker">For everyone who lives beside a lake</span>
-            <h1 id="hero-title" className="hero-title">Is your lake being <em>filled in</em>?</h1>
-            <p>
-              Lakes rarely vanish overnight. Debris goes in at the edge, soil goes over it, and a few summers later the
-              shoreline has moved. JalRekha compares satellite photos of every summer since 2019 and tells you, in plain
-              words, whether your lake has lost ground, where, and since when.
-            </p>
-            <form className="hero-search" role="search" onSubmit={search}>
-              <label htmlFor="hero-q" className="sr-only">Lake, area or city</label>
-              <div className="search-pill">
-                <SearchIcon />
-                <input id="hero-q" type="search" placeholder="Your lake or area, e.g. Mallathahalli" value={q} onChange={(e) => setQ(e.target.value)} />
-              </div>
-              <button type="submit" className="button big">Check it <Arrow /></button>
-            </form>
-            <div className="row" style={{ gap: 16 }}>
-              <Link href="/lakes/?near=1" className="near-me">Show lakes near me</Link>
-              <Link href="/lake/subedeharana-kere/" className="near-me">See a real example</Link>
-            </div>
-            <ul className="tags" aria-label="What you get">
-              <li>FREE, NO SIGN-UP</li><li>EVERY SUMMER SINCE 2019</li><li>COMPLAINT + RTI DRAFTS</li><li>EMAIL ALERTS</li>
-            </ul>
+      {/* Hero: the one question we answer */}
+      <section className="wrap hero" aria-labelledby="hero-title">
+        <div className="hero-copy">
+          <span className="eyebrow">Satellite proof · free · anywhere in India</span>
+          <h1 id="hero-title" className="hero-title">Lakes protect our cities. <em>Let&rsquo;s protect lakes.</em></h1>
+          <p>
+            Lakes soak up the rain that would flood our streets, and refill our borewells. But they are being filled in,
+            quietly, one plot at a time. JalRekha uses satellite photos to show where, so people and cities can stop it.
+          </p>
+          <div className="row" style={{ gap: 12, flexWrap: "wrap" }}>
+            <Link href="/check/" className="button big">Check a plot <Arrow /></Link>
+            <Link href="/lakes/" className="button big secondary">See lakes we watch</Link>
           </div>
-          <figure className="hero-figure" aria-label="Subedeharana Kere, Bengaluru, in 2019 and 2026">
-            <div className="hero-stack">
-              <div className="shot back">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/thumbs/hero-subedeharana-2019.png" alt="Subedeharana Kere in early 2019, with the lake outline" />
-                <span className="label">JAN–APR 2019</span>
-              </div>
-              <div className="shot front">
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src="/thumbs/hero-subedeharana-2026.png" alt="Subedeharana Kere in early 2026, with the filled area outlined in amber" />
-                <span className="label">JAN–APR 2026</span>
-              </div>
+          <ul className="tags" aria-label="Languages">
+            <li>ENGLISH</li><li lang="kn">ಕನ್ನಡ</li><li lang="te">తెలుగు</li><li lang="hi">हिंदी</li><li>BUILT ON AWS</li>
+          </ul>
+        </div>
+        <figure className="hero-figure" aria-label="Bhalswa Lake, Delhi, in 2019 and 2026">
+          <div className="hero-stack">
+            <div className="shot back">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/thumbs/hero-bhalswa-2019.jpg" alt="Bhalswa Lake, Delhi, in 2019, with the lake outline" />
+              <span className="label">2019</span>
             </div>
-            <figcaption>
-              <Guide size={60}>
-                <span className="hero-caption">
-                  <strong>{(subede?.flaggedAc ?? 0.94).toFixed(2)} ac</strong>
-                  <span>
-                    <span className="flag-key" />of Subedeharana Kere was filled in after residents reported debris dumping
-                    in February 2024. It&apos;s still land, and it held up when we checked it on high-resolution photos.{" "}
-                    <Link href="/lake/subedeharana-kere/">Show me</Link>
-                  </span>
+            <div className="shot front">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/thumbs/hero-bhalswa-2026.jpg" alt="Bhalswa Lake, Delhi, in 2026, with the lake bed turned to land outlined in orange" />
+              <span className="label">2026</span>
+            </div>
+          </div>
+          <figcaption>
+            <Guide size={60}>
+              <span className="hero-caption">
+                <strong>8 acres</strong>
+                <span>
+                  <span className="flag-key" />of Delhi&rsquo;s Bhalswa Lake turned into land since 2019, mostly soil pushed in at
+                  its north-east edge. Spotted from space, dated, ready to check. <Link href="/lake/bhalswa/">See it</Link>
                 </span>
-              </Guide>
-            </figcaption>
-          </figure>
+              </span>
+            </Guide>
+          </figcaption>
+        </figure>
+      </section>
+
+      {/* Who it helps */}
+      <section id="who" className="wrap section" aria-labelledby="who-title">
+        <span className="eyebrow">Who it helps</span>
+        <h2 id="who-title" className="section-title" style={{ marginBottom: 24 }}>Everyone can help save a lake.</h2>
+        <div className="reasons">
+          <div className="reason">
+            <h3>Home buyers</h3>
+            <p>Check a plot before you pay. When people stop buying land that was a lake, filling lakes stops paying.</p>
+            <Link href="/check/">Check a plot →</Link>
+          </div>
+          <div className="reason">
+            <h3>Citizens and lake groups</h3>
+            <p>Catch a lake being filled in early. Get dated satellite photos and a ready letter to report it.</p>
+            <Link href="/lakes/">See lakes →</Link>
+          </div>
+          <div className="reason">
+            <h3>Cities and government</h3>
+            <p>See which lakes are shrinking and where floods hit, so you can protect, restore and fix drains before the monsoon.</p>
+            <Link href="#how">How it works →</Link>
+          </div>
         </div>
       </section>
 
-      <section className="collage-band" aria-label="Lakes across India, as Sentinel-2 sees them">
+      {/* How it works: three steps */}
+      <section id="how" className="wrap section" aria-labelledby="how-title">
+        <span className="eyebrow">How it works</span>
+        <h2 id="how-title" className="section-title" style={{ marginBottom: 28 }}>Three steps. No maps skills needed.</h2>
+        <ol className="steps3">
+          <li>
+            <Jal size={72} interactive={false} />
+            <b>1. Drop a pin</b>
+            <span>Search an address or tap the plot on the map.</span>
+          </li>
+          <li>
+            <Jal size={72} mood="scanning" interactive={false} />
+            <b>2. We look back 8 years</b>
+            <span>We read every satellite photo of that spot since 2019, plus radar flood maps.</span>
+          </li>
+          <li>
+            <Jal size={72} mood="celebrate" interactive={false} />
+            <b>3. You get a clear answer</b>
+            <span>High risk, Be careful or Low risk, with what to do next. In 4 languages.</span>
+          </li>
+        </ol>
+      </section>
+
+      {/* Real results */}
+      <section id="examples" className="wrap section" aria-labelledby="examples-title">
+        <span className="eyebrow">Real results</span>
+        <h2 id="examples-title" className="section-title" style={{ marginBottom: 24 }}>What an answer looks like.</h2>
+        <div className="examples">
+          {EXAMPLES.map((e) => (
+            <Link key={e.id} href={`/check/?id=${e.id}`} className={`example example-${e.level}`}>
+              <Jal size={56} mood={e.mood} interactive={false} />
+              <span>
+                <span className={`pill level-${e.level}`}>{e.label}</span>
+                <b>{e.place}</b>
+                <span className="small">{e.why}</span>
+              </span>
+            </Link>
+          ))}
+        </div>
+      </section>
+
+      {/* Why it matters */}
+      <section id="why" className="wrap section" aria-labelledby="why-title">
+        <span className="eyebrow">Why it matters</span>
+        <h2 id="why-title" className="section-title" style={{ marginBottom: 12 }}>Lakes are a city&rsquo;s free flood protection.</h2>
+        <p className="lede" style={{ maxWidth: 720, marginBottom: 24 }}>
+          A healthy lake holds the rain and refills the ground. When it is filled in, that rain has nowhere to go but into
+          homes. Keeping lakes alive is the cheapest way to fewer floods and fuller borewells.
+        </p>
+        <div className="big-stats why-stats">
+          <div className="big-stat">
+            <b>472 acres</b>
+            <p>of Bengaluru lake land taken over. Only 17 acres won back. <a href="https://sandrp.in/2026/02/10/bengaluru-lakes-2025-buffer-zone-amended-pollution-rising/">SANDRP, 2026</a></p>
+          </div>
+          <div className="big-stat">
+            <b>Sept 2022</b>
+            <p>Overflowing lakes and blocked drains flooded Bengaluru&rsquo;s tech parks and homes. <a href="https://www.deccanherald.com/amp/story/india%2Fkarnataka%2Frain-brings-bengalurus-it-corridor-to-a-standstill-1142546.html">Deccan Herald</a></p>
+          </div>
+          <div className="big-stat">
+            <b>Half</b>
+            <p>of Bengaluru&rsquo;s borewells dried up in March 2024. <a href="https://www.newslaundry.com/2024/03/20/over-exploited-groundwater-neglected-lakes-heres-why-bengaluru-is-facing-a-water-crisis">IndiaSpend</a></p>
+          </div>
+        </div>
+      </section>
+
+      <section className="collage-band" aria-label="Lakes in the catalogue, seen from space">
         <svg className="scallop" viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true"><path d={SCALLOP} fill="var(--bg)" /></svg>
         <div className="collage">
           {COLUMNS.map((col, i) => (
@@ -150,71 +224,19 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Why: what a lake does for the street around it */}
-      <section id="why" className="wrap section" aria-labelledby="why-title">
-        <span className="kicker">Why it matters <span className="local-word">· ಕೆರೆ, kere: Kannada for lake</span></span>
-        <div className="split" style={{ alignItems: "flex-start", marginTop: 6 }}>
-          <div className="say">
-            <h2 id="why-title" className="section-title">A lake is the city&apos;s sponge, its well and its commons.</h2>
-            <p>
-              Bengaluru&apos;s <em>keres</em> were dug centuries ago as a chain: each one catches the monsoon, fills, and
-              spills into the next. Fill one in and the water doesn&apos;t disappear. It goes into basements, roads and
-              the next lake downstream.
-            </p>
-          </div>
-          <div className="big-stats">
-            <div className="big-stat"><b>472 ac</b><p>of Bengaluru lake land identified as encroached by the city corporation</p></div>
-            <div className="big-stat"><b style={{ color: "var(--amber-ink)" }}>17.38 ac</b><p>of it reclaimed so far</p></div>
-            <p className="small muted" style={{ margin: 0 }}>
-              Source: <a href="https://sandrp.in/2026/02/10/bengaluru-lakes-2025-buffer-zone-amended-pollution-rising/">SANDRP, Bengaluru Lakes 2025</a> (Feb 2026), summarising The New Indian Express.
-            </p>
-          </div>
-        </div>
-        <div className="services">
-          <div className="service">
-            <Icon d="M12 3c3.5 4.2 6 7.6 6 10.5A6 6 0 0 1 6 13.5C6 10.6 8.5 7.2 12 3Z" />
-            <h3>It holds the monsoon</h3>
-            <p>Lakes and their 30 m buffers take the overflow. In September 2022, overflowing lakes and blocked drains flooded Bengaluru&apos;s IT corridor.</p>
-            <p className="src"><a href="https://www.deccanherald.com/amp/story/india%2Fkarnataka%2Frain-brings-bengalurus-it-corridor-to-a-standstill-1142546.html">Deccan Herald, Sep 2022</a></p>
-          </div>
-          <div className="service">
-            <Icon d="M12 3v12m0 0-4-4m4 4 4-4M5 21h14" />
-            <h3>It refills your borewell</h3>
-            <p>Water held in a lake soaks into the ground around it. In March 2024 about half of Bengaluru&apos;s borewells ran dry.</p>
-            <p className="src"><a href="https://www.newslaundry.com/2024/03/20/over-exploited-groundwater-neglected-lakes-heres-why-bengaluru-is-facing-a-water-crisis">IndiaSpend via Newslaundry, Mar 2024</a></p>
-          </div>
-          <div className="service">
-            <Icon d="M7 20v-2a4 4 0 0 1 4-4h2a4 4 0 0 1 4 4v2M12 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z" />
-            <h3>It belongs to everyone</h3>
-            <p>Yet surveys of the same lake disagree: at Bellandur, 16 acres encroached by one count and at least 36 by another. A dated photo record is something everyone can check.</p>
-            <p className="src"><a href="https://www.deccanherald.com/india/karnataka/bengaluru/confusion-over-extent-lake-encroachment-2002391">Deccan Herald</a></p>
-          </div>
-        </div>
-      </section>
-
-      <div className="wrap"><hr className="waterline" /></div>
-
-      {/* Lakes we've checked */}
+      {/* Lakes we watch */}
       <section id="lakes" className="wrap section" aria-labelledby="lakes-title">
         <div className="section-head">
-          <div className="say">
-            <span className="kicker">Lakes we&apos;ve checked</span>
-            <h2 id="lakes-title" className="section-title">
-              {analysed.length || 13} lakes, every summer since 2019
-            </h2>
-            <p>
-              {catalogSize > 0
-                ? `Another ${(catalogSize - analysed.length).toLocaleString("en-IN")} named lakes across India are mapped and waiting their turn; search for yours to see its outline.`
-                : "More lakes across India are mapped and waiting their turn."}
+          <div>
+            <span className="eyebrow">Lakes we watch</span>
+            <h2 id="lakes-title" className="section-title">Watch a lake. Get told if it shrinks.</h2>
+            <p className="lede">
+              We track {analysed.length || 12} lakes closely and email you the moment one starts to shrink.
+              {catalogSize > 0 && <> {catalogSize.toLocaleString("en-IN")} lakes across India are on the map.</>}
             </p>
           </div>
-          <Link href="/lakes/" className="button secondary">Find your lake <Arrow size={16} /></Link>
+          <Link href="/lakes/" className="button secondary">See all lakes <Arrow size={16} /></Link>
         </div>
-        {analysed.length > 0 && (
-          <Guide size={52} className="section-guide" interactive={false}>
-            {`At ${changed.length} of these ${analysed.length} lakes I found lake that turned to land and stayed; ${steady.length} held steady. Amber means look closer, not guilty: some of that change is the city's own works.`}
-          </Guide>
-        )}
         <div className="lake-grid">{preview.map((c) => <LakeCard key={c.id} c={c} facts={false} />)}</div>
       </section>
 
@@ -245,27 +267,17 @@ export default function Home() {
         </div>
       </section>
 
-      {/* How we check */}
-      <section id="how" className="wrap section" aria-labelledby="how-title">
-        <span className="kicker">How we check</span>
-        <h2 id="how-title" className="section-title" style={{ maxWidth: 780, marginBottom: 36 }}>
-          Summer against summer. Only change that stays.
-        </h2>
-        <ol className="process">
-          <li><b>Every photo</b><span>Every Sentinel-2 satellite photo of the lake since 2019, free from the AWS Open Data registry.</span></li>
-          <li><b>No clouds</b><span>Clouds and shadows are dropped; a summer counts only with at least 3 clear photos.</span></li>
-          <li><b>Summer vs summer</b><span>January–April of each year, so a dry summer is never mistaken for a lost lake.</span></li>
-          <li><b>Water or land</b><span>Open water and floating weeds count as lake; filled, bare, built or grassed-over ground doesn&apos;t.</span></li>
-          <li><b>Only what stays</b><span>Land must stay land two summers running, in patches of at least 500 m² (about four 30×40 ft house plots).</span></li>
-          <li><b>Show and share</b><span>Then-and-now photos, a map of every change and an evidence pack with draft letters.</span></li>
-        </ol>
-        <p className="small muted" style={{ marginTop: 18 }}>
-          Runs on AWS: one Lambda container per lake (about two minutes), Step Functions across lakes, results in S3 and
-          DynamoDB, a monthly EventBridge re-check and SNS email alerts.
-        </p>
+      {/* How sure is this? */}
+      <section id="method" className="wrap section" aria-labelledby="method-title">
+        <span className="eyebrow">How sure is this?</span>
+        <h2 id="method-title" className="section-title" style={{ marginBottom: 20 }}>Strong early warning. Then verify on the ground.</h2>
+        <ul className="plain-list">
+          <li><b>What we see:</b> where water was, each year since 2019, from photos 10 metres sharp.</li>
+          <li><b>What we don&rsquo;t:</b> the legal lake boundary, small walls or sheds, or floods hidden between tall buildings.</li>
+          <li><b>Clouds:</b> if a season is too cloudy, we say &ldquo;not sure&rdquo; instead of guessing.</li>
+          <li><b>Before you act:</b> check the official lake map and ask a lawyer. We tell you what to ask.</li>
+        </ul>
       </section>
-
-      <div className="wrap"><hr className="waterline" /></div>
 
       {/* Honesty ledger */}
       <section id="honest" className="wrap section" aria-labelledby="honest-title">
@@ -294,10 +306,32 @@ export default function Home() {
         </p>
       </section>
 
+      {/* How we check */}
+      <section id="pipeline" className="wrap section" aria-labelledby="pipeline-title">
+        <span className="kicker">How we check</span>
+        <h2 id="pipeline-title" className="section-title" style={{ maxWidth: 780, marginBottom: 36 }}>
+          Summer against summer. Only change that stays.
+        </h2>
+        <ol className="process">
+          <li><b>Every photo</b><span>Every Sentinel-2 satellite photo of the lake since 2019, free from the AWS Open Data registry.</span></li>
+          <li><b>No clouds</b><span>Clouds and shadows are dropped; a summer counts only with at least 3 clear photos.</span></li>
+          <li><b>Summer vs summer</b><span>January–April of each year, so a dry summer is never mistaken for a lost lake.</span></li>
+          <li><b>Water or land</b><span>Open water and floating weeds count as lake; filled, bare, built or grassed-over ground doesn&apos;t.</span></li>
+          <li><b>Only what stays</b><span>Land must stay land two summers running, in patches of at least 500 m² (about four 30×40 ft house plots).</span></li>
+          <li><b>Show and share</b><span>Then-and-now photos, a map of every change and an evidence pack with draft letters.</span></li>
+        </ol>
+        <p className="small muted" style={{ marginTop: 18 }}>
+          Runs on AWS: one Lambda container per lake (about two minutes), Step Functions across lakes, results in S3 and
+          DynamoDB, a monthly EventBridge re-check and SNS email alerts.
+        </p>
+      </section>
+
+      <div className="wrap"><hr className="waterline" /></div>
+
       {/* The fine print */}
-      <section id="method" className="wrap section" aria-labelledby="method-title">
+      <section id="fine-print" className="wrap section" aria-labelledby="fine-print-title">
         <span className="kicker">The fine print</span>
-        <h2 id="method-title" className="section-title" style={{ marginBottom: 24 }}>What the numbers mean, and what they don&apos;t.</h2>
+        <h2 id="fine-print-title" className="section-title" style={{ marginBottom: 24 }}>What the numbers mean, and what they don&apos;t.</h2>
         <dl className="limits">
           <div><dt>What we compare</dt><dd>Sentinel-2 satellite photos, January–April each year from 2019 to 2026; post-monsoon photos only grade confidence.</dd></div>
           <div><dt>Starting point</dt><dd>The 2019 and 2020 summers. Anything lost before 2019 isn&apos;t in this record.</dd></div>
@@ -320,10 +354,14 @@ export default function Home() {
         <h2 id="credits-title" className="section-title" style={{ marginBottom: 24 }}>Open data, credited.</h2>
         <div className="credits">
           <div><b>Copernicus Sentinel-2</b>Contains modified Copernicus Sentinel data (2019–2026). Level-2A COGs from the <a href="https://registry.opendata.aws/sentinel-2-l2a-cogs/">Registry of Open Data on AWS</a>, found through <a href="https://github.com/element84/earth-search">Earth Search</a> by Element 84.</div>
+          <div><b>Copernicus Sentinel-1</b>Radar flood maps (Bengaluru, September 2022), from the <a href="https://registry.opendata.aws/sentinel-1/">Registry of Open Data on AWS</a>.</div>
           <div><b>ATREE-CSEI lake outlines</b><a href="https://data.opencity.in/dataset/map-lakes-streams-bengaluru-urban-within-bbmp-area">Map of Lakes in Bengaluru Urban</a>, CC BY, via OpenCity.</div>
           <div><b>OpenStreetMap</b>Lake outlines across India and the basemap. © OpenStreetMap contributors, ODbL.</div>
           <div><b>Checking photos</b>Esri World Imagery Wayback and Google Earth Pro historical imagery, used only to check flags, never republished.</div>
         </div>
+        <p className="small muted" style={{ marginTop: 18 }}>
+          Runs on AWS: Lambda, Step Functions, S3, DynamoDB, EventBridge, SNS, Amazon Location, Amazon Translate, Bedrock and CodeBuild.
+        </p>
       </section>
     </main>
   );

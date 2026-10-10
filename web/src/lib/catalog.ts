@@ -9,7 +9,7 @@ import { type LakeSummary, lakeUrl, loadFlags } from "./data";
 
 export type Place = { city: string; state: string };
 
-type AnalysedMeta = Place & { thumb: string; lat: number; lon: number; osmId?: string; note?: string };
+type AnalysedMeta = Place & { thumb?: string; lat: number; lon: number; osmId?: string; note?: string };
 
 export const ANALYSED_META: Record<string, AnalysedMeta> = {
   "subedeharana-kere": { city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/subedeharana-kere.png", lat: 12.8598, lon: 77.6166 },
@@ -19,17 +19,34 @@ export const ANALYSED_META: Record<string, AnalysedMeta> = {
   "yele-mallappa-shetty": { city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/yele-mallappa-shetty.png", lat: 13.0173, lon: 77.7332 },
   jakkur: {
     city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/jakkur.png", lat: 13.0866, lon: 77.6127,
-    note: "Most flagged area is construction in the 30 m buffer on the east side and a new structure at the north-west inlet; verify whether these are approved works.",
+    note: "Most of the change is building work within 30 m of the lake on the east side, and a new structure at the north-west corner. Check whether these were approved.",
   },
   bellandur: {
     city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/bellandur.png", lat: 12.93482, lon: 77.66382, osmId: "osm-r19751547",
-    note: "The imagery shows this lake drained and under earthworks from 2021 (bare, excavated lake bed; works along the southern edge). Most flags here are works in progress, not encroachment. Verify each one.",
+    note: "This lake was drained for repair work from 2021 (dug-up lake bed, work along the south edge). Most spots here are that work, not people taking land. Check each one.",
   },
   varthur: { city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/varthur.png", lat: 12.94722, lon: 77.73629, osmId: "osm-r19306126" },
   kaikondrahalli: { city: "Bengaluru", state: "Karnataka", thumb: "/thumbs/kaikondrahalli.png", lat: 12.91289, lon: 77.67273, osmId: "osm-r6820030" },
   "durgam-cheruvu": { city: "Hyderabad", state: "Telangana", thumb: "/thumbs/durgam-cheruvu.png", lat: 17.43021, lon: 78.38991, osmId: "osm-w28131043" },
   ameenpur: { city: "Hyderabad", state: "Telangana", thumb: "/thumbs/ameenpur.png", lat: 17.52312, lon: 78.33316, osmId: "osm-w115772000" },
   chembarambakkam: { city: "Chennai", state: "Tamil Nadu", thumb: "/thumbs/chembarambakkam.jpg", lat: 13.00825, lon: 80.05548, osmId: "osm-w25453624" },
+  // Delhi and around (outlines from OpenStreetMap; thumbnail is the latest satellite photo)
+  "najafgarh-jheel": {
+    city: "Delhi", state: "Delhi", lat: 28.50280, lon: 76.94836, osmId: "osm-w203051309",
+    note: "This wetland has grown a lot since 2019: in 2026 it covers far more farmland than before. The spots marked as lost are mostly marsh grass at its edges, which comes and goes with the water. Check them before relying on them.",
+  },
+  bhalswa: { city: "Delhi", state: "Delhi", lat: 28.74459, lon: 77.17235, osmId: "osm-r16104149" },
+  "sanjay-lake": { city: "Delhi", state: "Delhi", lat: 28.61500, lon: 77.30209, osmId: "osm-w76849338" },
+  "neela-hauz": { city: "Delhi", state: "Delhi", lat: 28.52865, lon: 77.17104, osmId: "osm-w284622267" },
+  "purana-qila": { city: "Delhi", state: "Delhi", lat: 28.61047, lon: 77.24085, osmId: "osm-w370947967" },
+  naraina: { city: "Delhi", state: "Delhi", lat: 28.62847, lon: 77.13198, osmId: "osm-w291654387" },
+  "shamshi-talab": { city: "Delhi", state: "Delhi", lat: 28.51359, lon: 77.17745, osmId: "osm-w470219310" },
+  "shahdara-lake": { city: "Delhi", state: "Delhi", lat: 28.67553, lon: 77.27797, osmId: "osm-w480075080" },
+  "nehru-vihar-pond": { city: "Delhi", state: "Delhi", lat: 28.71236, lon: 77.22512, osmId: "osm-r20256879" },
+  "naini-lake-delhi": { city: "Delhi", state: "Delhi", lat: 28.70736, lon: 77.19448, osmId: "osm-w1189315016" },
+  "dariyapur-pond": { city: "Delhi", state: "Delhi", lat: 28.81800, lon: 77.01366, osmId: "osm-w1349493394" },
+  "neeli-jheel": { city: "Faridabad", state: "Haryana", lat: 28.44832, lon: 77.24910, osmId: "osm-w204969708" },
+  "hauz-khas": { city: "Delhi", state: "Delhi", lat: 28.55486, lon: 77.19218, osmId: "osm-r2196532" },
   mallathahalli: {
     city: "Bengaluru", state: "Karnataka", thumb: lakeUrl("mallathahalli", "truecolor/2026-dry.png"), lat: 12.96509, lon: 77.49455, osmId: "osm-w37898906",
     note: "Most flagged change here is the lake's own development works: a perimeter path and road, a plaza, a filled corner pond and a built-up island. In March 2023 the Karnataka High Court barred construction in this lake; compare the dates here with that order, and verify each flag before acting.",
@@ -147,15 +164,15 @@ export type StatusKey = "changed" | "nochange" | "nodata" | "queued";
 
 /** Never treats "not analysed" as "no change". */
 export function statusOf(c: Card): Status {
-  if (!c.analysed) return { label: "Not checked yet", tone: "queued", key: "queued" };
-  if (c.flaggedAc == null) return { label: "Too cloudy to judge", tone: "nodata", key: "nodata" };
-  if (!c.flaggedAc) return { label: "Holding steady", tone: "steady", key: "nochange" };
-  return { label: `${c.flaggedAc.toFixed(1)} ac turned to land`, tone: "changed", key: "changed" };
+  if (!c.analysed) return { label: "Not tracked yet", tone: "queued", key: "queued" };
+  if (c.flaggedAc == null) return { label: "Too cloudy to tell", tone: "nodata", key: "nodata" };
+  if (!c.flaggedAc) return { label: "Stable", tone: "steady", key: "nochange" };
+  return { label: `Shrinking · ${c.flaggedAc.toFixed(2)} acres lost`, tone: "changed", key: "changed" };
 }
 
 export const KIND_LABELS: Record<string, string> = {
-  fill_or_construction: "Fill or construction",
-  vegetated_land: "Lake bed grassed over",
+  fill_or_construction: "Soil dumped or built on",
+  vegetated_land: "Lake bed dried and grassed over",
 };
 
 /** Change categories per analysed lake, from its flags. */

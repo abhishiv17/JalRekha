@@ -4,22 +4,34 @@
 // shell with scutes (lake contours on the centre one), flippers and a striped head. The eyes follow the cursor and it blinks
 // when poked (both off under reduced motion). Jal is the logo and a quiet guide at each
 // step (see Guide); it stays out of the printed evidence report.
+//
+// Moods match what Jal is doing or has found: happy (default), scanning (a satellite
+// circles its head while it reads imagery), thinking (dots rise while it works things
+// out), cautious (one brow up: "watch"), worried (sweat drop: high risk) and
+// celebrate (closed happy eyes and sparkles: low risk).
 
 import { useEffect, useId, useRef, useState } from "react";
 
 const INK = "#24302a";
 
-type BustProps = { look: { x: number; y: number }; blink: boolean };
+export type Mood = "happy" | "scanning" | "thinking" | "cautious" | "worried" | "celebrate";
 
-function Bust({ look, blink }: BustProps) {
+type BustProps = { look: { x: number; y: number }; blink: boolean; mood?: Mood };
+
+function Bust({ look, blink, mood = "happy" }: BustProps) {
   const clip = useId();
+  // Where the eyes look by mood (the cursor wins when it moves).
+  const gaze = mood === "thinking" ? { x: 1.8, y: -2 } : mood === "scanning" ? { x: -1.6, y: -1.6 } : { x: 0, y: 0 };
+  const eyeLook = look.x || look.y ? look : gaze;
   const eye = (cx: number) =>
-    blink ? (
+    mood === "celebrate" ? (
+      <path d={`M${cx - 5.5} 68 q5.5 -7 11 0`} fill="none" stroke={INK} strokeWidth="2.6" strokeLinecap="round" />
+    ) : blink ? (
       <path d={`M${cx - 5.5} 67 q5.5 3.5 11 0`} fill="none" stroke={INK} strokeWidth="2.4" strokeLinecap="round" />
     ) : (
       <g>
         <ellipse cx={cx} cy={66} rx={5.6} ry={6.6} fill="#1d2420" />
-        <g transform={`translate(${look.x * 0.8} ${look.y * 0.8})`}>
+        <g transform={`translate(${eyeLook.x * 0.8} ${eyeLook.y * 0.8})`}>
           <circle cx={cx - 1.8} cy={63.4} r={2.1} fill="#fff" />
           <circle cx={cx + 2} cy={68.4} r={1} fill="#fff" />
         </g>
@@ -64,24 +76,92 @@ function Bust({ look, blink }: BustProps) {
       <circle cx="66" cy="52" r="1.4" fill={SKIN_DARK} />
       {eye(51)}
       {eye(69)}
-      {/* nostrils, beak smile, cheeks */}
+      {/* nostrils, cheeks, then the mood: mouth, brows and extras */}
       <circle cx="58" cy="74" r="0.9" fill={INK} />
       <circle cx="62" cy="74" r="0.9" fill={INK} />
-      <path d="M53 79q7 5 14 0" fill="none" stroke={INK} strokeWidth="2.2" strokeLinecap="round" />
       <ellipse cx="44" cy="76" rx="4" ry="2.4" fill="#f2a196" opacity="0.7" />
       <ellipse cx="76" cy="76" rx="4" ry="2.4" fill="#f2a196" opacity="0.7" />
+      <Mouth mood={mood} />
+      <Brows mood={mood} />
+      <Extras mood={mood} />
     </>
   );
+}
+
+function Mouth({ mood }: { mood: Mood }) {
+  const line = { fill: "none", stroke: INK, strokeWidth: 2.2, strokeLinecap: "round" as const };
+  switch (mood) {
+    case "thinking":
+    case "scanning":
+      return <ellipse cx="61" cy="80" rx="2.2" ry="1.9" fill={INK} />;
+    case "cautious":
+      return <path d="M55 80h10" {...line} />;
+    case "worried":
+      return <path d="M54 81q3 -3 6 0t6 0" {...line} />;
+    case "celebrate":
+      return <path d="M53 78q7 7 14 0Z" fill="#c4544b" stroke={INK} strokeWidth="2" strokeLinejoin="round" />;
+    default:
+      return <path d="M53 79q7 5 14 0" {...line} />;
+  }
+}
+
+function Brows({ mood }: { mood: Mood }) {
+  const line = { fill: "none", stroke: INK, strokeWidth: 2.2, strokeLinecap: "round" as const };
+  if (mood === "worried") return <g {...line}><path d="M45 54l9 3" /><path d="M75 54l-9 3" /></g>;
+  if (mood === "cautious") return <g {...line}><path d="M46 56h9" /><path d="M65 54q4.5 -3.5 9 0" /></g>;
+  if (mood === "thinking") return <g {...line}><path d="M46 55q4.5 -2.5 9 0" /><path d="M65 54q4.5 -2.5 9 1" /></g>;
+  return null;
+}
+
+function Extras({ mood }: { mood: Mood }) {
+  if (mood === "scanning") {
+    // A small satellite sweeping over the shell, like a scanner.
+    return (
+      <g className="jal-orbit">
+        <g transform="translate(60 52)">
+          <g transform="translate(0 -46)">
+            <rect x="-4" y="-3" width="8" height="6" rx="1.5" fill="#d9dfe6" stroke={INK} strokeWidth="1.6" />
+            <rect x="-13" y="-2.5" width="8" height="5" fill="var(--water)" stroke={INK} strokeWidth="1.2" />
+            <rect x="5" y="-2.5" width="8" height="5" fill="var(--water)" stroke={INK} strokeWidth="1.2" />
+          </g>
+        </g>
+      </g>
+    );
+  }
+  if (mood === "thinking") {
+    return (
+      <g className="jal-dots" fill="var(--brand-soft)">
+        <circle cx="94" cy="22" r="3" />
+        <circle cx="102" cy="13" r="4" />
+        <circle cx="112" cy="5" r="5" />
+      </g>
+    );
+  }
+  if (mood === "worried") {
+    return <path className="jal-drop" d="M85 49c3 5 5 8 5 10a5 5 0 0 1-10 0c0-2 2-5 5-10Z" fill="#8cc8f0" stroke={INK} strokeWidth="1.6" />;
+  }
+  if (mood === "celebrate") {
+    const star = (x: number, y: number, r: number) =>
+      `M${x} ${y - r}L${x + r * 0.3} ${y - r * 0.3}L${x + r} ${y}L${x + r * 0.3} ${y + r * 0.3}L${x} ${y + r}L${x - r * 0.3} ${y + r * 0.3}L${x - r} ${y}L${x - r * 0.3} ${y - r * 0.3}Z`;
+    return (
+      <g className="jal-sparkle" fill="#f5c542" stroke={INK} strokeWidth="1.2">
+        <path d={star(16, 26, 7)} />
+        <path d={star(104, 18, 6)} />
+        <path d={star(110, 60, 4)} />
+      </g>
+    );
+  }
+  return null;
 }
 
 function prefersReducedMotion() {
   return typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 }
 
-type Props = { size?: number; title?: string; className?: string; interactive?: boolean };
+type Props = { size?: number; title?: string; className?: string; interactive?: boolean; mood?: Mood };
 
 /** Jal. Decorative unless a title is given; interactive by default. */
-export default function Jal({ size = 120, title, className, interactive = true }: Props) {
+export default function Jal({ size = 120, title, className, interactive = true, mood = "happy" }: Props) {
   const ref = useRef<SVGSVGElement>(null);
   const [look, setLook] = useState({ x: 0, y: 0 });
   const [blink, setBlink] = useState(false);
@@ -124,16 +204,16 @@ export default function Jal({ size = 120, title, className, interactive = true }
     <svg ref={ref} width={size} height={size} viewBox="0 0 120 120" className={className} onClick={poke}
       role={title ? "img" : undefined} aria-label={title} aria-hidden={title ? undefined : true}
       style={interactive ? { cursor: "pointer" } : undefined}>
-      <Bust look={look} blink={blink} />
+      <Bust look={look} blink={blink} mood={mood} />
     </svg>
   );
 }
 
 /** Static compact Jal for small spots (loader). */
-export function JalIcon({ size = 40, className }: { size?: number; className?: string }) {
+export function JalIcon({ size = 40, className, mood }: { size?: number; className?: string; mood?: Mood }) {
   return (
     <svg width={size} height={size} viewBox="0 0 120 120" className={className} aria-hidden="true">
-      <Bust look={{ x: 0, y: 0 }} blink={false} />
+      <Bust look={{ x: 0, y: 0 }} blink={false} mood={mood} />
     </svg>
   );
 }
@@ -164,17 +244,18 @@ export function EmptyState({ title, children }: { title: string; children?: Reac
  * step; everything it says is computed from the data on screen. The bubble re-animates
  * when its text changes (key), and is announced politely to screen readers.
  */
-export function Guide({ children, size = 52, interactive = true, className, tone }: {
+export function Guide({ children, size = 52, interactive = true, className, tone, mood }: {
   children: React.ReactNode;
   size?: number;
   interactive?: boolean;
   className?: string;
   tone?: "info" | "warn";
+  mood?: Mood;
 }) {
   const text = typeof children === "string" ? children : undefined;
   return (
     <div className={`guide${tone ? ` guide-${tone}` : ""}${className ? ` ${className}` : ""}`}>
-      <Jal size={size} interactive={interactive} />
+      <Jal size={size} interactive={interactive} mood={mood ?? (tone === "warn" ? "cautious" : "happy")} />
       <div className="guide-bubble" role="status" aria-live="polite" key={text}>
         <span className="sr-only">Jal says: </span>
         {children}

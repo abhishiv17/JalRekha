@@ -1,0 +1,36 @@
+{
+  "id": "blr-2022-09",
+  "name": "Bengaluru floods, September 2022",
+  "date": "2022-09-05",
+  "bounds": [
+    77.4970939618784,
+    12.816721168973205,
+    77.82319664718409,
+    13.103475543008315
+  ],
+  "flood_scene": "S1A_IW_GRDH_1SDV_20220905T004028_20220905T004053_044862_055BB0",
+  "flood_time_utc": "2022-09-05T00:40:40.864024+00:00",
+  "reference_scenes": [
+    "S1A_IW_GRDH_1SDV_20220707T004020_20220707T004045_043987_05402E",
+    "S1A_IW_GRDH_1SDV_20220719T004021_20220719T004046_044162_054572",
+    "S1A_IW_GRDH_1SDV_20220731T004026_20220731T004051_044337_054A94",
+    "S1A_IW_GRDH_1SDV_20220812T004026_20220812T004051_044512_054FD9",
+    "S1A_IW_GRDH_1SDV_20220929T004028_20220929T004053_045212_05676B",
+    "S1A_IW_GRDH_1SDV_20221011T004028_20221011T004053_045387_056D51",
+    "S1A_IW_GRDH_1SDV_20221023T004028_20221023T004053_045562_05727C"
+  ],
+  "resolution_m": 20,
+  "shift_px": [
+    -1,
+    0
+  ],
+  "flooded_km2": 2.91,
+  "thresholds": {
+    "flood_db_max": -15.0,
+    "drop_db": 3.0,
+    "min_flood_px": 4
+  },
+  "source": "Copernicus Sentinel-1 GRD via the Registry of Open Data on AWS (Earth Search)",
+  "limits": "Radar misses water between tall buildings and floods that drained before the pass.",
+  "made": "2026-10-09"
+}

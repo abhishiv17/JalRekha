@@ -35,3 +35,9 @@ Thumbs.db
 # Full OSM outlines are large; regenerate with pipeline/scripts/osm_india_lakes.py
 data/catalog/outlines/
 data/catalog/india.partial.json
+
+# Plot Check setup scratch (infra/plot/setup.sh)
+.jalrekha-setup/
+
+# Flood maps are small and ship with the Plot Check Lambda
+!data/floods/**/*.tif

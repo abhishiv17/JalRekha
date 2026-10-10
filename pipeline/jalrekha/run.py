@@ -69,8 +69,11 @@ def _load_stack(gbox, year: int, season: str, cache: Path | None):
     return stack
 
 
-def load_seasons(gbox, years, cache: Path | None = None) -> dict:
-    """Composite and indices for every season with scenes; oldest first."""
+def load_seasons(gbox, years, cache: Path | None = None, on_season=None) -> dict:
+    """Composite and indices for every season with scenes; oldest first.
+
+    on_season(name, scene_count), if given, is called after each season (for progress).
+    """
     seasons = {}
     for year in years:
         for season in ("dry", "post"):
@@ -78,6 +81,8 @@ def load_seasons(gbox, years, cache: Path | None = None) -> dict:
             stack = _load_stack(gbox, year, season, cache)
             if stack is None:
                 print(f"{name}: no scenes")
+                if on_season:
+                    on_season(name, 0)
                 continue
             composite, looks = seasonal_composite(stack)
             seasons[name] = {
@@ -91,6 +96,8 @@ def load_seasons(gbox, years, cache: Path | None = None) -> dict:
                 "ndbi": ndbi(composite["swir16"], composite["nir"]),
             }
             print(f"{name}: {len(stack['scene_ids'])} scenes")
+            if on_season:
+                on_season(name, len(stack["scene_ids"]))
     return seasons
 
 

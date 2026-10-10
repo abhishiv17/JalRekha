@@ -1,0 +1,9 @@
+# CodeBuild project jalrekha-build. MODE picks the job (see codebuild.sh).
+version: 0.2
+phases:
+  install:
+    runtime-versions:
+      python: 3.12
+  build:
+    commands:
+      - bash infra/plot/codebuild.sh
