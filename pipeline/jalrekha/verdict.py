@@ -12,7 +12,7 @@ import json
 import os
 
 LANGUAGES = ("en", "kn", "te", "hi")
-MODEL = os.environ.get("BEDROCK_MODEL", "anthropic.claude-opus-5-5")
+MODEL = os.environ.get("BEDROCK_MODEL", "anthropic.claude-sonnet-5-5")  # offered in us-west-2
 REGION = os.environ.get("BEDROCK_REGION", "us-west-2")
 
 MIN_DRY_SEASONS = 3  # fewer clear dry seasons than this: say so, don't guess
