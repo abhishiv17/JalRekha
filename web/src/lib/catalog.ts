@@ -47,7 +47,10 @@ export const ANALYSED_META: Record<string, AnalysedMeta> = {
   "dariyapur-pond": { city: "Delhi", state: "Delhi", lat: 28.81800, lon: 77.01366, osmId: "osm-w1349493394" },
   "neeli-jheel": { city: "Faridabad", state: "Haryana", lat: 28.44832, lon: 77.24910, osmId: "osm-w204969708" },
   "hauz-khas": { city: "Delhi", state: "Delhi", lat: 28.55486, lon: 77.19218, osmId: "osm-r2196532" },
-  mallathahalli: { city: "Bengaluru", state: "Karnataka", lat: 12.96493, lon: 77.49475, osmId: "osm-w37898906" },
+  mallathahalli: {
+    city: "Bengaluru", state: "Karnataka", thumb: lakeUrl("mallathahalli", "truecolor/2026-dry.png"), lat: 12.96509, lon: 77.49455, osmId: "osm-w37898906",
+    note: "Most flagged change here is the lake's own development works: a perimeter path and road, a plaza, a filled corner pond and a built-up island. In March 2023 the Karnataka High Court barred construction in this lake; compare the dates here with that order, and verify each flag before acting.",
+  },
 };
 
 /** Catalog lakes with a real satellite thumbnail, matched to OSM lakes by location. */

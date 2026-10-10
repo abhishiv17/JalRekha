@@ -39,6 +39,8 @@ export default function SiteHeader() {
       })
       .catch(() => {});
   }, []);
+  const [open, setOpen] = useState(false);
+  useEffect(() => setOpen(false), [path]);
   const on = (p: string) => (path?.startsWith(p) ? "page" : undefined);
 
   return (
@@ -56,7 +58,10 @@ export default function SiteHeader() {
       <header className="site">
         <nav aria-label="Main">
           <Link href="/" className="brand" aria-label="JalRekha home"><Logo /></Link>
-          <div className="nav-links">
+          <button type="button" className="menu-toggle" aria-expanded={open} aria-controls="main-links" onClick={() => setOpen((o) => !o)}>
+            {open ? "Close" : "Menu"}
+          </button>
+          <div id="main-links" className={`nav-links${open ? " open" : ""}`}>
             <Link className="link" href="/lakes/" aria-current={on("/lake")}>Lakes</Link>
             <Link className="link" href="/ponds/" aria-current={on("/ponds")}>Missing ponds</Link>
             <Link className="link" href="/#how">How it works</Link>

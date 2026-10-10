@@ -7,9 +7,11 @@ import { Guide, JalIcon, Loader } from "@/components/Mascot";
 import OutlinedImage from "@/components/OutlinedImage";
 import { ANALYSED_META, KIND_LABELS, type Place, placeLabel } from "@/lib/catalog";
 import {
+  type Checks,
   type FeatureCollection,
   type FlagProps,
   type Stats,
+  loadChecks,
   drySeasons,
   kindLabel,
   lakeUrl,
@@ -111,9 +113,11 @@ export default function EvidenceView({ id, place: placeProp }: { id: string; pla
   const [templates, setTemplates] = useState<{ complaint: string; rti: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [saved, setSaved] = useState<string | null>(null);
+  const [checks, setChecks] = useState<Checks["flags"]>({});
   const [generatedAt] = useState(() => new Date());
 
   useEffect(() => {
+    loadChecks(id).then((c) => setChecks(c.flags));
     Promise.all([
       loadStats(id),
       loadFlags(id),
@@ -218,8 +222,20 @@ export default function EvidenceView({ id, place: placeProp }: { id: string; pla
       <Guide size={52} className="no-print evidence-guide">
         {flags.length
           ? `I put together everything behind the ${flags.length} flag${flags.length === 1 ? "" : "s"} at ${stats.name}: dated images, areas, coordinates and the exact satellite scenes, so anyone can re-check it. Save it as a PDF, or take the flags into Google Earth with the KML.`
-          : `I found no lasting change at ${stats.name}, and this pack shows how I checked: every dry season, the scenes I used and the method. A clean record is evidence too.`}
+          : `I found no lasting change at ${stats.name}, and this pack shows how I checked: every summer, the scenes I used and the method. A clean record is evidence too.`}
       </Guide>
+
+      {flags.length > 0 && (
+        <div className="howto no-print" aria-label="How to use this pack">
+          <div><b>Go and look</b><span>Visit the coordinates below and photograph what&apos;s there today, with the date.</span></div>
+          <a href="#letters"><b>Send the complaint</b><span>Fill the [brackets] in the draft letter and send it to the custodian with your photos.</span></a>
+          <a href="#letters"><b>Ask what was approved</b><span>File the RTI letter to learn whether any work there was sanctioned.</span></a>
+          <button type="button" className="secondary" style={{ height: "100%", textAlign: "left", justifyContent: "flex-start", alignItems: "flex-start", flexDirection: "column", padding: "16px 18px" }}
+            onClick={() => window.print()}>
+            <b>Keep a copy</b><span style={{ fontWeight: 400 }}>Save this page as a PDF to attach to letters and emails.</span>
+          </button>
+        </div>
+      )}
 
       <header className="report-head">
         <StaticLogo size={40} />
@@ -268,7 +284,7 @@ export default function EvidenceView({ id, place: placeProp }: { id: string; pla
       <h2>Places where the lake was lost</h2>
       <div className="table-scroll"><table>
         <thead>
-          <tr><th>Spot</th><th>Where</th><th>What happened</th><th className="num">Acres</th><th>First seen</th><th>Lasted?</th><th>How sure</th><th>Map point (latitude, longitude)</th></tr>
+          <tr><th>Spot</th><th>Where</th><th>What happened</th><th className="num">Acres</th><th>First seen</th><th>Lasted?</th><th>How sure</th><th>Checked on sharper photos</th><th>Map point (latitude, longitude)</th></tr>
         </thead>
         <tbody>
           {flags.map((f) => {
@@ -283,11 +299,16 @@ export default function EvidenceView({ id, place: placeProp }: { id: string; pla
                 <td>{seasonLabel(p.first_seen)}</td>
                 <td>{p.status === "confirmed" ? "Yes, 2+ years in a row" : p.first_seen.slice(0, 4) === (last?.season ?? "").slice(0, 4) ? "New this year" : "On and off"}</td>
                 <td>{{ high: "Sure", medium: "Fairly sure", low: "Not sure yet" }[p.confidence] ?? p.confidence}</td>
+                <td>
+                  {checks[p.flag_id]
+                    ? `${checks[p.flag_id].verdict} (${checks[p.flag_id].by === "person" ? "by a person" : "AI-assisted"}; photos ${checks[p.flag_id].dates})`
+                    : "Not yet"}
+                </td>
                 <td>{lat.toFixed(5)}, {lon.toFixed(5)}</td>
               </tr>
             );
           })}
-          {flags.length === 0 && <tr><td colSpan={8}>None found. The lake kept its size since 2019.</td></tr>}
+          {flags.length === 0 && <tr><td colSpan={9}>None found. The lake kept its size since 2019.</td></tr>}
         </tbody>
       </table></div>
 
@@ -345,7 +366,7 @@ export default function EvidenceView({ id, place: placeProp }: { id: string; pla
         <li>Losses before 2019 are outside this record.</li>
       </ul>
 
-      <h2>Draft letters</h2>
+      <h2 id="letters">Draft letters</h2>
       <p className="small muted no-print">Filled from the largest flag. Complete the parts in [square brackets] before sending.</p>
       <Letter title="Complaint to the lake custodian" text={fill(templates.complaint, letterValues(top))} />
       <Letter title="RTI application" text={fill(templates.rti, letterValues(top))} />

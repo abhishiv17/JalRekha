@@ -59,6 +59,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
               <span className="footer-title">About</span>
               <Link href="/#how">How it works</Link>
               <Link href="/#method">How sure is it?</Link>
+              <Link href="/#honest">How often we&apos;re right</Link>
               <Link href="/#credits">Where the data comes from</Link>
             </nav>
             <div style={{ flex: "0 1 340px", minWidth: 0, display: "flex", flexDirection: "column", gap: 8 }}>

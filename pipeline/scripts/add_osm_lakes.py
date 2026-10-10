@@ -18,6 +18,7 @@ ADD = {
     "durgam-cheruvu": ("osm-w28131043", "Durgam Cheruvu", "Hyderabad", "Telangana", "Second city"),
     "ameenpur": ("osm-w115772000", "Ameenpur Lake", "Hyderabad", "Telangana", "Second city"),
     "chembarambakkam": ("osm-w25453624", "Chembarambakkam Lake", "Chennai", "Tamil Nadu", "Third city; flood reservoir"),
+    "mallathahalli": ("osm-w37898906", "Mallathahalli Lake", "Bengaluru", "Karnataka", "Demo lake near ITI Layout, west Bengaluru"),
 }
 
 
