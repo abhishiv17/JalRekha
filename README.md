@@ -1,77 +1,89 @@
 # JalRekha
 
-**See how our lakes change over time.**
+**Lakes protect our cities. Let's protect lakes.**
 
-JalRekha is a satellite-powered lake monitoring and environmental evidence platform. It compares historical Sentinel-2 imagery, dry season against dry season, to find persistent change in lake beds and their buffer zones, and turns it into dated, reproducible evidence that communities can use for environmental action.
+JalRekha reads free satellite photos of every lake, pond and plot, from 2019 to today, and turns what changed into action: a warning before you buy land on a filled lake, dated proof and a ready letter when a lake is being filled, and a public, satellite-checked path to bring lost ponds back.
 
-Built for **WeMakeDevs Environmental Hacks**, Heat and Water track (floods, groundwater, droughts). Lakes absorb monsoon floodwater and recharge groundwater; every acre filled weakens both.
+**Live:** https://main.d25xaqqlm27lpb.amplifyapp.com/ · Built for **WeMakeDevs Environmental Hacks**, Heat and Water track.
 
-> Satellite-detected change is not proof of illegal encroachment. Verify on the ground and in official records.
+![Home page: Bhalswa Lake, Delhi, in 2019 and 2026](docs/screenshots/home.jpg)
 
-## What it does
+> A satellite shows where a lake changed, not who changed it or whether it was allowed. Verify on the ground and in official records.
 
-Discover a lake → compare historical satellite observations → inspect detected changes → examine the buffer zone → download an evidence pack → watch for new change.
-
-| Status | Lakes |
+| | |
 | --- | --- |
-| Analysed (full pipeline, 2019–2026) | 27 lakes in Delhi, Bengaluru, Hyderabad and Chennai, plus any catalogued lake a visitor asks to track ("Track this lake") |
-| Delhi's ponds | 331 found from space; 59 dried up and 31 shrunk since 2019–2021 (`/ponds/`) |
-| Catalogued, queued for analysis | 7,165 named lakes across 35 states and union territories (OpenStreetMap) |
-| Flags checked on sharper photos | 46 checked: 14 confirmed, 21 not confirmed, 11 can't tell (see [`research/`](research/README.md)) |
+| Lakes analysed, 2019–2026 | 27, in Delhi, Bengaluru, Hyderabad and Chennai, plus any catalogued lake a visitor asks to track |
+| Lakes on the map | 7,178 named lakes across India (OpenStreetMap) |
+| Delhi's ponds | 331 found from space; 59 dried up and 31 shrunk since 2019–2021 |
+| Flags checked on sharper photos | 46: 14 confirmed, 21 not confirmed, 11 can't tell |
 
-Demo lake: **Subedeharana Kere, Bengaluru**: 0.94 ac of lake bed turned to grassed land, lasting since the 2025 dry season (reported debris dumping in early 2024).
+## Features
 
-## Plot Check: before you buy or rent
+### 1. A lake's story, step by step
 
-Drop a pin or search an address at `/check/`. For a 1.2 km square around the pin, JalRekha reads every Sentinel-2 pass since 2019 and answers, for that exact spot:
+Six steps over the real satellite photo: the lake's edge, every year since 2019, open water in blue, lake bed that became land in orange, the 30-metre no-build zone, then proof to act. Every lake gets the same framing; use the arrows or the arrow keys.
 
-- **Was it lake water?** Water at the pin in each dry season (Jan–Apr), 2019–2026.
-- **Does it get waterlogged?** Water at the pin after each monsoon (Nov–Dec).
-- **How close is the lake?** Distance to the largest water extent seen since 2019, and whether the spot falls inside the buffer zones (Karnataka 30 m and the proposed size-based tiers; Hyderabad 30 m / 9 m), measured from that edge.
-- **Did it flood?** Sentinel-1 radar flood maps of past events, starting with Bengaluru on 5 Sep 2022 (2.91 km² of standing floodwater outside the lakes).
-- **What does it mean?** A level (High risk / Watch / Low risk) set by fixed rules, explained in English, Kannada, Telugu and Hindi, with what to verify before paying. The explanation is written by Claude on Amazon Bedrock once the account has model access (requested; AWS currently answers "Error 002"); until then it comes from a fixed English template translated by Amazon Translate. Save as PDF or share the link.
+<p><img src="docs/screenshots/home-story.jpg" width="49%" alt="Bhalswa story on the home page"> <img src="docs/screenshots/lake-story.jpg" width="49%" alt="Story on a lake page"></p>
 
-It uses the pipeline's most reliable signal (was water there?), not the harder one (was a lake filled?). The hand-check above shows why: satellite change flags are leads, but water history is evidence.
+### 2. Lakes we track
 
-| Piece | AWS |
-| --- | --- |
-| Address search, reverse geocoding | Amazon Location Service (Places) |
-| `POST /check`, `GET /check/<id>`, `GET /geocode` | API Gateway (HTTP) + Lambda |
-| One pin per run, 2–4 min | Lambda (container from ECR), invoked asynchronously |
-| Imagery | Sentinel-2 L2A and Sentinel-1 GRD from the Registry of Open Data on AWS |
-| Plain-language verdict | Amazon Bedrock (Claude, pending account access), then Amazon Translate, then fixed templates |
-| Reports and images; status and cache | S3 (private, presigned links); DynamoDB |
-| Flood maps, container builds, tests | CodeBuild |
+Search any lake in India. 27 have results from the full pipeline; any other catalogued lake can be tracked on demand ("Track this lake"), which runs the whole analysis on AWS in a few minutes.
 
-Setup: [`infra/plot/setup.sh`](infra/plot/setup.sh). Code: [`pipeline/jalrekha/plot.py`](pipeline/jalrekha/plot.py), [`verdict.py`](pipeline/jalrekha/verdict.py), [`flood.py`](pipeline/jalrekha/flood.py).
+![Lakes list](docs/screenshots/lakes.jpg)
 
-## Bring Delhi's ponds back
+### 3. Lake page: what changed, in plain words
 
-`/ponds/` turns the pond scan into action, one pond at a time:
+The headline says how much of the lake and its protected edge turned into land, in acres and football pitches, with then-and-now photos. Below: a year-by-year map, a slider to compare any two years, and every flagged spot with how sure we are and whether it held up on sharper photos.
 
-1. **Find**: every pond in Delhi from Sentinel-2 (Nov–Jan medians, 2019–2025, clipped to Delhi's boundary), with before and after photos ([`ponds.py`](pipeline/jalrekha/ponds.py)).
-2. **Adopt**: a resident welfare association, school, college or company takes charge of a dried-up pond.
-3. **Route**: a ready letter to the agency that owns the land (DDA, MCD, DJB, PWD, Irrigation and Flood Control, Forest, or the district's District Magistrate), copied to the Wetland Authority of Delhi, and a CSR proposal for companies.
-4. **Clock**: each pond shows its stage, and `/ponds/board/` shows each agency's letters, answers and overdue cases (30 days).
-5. **Proof**: anyone can ask the satellite to look at a pond now (every clear pass of the last 75 days, [`pondcheck.py`](pipeline/jalrekha/pondcheck.py)); water back means "Revived", a claim the satellite can't see is flagged.
-6. **Prevent**: Plot Check warns when a pin is on, or within 50 m of, a pond.
+<p><img src="docs/screenshots/lake-page.jpg" width="49%" alt="Bhalswa Lake page"> <img src="docs/screenshots/lake-compare.jpg" width="49%" alt="Compare two years"></p>
 
-Cases live in DynamoDB behind the Plot Check API (`/ponds/cases`, `/ponds/<id>/adopt|stage|check`); space checks run on the worker Lambda.
+![Flagged spots, checked on sharper photos](docs/screenshots/lake-flags.jpg)
 
-## Repository layout
+### 4. Proof pack and letters
 
-```
-web/            Next.js app (static export) + MapLibre: home, lakes, lake analysis, evidence pack, watchlist
-pipeline/       Python analysis package `jalrekha`: scenes, masks, composites, classes, persistence, flags, export
-  scripts/      Lake lists (ATREE KML, OSM catalogue), index builder, hand-check kit
-infra/          AWS: pipeline Lambda container, API Lambda, Step Functions, IAM policies
-contracts/      Output format shared by the pipeline and the web app
-data/lakes/     Outlines of the analysed lakes
-data/catalog/   India-wide lake catalogue (list + card outlines)
-data/sample/    Hand-made fixtures, clearly marked sample (not results)
-templates/      Complaint and RTI letter templates
-research/       Flag hand-check kit
-```
+Dated satellite scenes, areas and coordinates for every flag, a map file for Google Earth, and ready complaint and Right to Information letters addressed to the right authority for the lake's state. Save as PDF.
+
+![Evidence pack](docs/screenshots/evidence.jpg)
+
+### 5. Plot Check: was this land part of a lake?
+
+Before you buy or rent, drop a pin. JalRekha reads every Sentinel-2 photo of that spot since 2019 and answers: was it lake water, does it get waterlogged after the monsoon, how close is the lake and its no-build zone, and did it flood (Sentinel-1 radar flood maps of Delhi 2023, Bengaluru 2022, Hyderabad 2020 and Chennai 2015).
+
+![Pick a spot](docs/screenshots/check-pick.jpg)
+
+**While it works**, Jal shows each step live: finding the spot, reading every photo (with a count per season), finding where water has been, checking flood maps and writing the report. A check takes about two minutes.
+
+<p><img src="docs/screenshots/check-thinking-1.jpg" width="32%" alt="Finding the spot"> <img src="docs/screenshots/check-thinking-2.jpg" width="32%" alt="Reading satellite photos"> <img src="docs/screenshots/check-thinking-3.jpg" width="32%" alt="Still reading, season by season"></p>
+
+**The answer**: a level set by fixed rules (High risk / Watch / Low risk), what to check before paying, in English, Kannada, Telugu and Hindi, and the evidence on the map. Shareable link; save as PDF.
+
+<p><img src="docs/screenshots/check-result-map.jpg" width="49%" alt="Plot Check result with map"> <img src="docs/screenshots/check-result.jpg" width="49%" alt="Plot Check verdict and facts"></p>
+
+Plot Check also warns when the pin is on, or within 50 metres of, a pond found from space:
+
+![Plot Check pond warning](docs/screenshots/check-pond-warning.jpg)
+
+### 6. Bring Delhi's ponds back
+
+Not just a count of what was lost. Each dried-up pond gets a way back:
+
+1. **Find**: every pond in Delhi from space (November–January, 2019–2025), with before and after photos.
+2. **Adopt**: a resident welfare association, school, college or company takes charge of one.
+3. **Route**: a ready letter to the agency that owns the land (DDA, MCD, Delhi Jal Board, PWD, Irrigation and Flood Control, Forest, or the district's District Magistrate), copied to the Wetland Authority of Delhi, and a CSR proposal for companies.
+4. **Clock**: each pond shows its stage; agencies have 30 days to answer, in public.
+5. **Proof from space**: anyone can ask the satellite to look at a pond now. Water back means "Revived"; a claim the satellite can't see is flagged.
+
+<p><img src="docs/screenshots/ponds-top.jpg" width="49%" alt="Ponds page"> <img src="docs/screenshots/ponds.jpg" width="49%" alt="Map and list of ponds"></p>
+
+<p><img src="docs/screenshots/pond-page.jpg" width="49%" alt="One pond: the path back to water"> <img src="docs/screenshots/pond-adopt.jpg" width="49%" alt="Adopt this pond"></p>
+
+![Public clock: agencies and adopted ponds](docs/screenshots/board.jpg)
+
+### 7. Alerts
+
+Watch a lake and get one email when a new dry season shows more of it turned to land. Every analysed lake is re-checked on the 5th of each month.
+
+![Watchlist](docs/screenshots/watchlist.jpg)
 
 ## How the analysis works
 
@@ -79,29 +91,46 @@ research/       Flag hand-check kit
 2. Cloud mask (SCL) and building-shadow mask (dark in visible bands but not in SWIR, unlike water).
 3. Dry-season (Jan–Apr) and post-monsoon (Nov–Dec) median composites per year; under 3 clear looks = "not enough data".
 4. Per-pixel classes: water (MNDWI above a per-lake Otsu threshold, never below 0), floating vegetation, land vegetation, bare/built, mixed.
-5. **Weeds versus land:** vegetation inside the lake is floating (still lake) when its SWIR is low, because water lies beneath it. Grass on dry land reflects far more SWIR (measured: about 0.12–0.16 vs 0.23 at Subedeharana).
+5. **Weeds versus land:** vegetation inside the lake is floating (still lake) when its SWIR is low, because water lies beneath it. Grass on dry land reflects far more SWIR.
 6. Reference footprint = lake outline ∪ water present in every 2019–2020 dry season and connected to the lake.
-7. Baseline = 2019–2020. A lake-bed pixel is lost only if it was lake in every baseline dry season and is land in its latest dry seasons: bare/built, or grassed over with SWIR risen ≥ 0.06 above its own baseline. Two seasons in a row = confirmed.
+7. A lake-bed pixel is lost only if it was lake in every baseline dry season and is land in its latest dry seasons. Two seasons in a row = confirmed.
 8. Buffer: natural ground inside the 30 m ring that turned bare or built.
 9. Flags = 5+ connected lost pixels (500 m²), each with area, first-seen season, persistence, confidence and category.
+10. **Ponds:** water (MNDWI > 0.1) in 2 of 3 seasons 2019–2021 is a pond; a gentler test (MNDWI > 0) in 2024–2025 decides if any water is left, so murky water still counts. Drains, canals, the Yamuna and anything outside Delhi's boundary are left out.
 
 Thresholds live in [`pipeline/jalrekha/config.py`](pipeline/jalrekha/config.py) and are the same for every lake.
 
-## Built on AWS (verified 9 Oct 2026)
+## Built on AWS
 
-| Service | Use | Status |
-| --- | --- | --- |
-| Registry of Open Data (Sentinel-2 COGs) | All imagery, read in place | Live |
-| Lambda (container) | Pipeline, one lake per run, ~2 min | Live |
-| Step Functions | All lakes in parallel, retries | Live; last run 12/12 succeeded |
-| S3 | Results, images, flags | Live |
-| DynamoDB | Lake summaries, season statistics, flags (267 items); watchers | Live |
-| EventBridge Scheduler | Monthly re-scan, 5th at 03:00 IST | Live |
-| SNS | Email alerts, once per new dry season | Live; no subscribers yet |
-| API Gateway + Lambda | Results, `/watch`, `/unwatch` | Live |
-| Amplify Hosting | Web app | Live: https://main.d25xaqqlm27lpb.amplifyapp.com/ |
+| Service | Use |
+| --- | --- |
+| Registry of Open Data | Sentinel-2 L2A and Sentinel-1 GRD imagery, read in place |
+| Lambda (container, from ECR) | Lake pipeline; Plot Check, Track this lake and pond checks, one run each |
+| API Gateway + Lambda | Lake results, Plot Check, pond cases, alerts |
+| Step Functions | All lakes in parallel, with retries |
+| S3 | Results, images, flags, ponds (private, presigned links) |
+| DynamoDB | Lake summaries and flags, Plot Check runs, pond cases, watchers |
+| Amazon Location Service | Address search and reverse geocoding |
+| Amazon Translate | Plot Check answers in Kannada, Telugu and Hindi |
+| Amazon Bedrock | Plain-language explanations (pending account access; fixed templates until then) |
+| EventBridge Scheduler + SNS | Monthly re-scan and email alerts |
+| CodeBuild | Flood maps, the Delhi pond scan, container builds, tests |
+| Amplify Hosting | The web app |
 
-Deployed resource names keep the original `kerewatch-*` prefix (see [`infra/README.md`](infra/README.md)); renaming them needs a migration, not a rename.
+Setup: [`infra/`](infra/README.md) (lake pipeline) and [`infra/plot/setup.sh`](infra/plot/setup.sh) (Plot Check, tracking, ponds).
+
+## Repository layout
+
+```
+web/            Next.js app (static export) + MapLibre
+pipeline/       Python package `jalrekha`: lakes, Plot Check, flood maps, ponds, story photos
+  scripts/      Lake lists, index builder, hand-check kit
+infra/          AWS: pipeline Lambda, API, Step Functions; infra/plot: Plot Check, tracking, ponds
+data/           Lake outlines, India catalogue, flood maps, Delhi ponds
+templates/      Complaint and RTI letter templates
+research/       Flags checked on sharper photos
+docs/           Screenshots
+```
 
 ## Run it
 
@@ -117,28 +146,22 @@ python -m jalrekha.run --lake subedeharana-kere --out ../data/out
 pytest
 ```
 
-India catalogue (Overpass API, resumable, cached per state):
-
-```bash
-cd pipeline && python scripts/osm_india_lakes.py <cache_dir> ../data/catalog
-```
-
 ## Data credits
 
 - Contains modified Copernicus Sentinel data [2019–2026], via the [Registry of Open Data on AWS](https://registry.opendata.aws/sentinel-2-l2a-cogs/) (Sentinel-2 L2A; Sentinel-1 GRD from `s3://sentinel-s1-l1c`, requester pays) and [Earth Search](https://github.com/element84/earth-search) by Element 84.
 - Lake outlines: [ATREE-CSEI, Map of Lakes in Bengaluru Urban](https://data.opencity.in/dataset/map-lakes-streams-bengaluru-urban-within-bbmp-area), CC BY; © OpenStreetMap contributors, ODbL.
+- Sharper historical photos for flag checks: Esri World Imagery Wayback.
 
 ## Limitations
 
 - Not a land survey: change is measured against the lake's historical water extent, not the revenue boundary.
-- 10 m pixels: a 30 m buffer is three pixels wide; small sheds and walls are missed.
+- 10 m pixels: a 30 m buffer is three pixels wide; small sheds and walls are missed, and ponds smaller than about a fifth of an acre are not found.
 - History starts in 2019 (Sentinel-2 L2A is global from December 2018).
 - Legal works (walkways, sewage plants, desilting) also show as change.
 - Flags are leads, not findings: of 46 checked on sharper photos, 14 were confirmed (see `research/flags_checked.csv`).
-- Plot Check measures buffers from the water seen since 2019, not the notified Full Tank Level or revenue map.
+- Some ponds fill only in wet years, and some farm plots flood like ponds; check the photos before writing.
 - Radar flood maps miss water between tall buildings and floods that drained before the satellite passed; "not seen" is not "flood-free".
 
 ## AI tools used
 
-<!-- The rules require listing these. -->
-- Claude Code (Anthropic)
+- Claude Code
