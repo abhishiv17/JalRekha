@@ -3,7 +3,8 @@
   "Statement": [
     {"Sid": "Logs", "Effect": "Allow", "Action": ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
      "Resource": "arn:aws:logs:${REGION}:${ACCOUNT}:log-group:/aws/lambda/jalrekha-plot-api:*"},
-    {"Sid": "Checks", "Effect": "Allow", "Action": ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:Scan"],
+    {"Sid": "Checks", "Effect": "Allow", "Action": ["dynamodb:GetItem", "dynamodb:PutItem", "dynamodb:UpdateItem", "dynamodb:Scan",
+                                                    "dynamodb:BatchGetItem", "dynamodb:BatchWriteItem"],
      "Resource": "arn:aws:dynamodb:${REGION}:${ACCOUNT}:table/jalrekha-plot-checks"},
     {"Sid": "StartWorker", "Effect": "Allow", "Action": "lambda:InvokeFunction",
      "Resource": "arn:aws:lambda:${REGION}:${ACCOUNT}:function:jalrekha-plot-worker"},
@@ -12,6 +13,9 @@
     {"Sid": "LakeList", "Effect": "Allow", "Action": "s3:ListBucket", "Resource": "arn:aws:s3:::${BUCKET}",
      "Condition": {"StringLike": {"s3:prefix": ["lakes/*"]}}},
     {"Sid": "Geocode", "Effect": "Allow", "Action": ["geo-places:Geocode", "geo-places:ReverseGeocode", "geo-places:SearchText"],
-     "Resource": "arn:aws:geo-places:${REGION}::provider/default"}
+     "Resource": "arn:aws:geo-places:${REGION}::provider/default"},
+    {"Sid": "Languages", "Effect": "Allow", "Action": ["translate:TranslateText", "polly:SynthesizeSpeech"], "Resource": "*"},
+    {"Sid": "JalVoice", "Effect": "Allow", "Action": ["s3:GetObject", "s3:PutObject"],
+     "Resource": "arn:aws:s3:::${BUCKET}/speech/*"}
   ]
 }

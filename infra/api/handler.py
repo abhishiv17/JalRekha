@@ -60,14 +60,51 @@ def _file(lake: str, path: str):
     return {"statusCode": 302, "headers": {"Location": url, **CORS, "Cache-Control": "max-age=600"}, "body": ""}
 
 
-def _watch(body: str):
+def _lakes_for(email: str) -> list[str]:
+    """Every lake this person watches (the watchers table: pk = lake, sk = email)."""
+    lakes, kw = set(), {"TableName": os.environ["WATCHERS_TABLE"], "ProjectionExpression": "pk",
+                        "FilterExpression": "sk = :e", "ExpressionAttributeValues": {":e": {"S": email}}}
+    while True:
+        page = ddb.scan(**kw)
+        lakes.update(i["pk"]["S"] for i in page.get("Items", []))
+        if "LastEvaluatedKey" not in page:
+            return sorted(lakes)
+        kw["ExclusiveStartKey"] = page["LastEvaluatedKey"]
+
+
+def _subscription(email: str):
+    """This email's subscription to the alerts topic: (ARN, confirmed), or None.
+
+    SNS keeps one email subscription per address per topic, so one person watching several lakes
+    has one subscription whose filter policy lists all of them.
+    """
+    for page in sns.get_paginator("list_subscriptions_by_topic").paginate(TopicArn=os.environ["ALERTS_TOPIC_ARN"]):
+        for sub in page["Subscriptions"]:
+            if sub["Protocol"] == "email" and sub["Endpoint"].lower() == email:
+                arn = sub["SubscriptionArn"]
+                return arn, arn.startswith("arn:")  # "PendingConfirmation" until they click the link
+    return None
+
+
+def _filter(lakes: list[str]) -> str:
+    return json.dumps({"lake": lakes})
+
+
+def _read(body: str):
     try:
         data = json.loads(body or "{}")
     except json.JSONDecodeError:
-        return _resp(400, {"error": "invalid JSON"})
+        return None, None, _resp(400, {"error": "invalid JSON"})
     lake, email = str(data.get("lake", "")), str(data.get("email", "")).strip().lower()
     if not LAKE_ID.match(lake) or not EMAIL.match(email):
-        return _resp(400, {"error": "lake and a valid email are required"})
+        return None, None, _resp(400, {"error": "lake and a valid email are required"})
+    return lake, email, None
+
+
+def _watch(body: str):
+    lake, email, bad = _read(body)
+    if bad:
+        return bad
     ddb.put_item(
         TableName=os.environ["WATCHERS_TABLE"],
         Item={
@@ -76,37 +113,37 @@ def _watch(body: str):
             "created": {"S": datetime.now(timezone.utc).isoformat(timespec="seconds")},
         },
     )
-    # SNS sends a confirmation email; alerts arrive only after the person confirms.
-    sns.subscribe(
-        TopicArn=os.environ["ALERTS_TOPIC_ARN"],
-        Protocol="email",
-        Endpoint=email,
-        Attributes={"FilterPolicy": json.dumps({"lake": [lake]})},
-    )
-    return _resp(202, {"ok": True})
+    lakes = _lakes_for(email)
+    found = _subscription(email)
+    if found is None:
+        # SNS sends a confirmation email; alerts arrive only after the person confirms.
+        sns.subscribe(TopicArn=os.environ["ALERTS_TOPIC_ARN"], Protocol="email", Endpoint=email,
+                      Attributes={"FilterPolicy": _filter(lakes)})
+        return _resp(202, {"ok": True, "status": "confirm"})
+    arn, confirmed = found
+    if not confirmed:
+        # A subscription waiting for confirmation can't be changed; the lake is saved and is added
+        # the next time they press Watch after confirming.
+        return _resp(202, {"ok": True, "status": "pending"})
+    sns.set_subscription_attributes(SubscriptionArn=arn, AttributeName="FilterPolicy", AttributeValue=_filter(lakes))
+    return _resp(200, {"ok": True, "status": "added", "lakes": lakes})
 
 
 def _unwatch(body: str):
-    try:
-        data = json.loads(body or "{}")
-    except json.JSONDecodeError:
-        return _resp(400, {"error": "invalid JSON"})
-    lake, email = str(data.get("lake", "")), str(data.get("email", "")).strip().lower()
-    if not LAKE_ID.match(lake) or not EMAIL.match(email):
-        return _resp(400, {"error": "lake and a valid email are required"})
+    lake, email, bad = _read(body)
+    if bad:
+        return bad
     ddb.delete_item(TableName=os.environ["WATCHERS_TABLE"], Key={"pk": {"S": lake}, "sk": {"S": email}})
-    removed = 0
-    topic = os.environ["ALERTS_TOPIC_ARN"]
-    for page in sns.get_paginator("list_subscriptions_by_topic").paginate(TopicArn=topic):
-        for sub in page["Subscriptions"]:
-            arn = sub["SubscriptionArn"]
-            if sub["Endpoint"].lower() != email or not arn.startswith("arn:"):
-                continue  # pending confirmations have no ARN yet and lapse on their own
-            policy = sns.get_subscription_attributes(SubscriptionArn=arn)["Attributes"].get("FilterPolicy", "{}")
-            if lake in json.loads(policy).get("lake", []):
-                sns.unsubscribe(SubscriptionArn=arn)
-                removed += 1
-    return _resp(200, {"ok": True, "subscriptions_removed": removed})
+    found = _subscription(email)
+    if not found or not found[1]:
+        return _resp(200, {"ok": True, "subscriptions_removed": 0})  # pending confirmations lapse on their own
+    arn, _ = found
+    remaining = _lakes_for(email)
+    if remaining:
+        sns.set_subscription_attributes(SubscriptionArn=arn, AttributeName="FilterPolicy", AttributeValue=_filter(remaining))
+        return _resp(200, {"ok": True, "subscriptions_removed": 0, "lakes": remaining})
+    sns.unsubscribe(SubscriptionArn=arn)
+    return _resp(200, {"ok": True, "subscriptions_removed": 1})
 
 
 def handler(event, context):

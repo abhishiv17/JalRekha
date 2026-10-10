@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import LakeCard from "@/components/LakeCard";
 import { EmptyState, Guide } from "@/components/Mascot";
@@ -177,7 +178,8 @@ export default function AllLakes() {
 
   return (
     <main>
-      <div className="find-head ripples" style={{ marginBottom: 20 }}>
+      <div className="find-head ripples" style={{ marginBottom: 20 }} data-jal-mood="searching"
+        data-jal="These are all the lakes I know about in India. Search for yours by name, area or town, or ask me to show the lakes near you.">
         <span className="eyebrow">Lakes</span>
         <h1 style={{ margin: 0 }}>Lakes</h1>
         <p className="lede">
@@ -185,6 +187,7 @@ export default function AllLakes() {
             ? "Loading lakes…"
             : `${analysedTotal} lakes tracked closely · ${(all.length - analysedTotal).toLocaleString("en-IN")} more on the map across ${states.length} states and union territories.`}
         </p>
+        <Link href="/lakes/priority/" className="small" style={{ fontWeight: 600 }}>Not sure where to start? See which lakes to save first →</Link>
         <label htmlFor="lake-search" className="sr-only">Search by lake, area, town or state</label>
         <div className="search-pill">
           <SearchIcon />
@@ -248,7 +251,8 @@ export default function AllLakes() {
         <>
           <Guide size={52} className="catalog-guide">{guide}</Guide>
           {analysedShown.length > 0 && (
-            <section aria-labelledby="analysed-title" style={{ marginBottom: 56 }}>
+            <section aria-labelledby="analysed-title" style={{ marginBottom: 56 }} data-jal-mood="happy"
+              data-jal="These are the lakes I check closely. Orange means part of the lake has turned into land; green means it kept its size. Open one to see its story.">
               <div className="count-head">
                 <h2 id="analysed-title">Lakes we track</h2>
                 <span className="muted">{analysedShown.length} with results from the full pipeline · each lake page says which spots were checked on sharper photos</span>
@@ -258,7 +262,8 @@ export default function AllLakes() {
           )}
 
           {queuedSorted.length > 0 && (
-            <section aria-labelledby="queued-title">
+            <section aria-labelledby="queued-title" data-jal-mood="thinking"
+              data-jal="And these are thousands more lakes on the map that I haven't checked yet. No result here doesn't mean nothing changed. You can ask me to start tracking one.">
               <div className="count-head">
                 <h2 id="queued-title">All lakes in India</h2>
                 <span className="muted">

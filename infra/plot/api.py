@@ -12,6 +12,8 @@
     POST /ponds/<pond-id>/adopt     {"name", "kind", "agency"} -> the case and a key to update it
     POST /ponds/<pond-id>/stage     {"key", "stage", "note"?}  move the case forward
     POST /ponds/<pond-id>/check     look at the pond from space now (worker), at most every few hours
+    POST /translate {"lang", "texts"} the site's words in Hindi, Kannada or Telugu (Amazon Translate, cached)
+    POST /speak     {"lang", "text"}  a link to Jal reading the text aloud (Amazon Polly, cached in S3)
 
 The id is the pin rounded to 4 decimals (about 11 m), so the same spot is
 analysed once and shared links stay stable.
@@ -26,6 +28,7 @@ import re
 
 import boto3
 from botocore.config import Config
+from botocore.exceptions import ClientError
 
 INDIA = (6.0, 68.0, 37.5, 97.5)  # south, west, north, east
 STALE_DAYS = 30  # re-run a stored check after this long (new imagery)
@@ -383,12 +386,132 @@ def get_track(lake_id: str) -> dict:
     return out
 
 
+# --- The site in four languages, and Jal's voice ---------------------------------------------
+# Every string is translated once by Amazon Translate and kept in the table (id "i18n#<lang>#<hash>"),
+# so a page that has been read before costs nothing. Speech is made once by Amazon Polly and kept in
+# S3 (speech/<voice>/<hash>.mp3); the API answers with a short-lived link to it.
+
+TRANSLATE_LANGS = {"hi", "kn", "te"}
+MAX_TEXTS, MAX_TEXT_CHARS, MAX_SPEECH_CHARS = 60, 600, 900
+# Names that must stay as they are in every language.
+KEEP = re.compile(r"\b(JalRekha|Jal|Plot Check|Sentinel-[12]|AWS|Amazon [A-Z][a-z]+|OpenStreetMap|RTI|KTCDA)\b")
+# Polly's Indian voice speaks Indian English and Hindi; there is no Kannada or Telugu voice,
+# so the site reads those with the visitor's own device voice.
+VOICES = {"en": ("en-IN", "Kajal"), "hi": ("hi-IN", "Kajal")}
+
+
+def _protect(text: str) -> str:
+    from html import escape
+
+    out, pos = [], 0
+    for m in KEEP.finditer(text):
+        out.append(escape(text[pos:m.start()], quote=False))
+        out.append(f'<span translate="no">{escape(m.group(0), quote=False)}</span>')
+        pos = m.end()
+    out.append(escape(text[pos:], quote=False))
+    return "".join(out)
+
+
+def _unprotect(html_text: str) -> str:
+    from html import unescape
+
+    return unescape(re.sub(r"</?span[^>]*>", "", html_text))
+
+
+def translate_texts(lang: str, texts: list[str]) -> list[str]:
+    from concurrent.futures import ThreadPoolExecutor
+
+    keys = [f"i18n#{lang}#{_hash(t)}" for t in texts]
+    found: dict[str, str] = {}
+    unique = list(dict.fromkeys(keys))
+    db = boto3.resource("dynamodb")
+    for i in range(0, len(unique), 100):
+        res = db.batch_get_item(RequestItems={os.environ["PLOT_TABLE"]: {
+            "Keys": [{"id": k} for k in unique[i:i + 100]], "ProjectionExpression": "#i, #t",
+            "ExpressionAttributeNames": {"#i": "id", "#t": "text"}}})
+        for item in res["Responses"].get(os.environ["PLOT_TABLE"], []):
+            found[item["id"]] = item["text"]
+
+    missing = {k: t for k, t in zip(keys, texts) if k not in found}
+    if missing:
+        tr = boto3.client("translate")
+
+        def one(item):
+            key, text = item
+            r = tr.translate_text(Text=_protect(text), SourceLanguageCode="en", TargetLanguageCode=lang)
+            return key, _unprotect(r["TranslatedText"])
+
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            done = list(pool.map(one, missing.items()))
+        with table().batch_writer() as batch:
+            for key, text in done:
+                batch.put_item(Item={"id": key, "text": text, "lang": lang, "created": _now()})
+                found[key] = text
+    return [found[k] for k in keys]
+
+
+def speech_link(lang: str, text: str) -> dict | None:
+    if lang not in VOICES:
+        return None
+    code, voice = VOICES[lang]
+    s3, bucket = _s3(), os.environ["PLOT_BUCKET"]
+    key = f"speech/{voice}-{code}/{_hash(text)}.mp3"
+    try:
+        s3.head_object(Bucket=bucket, Key=key)
+    except ClientError:
+        polly = boto3.client("polly")
+        # The most natural engine first; fall back if this region doesn't offer it.
+        for engine, who in (("generative", voice), ("neural", voice), ("standard", "Aditi")):
+            try:
+                audio = polly.synthesize_speech(Text=text, OutputFormat="mp3", VoiceId=who, Engine=engine,
+                                                LanguageCode=code)
+                break
+            except ClientError:
+                if engine == "standard":
+                    raise
+        s3.put_object(Bucket=bucket, Key=key, Body=audio["AudioStream"].read(), ContentType="audio/mpeg",
+                      CacheControl="max-age=31536000")
+    url = s3.generate_presigned_url("get_object", Params={"Bucket": bucket, "Key": key}, ExpiresIn=3600)
+    return {"url": url, "voice": voice}
+
+
+def language_route(method: str, path: str, event: dict) -> dict | None:
+    if method != "POST" or path not in ("/translate", "/speak"):
+        return None
+    body = _body(event)
+    lang = str(body.get("lang", ""))
+    try:
+        return _language(path, lang, body)
+    except ClientError as e:  # Translate or Polly said no: the site keeps English / the device voice
+        print(f"{path} failed: {e!r}"[:500])
+        return _resp(503, {"error": "Translation or speech is unavailable right now."})
+
+
+def _language(path: str, lang: str, body: dict) -> dict:
+    if path == "/translate":
+        texts = body.get("texts")
+        if lang not in TRANSLATE_LANGS or not isinstance(texts, list) or not 0 < len(texts) <= MAX_TEXTS:
+            return _resp(400, {"error": f"Send lang (hi, kn or te) and 1 to {MAX_TEXTS} texts."})
+        if not all(isinstance(t, str) and 0 < len(t) <= MAX_TEXT_CHARS for t in texts):
+            return _resp(400, {"error": f"Each text must be 1 to {MAX_TEXT_CHARS} characters."})
+        return _resp(200, {"lang": lang, "texts": translate_texts(lang, texts)})
+    text = str(body.get("text", "")).strip()
+    if not 0 < len(text) <= MAX_SPEECH_CHARS:
+        return _resp(400, {"error": f"Send 1 to {MAX_SPEECH_CHARS} characters of text."})
+    link = speech_link(lang, text)
+    return _resp(200, link) if link else _resp(404, {"error": "No voice for this language; use the device voice."})
+
+
 def handler(event, context):
     method = event.get("requestContext", {}).get("http", {}).get("method", "GET")
     path = event.get("rawPath", "/")
     if method == "OPTIONS":
         return {"statusCode": 204, "headers": CORS, "body": ""}
     try:
+        r = language_route(method, path, event)
+        if r:
+            return r
+
         if path.startswith("/ponds/"):
             r = pond_route(method, path, event)
             if r:

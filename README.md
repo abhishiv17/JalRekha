@@ -2,7 +2,7 @@
 
 **Lakes protect our cities. Let's protect lakes.**
 
-JalRekha reads free satellite photos of every lake, pond and plot, from 2019 to today, and turns what changed into action: a warning before you buy land on a filled lake, dated proof and a ready letter when a lake is being filled, and a public, satellite-checked path to bring lost ponds back.
+JalRekha reads free satellite photos of every lake, pond and plot, from 2019 to today, and turns what changed into action: a warning before you buy land on a filled lake, dated proof and a ready letter when a lake is being filled, a ranked list of which lakes to save first, and a public, satellite-checked path to bring lost ponds back. In English, हिन्दी, ಕನ್ನಡ and తెలుగు, with Jal the turtle as a spoken guide.
 
 **Live:** https://main.d25xaqqlm27lpb.amplifyapp.com/ · Built for **WeMakeDevs Environmental Hacks**, Heat and Water track.
 
@@ -16,6 +16,7 @@ JalRekha reads free satellite photos of every lake, pond and plot, from 2019 to 
 | Lakes on the map | 7,178 named lakes across India (OpenStreetMap) |
 | Delhi's ponds | 331 found from space; 59 dried up and 31 shrunk since 2019–2021 |
 | Flags checked on sharper photos | 46: 14 confirmed, 21 not confirmed, 11 can't tell |
+| Summer heat | On summer mornings lake water is typically 5–11 °C cooler than the ground around it; filled lake bed has heated up (+2.8 °C at Bhalswa) |
 
 ## Features
 
@@ -38,6 +39,10 @@ The headline says how much of the lake and its protected edge turned into land, 
 <p><img src="docs/screenshots/lake-page.jpg" width="49%" alt="Bhalswa Lake page"> <img src="docs/screenshots/lake-compare.jpg" width="49%" alt="Compare two years"></p>
 
 ![Flagged spots, checked on sharper photos](docs/screenshots/lake-flags.jpg)
+
+**What the lake does for the people around it**: a summer heat map from the Landsat heat sensor (the lake's water against the ground nearby, and how much hotter filled lake bed got), and the flooding that came within 1 km in past floods.
+
+![Heat and floods around Bhalswa Lake](docs/screenshots/lake-heat.jpg)
 
 ### 4. Proof pack and letters
 
@@ -79,7 +84,23 @@ Not just a count of what was lost. Each dried-up pond gets a way back:
 
 ![Public clock: agencies and adopted ponds](docs/screenshots/board.jpg)
 
-### 7. Alerts
+### 7. Lakes keep a city cool, and which to save first
+
+Landsat 8 and 9 measure how hot the ground gets. Bhalswa's water is 6.6 °C cooler than the ground around it on summer mornings, and the part of its bed that was filled in has warmed by 2.8 °C.
+
+![Lakes keep a city cool](docs/screenshots/home-cool.jpg)
+
+**Which lakes to save first** (`/lakes/priority/`) ranks every tracked lake for agencies choosing lakes to revive and companies looking for one to adopt: acres turned into land (leaving out flags that failed the photo check), share of the lake, whether it is still changing, heat at stake and nearby flooding. Every reason, caveat and weight is shown.
+
+![Which lakes to save first](docs/screenshots/priority.jpg)
+
+### 8. In your language, with Jal as your guide
+
+Every page in English, हिन्दी, ಕನ್ನಡ or తెలుగు from the language menu (Amazon Translate, each phrase translated once and kept). While the page changes language, Jal shows a short loading screen. Switch on "Jal guide" and Jal walks you down the page, explains each part from that lake's own numbers, and reads it aloud (Amazon Polly's Indian voice, Kajal).
+
+<p><img src="docs/screenshots/language-switch.jpg" width="32%" alt="Changing the language"> <img src="docs/screenshots/check-hindi.jpg" width="32%" alt="Plot Check in Hindi"> <img src="docs/screenshots/jal-guide.jpg" width="32%" alt="Jal guide on a lake page"></p>
+
+### 9. Alerts
 
 Watch a lake and get one email when a new dry season shows more of it turned to land. Every analysed lake is re-checked on the 5th of each month.
 
@@ -96,7 +117,8 @@ Watch a lake and get one email when a new dry season shows more of it turned to 
 7. A lake-bed pixel is lost only if it was lake in every baseline dry season and is land in its latest dry seasons. Two seasons in a row = confirmed.
 8. Buffer: natural ground inside the 30 m ring that turned bare or built.
 9. Flags = 5+ connected lost pixels (500 m²), each with area, first-seen season, persistence, confidence and category.
-10. **Ponds:** water (MNDWI > 0.1) in 2 of 3 seasons 2019–2021 is a pond; a gentler test (MNDWI > 0) in 2024–2025 decides if any water is left, so murky water still counts. Drains, canals, the Yamuna and anything outside Delhi's boundary are left out.
+10. **Heat:** median land surface temperature of every clear April–May Landsat 8/9 pass, 2023–2025 (Collection 2 Level-2); ground, not air, temperature.
+11. **Ponds:** water (MNDWI > 0.1) in 2 of 3 seasons 2019–2021 is a pond; a gentler test (MNDWI > 0) in 2024–2025 decides if any water is left, so murky water still counts. Drains, canals, the Yamuna and anything outside Delhi's boundary are left out.
 
 Thresholds live in [`pipeline/jalrekha/config.py`](pipeline/jalrekha/config.py) and are the same for every lake.
 
@@ -104,26 +126,27 @@ Thresholds live in [`pipeline/jalrekha/config.py`](pipeline/jalrekha/config.py) 
 
 | Service | Use |
 | --- | --- |
-| Registry of Open Data | Sentinel-2 L2A and Sentinel-1 GRD imagery, read in place |
+| Registry of Open Data | Sentinel-2 L2A, Sentinel-1 GRD and Landsat 8/9 imagery, read in place |
 | Lambda (container, from ECR) | Lake pipeline; Plot Check, Track this lake and pond checks, one run each |
 | API Gateway + Lambda | Lake results, Plot Check, pond cases, alerts |
 | Step Functions | All lakes in parallel, with retries |
 | S3 | Results, images, flags, ponds (private, presigned links) |
 | DynamoDB | Lake summaries and flags, Plot Check runs, pond cases, watchers |
 | Amazon Location Service | Address search and reverse geocoding |
-| Amazon Translate | Plot Check answers in Kannada, Telugu and Hindi |
+| Amazon Translate | The whole site and Plot Check answers in Hindi, Kannada and Telugu (cached in DynamoDB) |
+| Amazon Polly | Jal's voice in Indian English and Hindi (cached in S3) |
 | Amazon Bedrock | Plain-language explanations (pending account access; fixed templates until then) |
 | EventBridge Scheduler + SNS | Monthly re-scan and email alerts |
 | CodeBuild | Flood maps, the Delhi pond scan, container builds, tests |
 | Amplify Hosting | The web app |
 
-Setup: [`infra/`](infra/README.md) (lake pipeline) and [`infra/plot/setup.sh`](infra/plot/setup.sh) (Plot Check, tracking, ponds).
+Two AWS accounts, both us-west-2: the lake pipeline ([`infra/`](infra/README.md)) and the Plot Check API ([`infra/plot/setup.sh`](infra/plot/setup.sh)), which also serves the site's lake data, pond cases, translation and Jal's voice.
 
 ## Repository layout
 
 ```
 web/            Next.js app (static export) + MapLibre
-pipeline/       Python package `jalrekha`: lakes, Plot Check, flood maps, ponds, story photos
+pipeline/       Python package `jalrekha`: lakes, Plot Check, flood maps, heat, ponds, story photos
   scripts/      Lake lists, index builder, hand-check kit
 infra/          AWS: pipeline Lambda, API, Step Functions; infra/plot: Plot Check, tracking, ponds
 data/           Lake outlines, India catalogue, flood maps, Delhi ponds
@@ -150,6 +173,7 @@ pytest
 
 - Contains modified Copernicus Sentinel data [2019–2026], via the [Registry of Open Data on AWS](https://registry.opendata.aws/sentinel-2-l2a-cogs/) (Sentinel-2 L2A; Sentinel-1 GRD from `s3://sentinel-s1-l1c`, requester pays) and [Earth Search](https://github.com/element84/earth-search) by Element 84.
 - Lake outlines: [ATREE-CSEI, Map of Lakes in Bengaluru Urban](https://data.opencity.in/dataset/map-lakes-streams-bengaluru-urban-within-bbmp-area), CC BY; © OpenStreetMap contributors, ODbL.
+- Landsat 8/9 Collection 2 Level-2 courtesy of the U.S. Geological Survey, via the Registry of Open Data on AWS.
 - Sharper historical photos for flag checks: Esri World Imagery Wayback.
 
 ## Limitations
@@ -160,6 +184,7 @@ pytest
 - Legal works (walkways, sewage plants, desilting) also show as change.
 - Flags are leads, not findings: of 46 checked on sharper photos, 14 were confirmed (see `research/flags_checked.csv`).
 - Some ponds fill only in wet years, and some farm plots flood like ponds; check the photos before writing.
+- Heat is ground temperature from space, not air temperature; the difference between ground near a lake and further away is small and varies by lake.
 - Radar flood maps miss water between tall buildings and floods that drained before the satellite passed; "not seen" is not "flood-free".
 
 ## AI tools used

@@ -101,6 +101,8 @@ def track(lake_id: str, bucket: str, progress=None, data_dir: Path | None = None
     entry = next(l for l in index["lakes"] if l["id"] == lake_id)
     entry.update({"state": lake.get("state"), "city": lake.get("near"), "osm_id": lake_id, "tracked_on_demand": True})
     (out / "lakes" / lake_id / "summary.json").write_text(json.dumps(entry, indent=2), encoding="utf-8")
+    # No flag has been checked on sharper photos yet; the lake page reads this file.
+    (out / "lakes" / lake_id / "checks.json").write_text(json.dumps({"as_of": "", "flags": {}}), encoding="utf-8")
     say("save", f"{entry['flagged_ac']} acres turned to land. Saving the results")
     export.upload_dir(out / "lakes" / lake_id, bucket, f"lakes/{lake_id}/")
     # Photos for the lake's step-by-step story, same framing as every other lake.

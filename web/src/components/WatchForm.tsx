@@ -14,6 +14,9 @@ export default function WatchForm({ lake, name }: { lake: string; name: string }
   const [email, setEmail] = useState("");
   const [state, setState] = useState<"idle" | "sending" | "done" | "error">("idle");
   const [error, setError] = useState("");
+  // "confirm": a new address, AWS sends a confirmation email; "added": already confirmed, this lake joins
+  // their alerts; "pending": they haven't confirmed the first email yet.
+  const [status, setStatus] = useState<"confirm" | "added" | "pending">("confirm");
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -26,6 +29,7 @@ export default function WatchForm({ lake, name }: { lake: string; name: string }
         body: JSON.stringify({ lake, email }),
       });
       if (res.ok) {
+        setStatus(((await res.json().catch(() => ({}))) as { status?: "confirm" | "added" | "pending" }).status ?? "confirm");
         addWatched({ lake, name, email: email.trim().toLowerCase(), since: new Date().toISOString().slice(0, 10) });
         setState("done");
       } else {
@@ -54,8 +58,16 @@ export default function WatchForm({ lake, name }: { lake: string; name: string }
       {!API_URL && <p className="small muted" role="status">Alerts are unavailable in this build (no alerts API configured).</p>}
       {state === "done" && (
         <Guide size={44} tone="info" className="watch-guide">
-          <>I&apos;ll keep watch. Confirm the email AWS Notifications just sent to <strong>{email}</strong>; after that I&apos;ll write
-          only if this lake starts shrinking again. <Link href="/watchlist/">Your watchlist</Link></>
+          {status === "added" ? (
+            <>Added. <strong>{email}</strong> is already confirmed, so I&apos;ll also write if this lake starts shrinking again.{" "}
+            <Link href="/watchlist/">Your watchlist</Link></>
+          ) : status === "pending" ? (
+            <>Saved. First confirm the email AWS Notifications sent to <strong>{email}</strong>, then press Watch here once more
+            so this lake is added to your alerts. <Link href="/watchlist/">Your watchlist</Link></>
+          ) : (
+            <>I&apos;ll keep watch. Confirm the email AWS Notifications just sent to <strong>{email}</strong>; after that I&apos;ll write
+            only if this lake starts shrinking again. <Link href="/watchlist/">Your watchlist</Link></>
+          )}
         </Guide>
       )}
       {state === "error" && <p className="small" role="alert" style={{ color: "var(--danger)" }}>Could not subscribe: {error}</p>}

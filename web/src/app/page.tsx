@@ -6,7 +6,9 @@ import LakeCard from "@/components/LakeCard";
 import { BhalswaStory } from "@/components/LakeStory";
 import Jal, { Guide, type Mood } from "@/components/Mascot";
 import { Arrow } from "@/components/SiteHeader";
+import { LANGS, ui, useLang } from "@/lib/lang";
 import { cards } from "@/lib/catalog";
+import { type Heat, loadInsights } from "@/lib/insights";
 import { type LakeSummary, loadIndex } from "@/lib/data";
 
 const COLLAGE: { thumb: string; city: string; alt: string }[] = [
@@ -52,8 +54,76 @@ const EXAMPLES: { id: string; place: string; level: "high" | "watch" | "low"; la
 ];
 
 // Every flag the pipeline raised on the analysed lakes, checked against high-resolution
-// historical photos (research/flags_checked.csv, 9 Oct 2026).
-const LEDGER = { total: 44, confirmed: 13, notConfirmed: 21, unsure: 10, byPerson: 11, byAi: 33 };
+// historical photos (research/flags_checked.csv, 10 Oct 2026).
+const LEDGER = { total: 46, confirmed: 14, notConfirmed: 21, unsure: 11, byPerson: 11, byAi: 35 };
+
+/** Lakes keep you cool: the Heat half of the story, on the hero lake, from Landsat. */
+function CoolBand() {
+  const [h, setH] = useState<Heat | null>(null);
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    void loadInsights().then((i) => {
+      setH(i.heat.bhalswa ?? null);
+      setN(Object.keys(i.heat).length);
+    });
+  }, []);
+  if (!h || h.water_c == null || h.near_c == null) return null;
+  const cooler = h.near_c - h.water_c;
+  return (
+    <section id="cool" className="wrap section" aria-labelledby="cool-title" data-jal-mood="celebrate"
+      data-jal={`Lakes also keep us cool. On summer mornings Bhalswa's water is about ${Math.round(cooler)} degrees cooler than the ground around it${h.filled_hotter_c ? `, and where the lake was filled in the ground got ${h.filled_hotter_c.toFixed(1)} degrees hotter` : ""}. This comes from the Landsat heat sensor.`}>
+      <div className="cool-band">
+        <div>
+          <span className="eyebrow">Heat</span>
+          <h2 id="cool-title" className="section-title">Lakes keep a city cool. Filled lakes heat it up.</h2>
+          <p className="lede">
+            Satellites also measure how hot the ground gets. In the hottest weeks before the monsoon, Delhi&rsquo;s Bhalswa Lake
+            is a cool strip in a hot city, and the lake bed that was filled in has already warmed up.
+          </p>
+          <div className="cool-facts">
+            <div className="cold"><b>{cooler.toFixed(1)} °C</b><span>cooler: the lake&rsquo;s water against the ground around it, on summer mornings</span></div>
+            {h.filled_hotter_c != null && h.filled_hotter_c > 0 && (
+              <div className="hot"><b>+{h.filled_hotter_c.toFixed(1)} °C</b><span>where the lake bed was filled in, against the water still there</span></div>
+            )}
+          </div>
+          <div className="row" style={{ gap: 12, flexWrap: "wrap" }}>
+            <Link href="/lake/bhalswa/#insights-title" className="button secondary">See Bhalswa&rsquo;s heat map</Link>
+            <Link href="/lakes/priority/" className="button secondary">Which lakes to save first <Arrow size={16} /></Link>
+          </div>
+          <p className="small muted" style={{ marginTop: 14 }}>
+            Ground temperature from {h.passes} Landsat 8 and 9 passes, April&ndash;May 2023&ndash;2025, on the Registry of Open Data on
+            AWS. Measured for {n} lakes. It is the ground, not the air.
+          </p>
+        </div>
+        <figure className="insight-figure" style={{ margin: 0 }} aria-label="Summer ground temperature around Bhalswa Lake">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={h.image} alt="Bhalswa Lake as a cool blue strip in hotter ground; red is the hottest ground" />
+        </figure>
+      </div>
+    </section>
+  );
+}
+
+/** The site in four languages, and Jal as a guide: right under the headline, where people look first. */
+function ReadIn() {
+  const { lang, setLang, guideOn, setGuideOn } = useLang();
+  return (
+    <div className="read-in" data-no-translate>
+      <span className="read-in-label">{ui("readIn", lang)}</span>
+      <div className="read-in-langs" role="group" aria-label={ui("language", lang)}>
+        {LANGS.map((l) => (
+          <button key={l.id} type="button" lang={l.id} aria-pressed={lang === l.id} onClick={() => setLang(l.id)}>{l.native}</button>
+        ))}
+      </div>
+      {!guideOn && (
+        <button type="button" className="read-in-jal" onClick={() => setGuideOn(true)}>
+          <Jal size={30} interactive={false} mood="wink" />
+          {ui("walk", lang)}
+        </button>
+      )}
+    </div>
+  );
+}
 
 export default function Home() {
   const [lakes, setLakes] = useState<LakeSummary[]>([]);
@@ -77,7 +147,8 @@ export default function Home() {
   return (
     <main className="home">
       {/* Hero: the one question we answer */}
-      <section className="wrap hero" aria-labelledby="hero-title">
+      <section className="wrap hero" aria-labelledby="hero-title" data-jal-mood="happy"
+        data-jal="Hi, I'm Jal. Lakes soak up the monsoon and refill our borewells, but many are being filled in, one plot at a time. I watch them from space so you can see where.">
         <div className="hero-copy">
           <span className="eyebrow">Satellite proof · free · anywhere in India</span>
           <h1 id="hero-title" className="hero-title">Lakes protect our cities. <em>Let&rsquo;s protect lakes.</em></h1>
@@ -89,9 +160,7 @@ export default function Home() {
             <Link href="/check/" className="button big">Check a plot <Arrow /></Link>
             <Link href="/lakes/" className="button big secondary">See lakes we watch</Link>
           </div>
-          <ul className="tags" aria-label="Languages">
-            <li>ENGLISH</li><li lang="kn">ಕನ್ನಡ</li><li lang="te">తెలుగు</li><li lang="hi">हिंदी</li><li>BUILT ON AWS</li>
-          </ul>
+          <ReadIn />
         </div>
         <figure className="hero-figure" aria-label="Bhalswa Lake, Delhi, in 2019 and 2026">
           <div className="hero-stack">
@@ -121,7 +190,8 @@ export default function Home() {
       </section>
 
       {/* Who it helps */}
-      <section id="who" className="wrap section" aria-labelledby="who-title">
+      <section id="who" className="wrap section" aria-labelledby="who-title" data-jal-mood="curious"
+        data-jal="Three kinds of people use this. Buyers check a plot before they pay, neighbours report a lake being filled in, and cities see which lakes to protect before the rains.">
         <span className="eyebrow">Who it helps</span>
         <h2 id="who-title" className="section-title" style={{ marginBottom: 24 }}>Everyone can help save a lake.</h2>
         <div className="reasons">
@@ -144,7 +214,8 @@ export default function Home() {
       </section>
 
       {/* How it works: a scroll story on one real lake */}
-      <section id="how" className="wrap section" aria-labelledby="how-title">
+      <section id="how" className="wrap section" aria-labelledby="how-title" data-jal-mood="scanning"
+        data-jal="This is a real lake: Bhalswa, in north Delhi. Keep scrolling and each step adds one layer to the satellite photo, so you can see exactly how I spot water that was lost.">
         <span className="eyebrow">How it works</span>
         <h2 id="how-title" className="section-title" style={{ marginBottom: 8 }}>Watch it work on a real Delhi lake.</h2>
         <p className="lede" style={{ maxWidth: 680, marginBottom: 28 }}>
@@ -154,7 +225,8 @@ export default function Home() {
       </section>
 
       {/* Real results */}
-      <section id="examples" className="wrap section" aria-labelledby="examples-title">
+      <section id="examples" className="wrap section" aria-labelledby="examples-title" data-jal-mood="thinking"
+        data-jal="These are real answers from Plot Check. Red means the spot was probably lake bed, amber means be careful, and green means it stayed dry every year. Tap one to see the full report.">
         <span className="eyebrow">Real results</span>
         <h2 id="examples-title" className="section-title" style={{ marginBottom: 24 }}>What an answer looks like.</h2>
         <div className="examples">
@@ -172,7 +244,8 @@ export default function Home() {
       </section>
 
       {/* Why it matters */}
-      <section id="why" className="wrap section" aria-labelledby="why-title">
+      <section id="why" className="wrap section" aria-labelledby="why-title" data-jal-mood="worried"
+        data-jal="Why does this matter? A lake is a city's free flood protection. Fill it in, and the rain goes into homes and streets instead.">
         <span className="eyebrow">Why it matters</span>
         <h2 id="why-title" className="section-title" style={{ marginBottom: 12 }}>Lakes are a city&rsquo;s free flood protection.</h2>
         <p className="lede" style={{ maxWidth: 720, marginBottom: 24 }}>
@@ -195,6 +268,8 @@ export default function Home() {
         </div>
       </section>
 
+      <CoolBand />
+
       <section className="collage-band" aria-label="Lakes in the catalogue, seen from space">
         <svg className="scallop" viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true"><path d={SCALLOP} fill="var(--bg)" /></svg>
         <div className="collage">
@@ -213,23 +288,28 @@ export default function Home() {
       </section>
 
       {/* Lakes we watch */}
-      <section id="lakes" className="wrap section" aria-labelledby="lakes-title">
+      <section id="lakes" className="wrap section" aria-labelledby="lakes-title" data-jal-mood="happy"
+        data-jal="These are lakes I check every month. Open one to see every year since 2019, or ask me to email you if it starts to shrink.">
         <div className="section-head">
           <div>
             <span className="eyebrow">Lakes we watch</span>
             <h2 id="lakes-title" className="section-title">Watch a lake. Get told if it shrinks.</h2>
             <p className="lede">
-              We track {analysed.length || 12} lakes closely and email you the moment one starts to shrink.
+              We track {analysed.length || 27} lakes closely, check them every month, and email you if one starts to shrink.
               {catalogSize > 0 && <> {catalogSize.toLocaleString("en-IN")} lakes across India are on the map.</>}
             </p>
           </div>
-          <Link href="/lakes/" className="button secondary">See all lakes <Arrow size={16} /></Link>
+          <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
+            <Link href="/lakes/priority/" className="button secondary">Which to save first</Link>
+            <Link href="/lakes/" className="button secondary">See all lakes <Arrow size={16} /></Link>
+          </div>
         </div>
         <div className="lake-grid">{preview.map((c) => <LakeCard key={c.id} c={c} facts={false} />)}</div>
       </section>
 
       {/* What you can do */}
-      <section id="act" className="section" aria-labelledby="act-title">
+      <section id="act" className="section" aria-labelledby="act-title" data-jal-mood="celebrate"
+        data-jal="And here is what you can do: check your lake, report it with dated proof and a letter that's already written, and get one email when something changes.">
         <div className="band ripples" style={{ padding: "64px 0" }}>
           <div className="wrap">
             <span className="kicker">What you can do</span>
@@ -256,7 +336,8 @@ export default function Home() {
       </section>
 
       {/* How sure is this? */}
-      <section id="method" className="wrap section" aria-labelledby="method-title">
+      <section id="method" className="wrap section" aria-labelledby="method-title" data-jal-mood="cautious"
+        data-jal="I'm a strong early warning, not a final verdict. I can't see legal boundaries or small sheds, so always check on the ground before you act.">
         <span className="eyebrow">How sure is this?</span>
         <h2 id="method-title" className="section-title" style={{ marginBottom: 20 }}>Strong early warning. Then verify on the ground.</h2>
         <ul className="plain-list">
@@ -268,7 +349,8 @@ export default function Home() {
       </section>
 
       {/* Honesty ledger */}
-      <section id="honest" className="wrap section" aria-labelledby="honest-title">
+      <section id="honest" className="wrap section" aria-labelledby="honest-title" data-jal-mood="thinking"
+        data-jal={`We checked my own flags against sharper photos. ${LEDGER.confirmed} of ${LEDGER.total} held up. That's why every flag on a lake page tells you whether it was checked.`}>
         <div className="say">
           <span className="kicker">How often we&apos;re right</span>
           <h2 id="honest-title" className="section-title">We checked our own flags. Here&apos;s the score.</h2>
@@ -295,7 +377,8 @@ export default function Home() {
       </section>
 
       {/* How we check */}
-      <section id="pipeline" className="wrap section" aria-labelledby="pipeline-title">
+      <section id="pipeline" className="wrap section" aria-labelledby="pipeline-title" data-jal-mood="scanning"
+        data-jal="Here's how I work: I compare the same dry months every year since 2019, and only count land that stays land two summers in a row.">
         <span className="kicker">How we check</span>
         <h2 id="pipeline-title" className="section-title" style={{ maxWidth: 780, marginBottom: 36 }}>
           Summer against summer. Only change that stays.
@@ -317,7 +400,8 @@ export default function Home() {
       <div className="wrap"><hr className="waterline" /></div>
 
       {/* The fine print */}
-      <section id="fine-print" className="wrap section" aria-labelledby="fine-print-title">
+      <section id="fine-print" className="wrap section" aria-labelledby="fine-print-title" data-jal-mood="wink"
+        data-jal="Last, the fine print: what my numbers mean and what they don't. If a result matters to you, read this part.">
         <span className="kicker">The fine print</span>
         <h2 id="fine-print-title" className="section-title" style={{ marginBottom: 24 }}>What the numbers mean, and what they don&apos;t.</h2>
         <dl className="limits">
@@ -342,13 +426,14 @@ export default function Home() {
         <h2 id="credits-title" className="section-title" style={{ marginBottom: 24 }}>Open data, credited.</h2>
         <div className="credits">
           <div><b>Copernicus Sentinel-2</b>Contains modified Copernicus Sentinel data (2019–2026). Level-2A COGs from the <a href="https://registry.opendata.aws/sentinel-2-l2a-cogs/">Registry of Open Data on AWS</a>, found through <a href="https://github.com/element84/earth-search">Earth Search</a> by Element 84.</div>
-          <div><b>Copernicus Sentinel-1</b>Radar flood maps (Bengaluru, September 2022), from the <a href="https://registry.opendata.aws/sentinel-1/">Registry of Open Data on AWS</a>.</div>
+          <div><b>Copernicus Sentinel-1</b>Radar flood maps (Bengaluru 2022, Delhi 2023, Chennai 2015, Hyderabad 2020), from the <a href="https://registry.opendata.aws/sentinel-1/">Registry of Open Data on AWS</a>.</div>
           <div><b>ATREE-CSEI lake outlines</b><a href="https://data.opencity.in/dataset/map-lakes-streams-bengaluru-urban-within-bbmp-area">Map of Lakes in Bengaluru Urban</a>, CC BY, via OpenCity.</div>
           <div><b>OpenStreetMap</b>Lake outlines across India and the basemap. © OpenStreetMap contributors, ODbL.</div>
           <div><b>Checking photos</b>Esri World Imagery Wayback and Google Earth Pro historical imagery, used only to check flags, never republished.</div>
         </div>
         <p className="small muted" style={{ marginTop: 18 }}>
-          Runs on AWS: Lambda, Step Functions, S3, DynamoDB, EventBridge, SNS, Amazon Location, Amazon Translate, Bedrock and CodeBuild.
+          Runs on AWS: Lambda, Step Functions, S3, DynamoDB, EventBridge, SNS, API Gateway, Amplify, Amazon Location, Amazon
+          Translate (this site in Hindi, Kannada and Telugu), Amazon Polly (Jal&apos;s voice) and CodeBuild.
         </p>
       </section>
     </main>

@@ -83,7 +83,8 @@ export default function PondsPage() {
         they answer, and the satellite tells everyone when the water is back.
       </p>
 
-      <ol className="pond-path" aria-label="How a pond comes back">
+      <ol className="pond-path" aria-label="How a pond comes back" data-jal-mood="curious"
+        data-jal="Delhi has lost many of its ponds. Here's how one comes back: you adopt it, send the letter, and a public clock and the satellite keep everyone honest.">
         <li><b>1</b><span><strong>Adopt</strong> a pond near you</span></li>
         <li><b>2</b><span><strong>Send</strong> the ready letter to the agency that owns the land</span></li>
         <li><b>3</b><span><strong>The clock runs</strong>: the agency has 30 days to answer, in public</span></li>
@@ -91,7 +92,8 @@ export default function PondsPage() {
         <li><b>5</b><span><strong>Proof from space</strong>: the satellite confirms the water is back</span></li>
       </ol>
 
-      <dl className="stat-tiles">
+      <dl className="stat-tiles" data-jal-mood="worried"
+        data-jal="These numbers come from satellite photos of every pond in Delhi: how many dried up, how many are easy to bring back, and how many people have adopted.">
         <div className="stat-tile"><dt>DRIED UP</dt><dd className="changed">{summary.vanished.toLocaleString("en-IN")}</dd><small>About {acres(summary.vanished_ha)} of water lost since {summary.baseline_years.join(", ")}</small></div>
         <div className="stat-tile"><dt>EASY TO BRING BACK</dt><dd>{summary.now.dried_grassed.toLocaleString("en-IN")}</dd><small>Covered in plants, not built on</small></div>
         <div className="stat-tile"><dt>ADOPTED SO FAR</dt><dd>{adopted.toLocaleString("en-IN")}</dd><small><Link href="/ponds/board/">See every case and agency</Link></small></div>
@@ -103,7 +105,8 @@ export default function PondsPage() {
       </Guide>
 
       <div className="pond-layout">
-        <section className="pond-map-wrap" aria-label="Map of Delhi's ponds">
+        <section className="pond-map-wrap" aria-label="Map of Delhi's ponds" data-jal-mood="searching"
+          data-jal="Each dot is a pond. Tap one near you to see what happened to it, and adopt it if it needs help.">
           <PondMap ponds={ponds} bbox={summary.bbox} show={show} selected={selected} onSelect={pick} />
           <div className="pond-legend small">
             {TABS.map((s) => (
@@ -144,9 +147,12 @@ export default function PondsPage() {
               const open = `/ponds/pond/?id=${p.id}`;
               const lost = p.status === "vanished" || p.status === "shrank";
               return (
-                <li key={p.id} id={`pond-${p.id}`} className={`pond-card${selected === p.id ? " picked" : ""}`}>
+                <li key={p.id} id={`pond-${p.id}`} className={`pond-card${selected === p.id ? " picked" : ""}`}
+                  title="Show this pond on the map"
+                  // The whole card shows the pond on the map; its links and buttons still do their own thing.
+                  onClick={(e) => { if (!(e.target as HTMLElement).closest("a, button")) pick(p.id); }}>
                   {p.thumbs && p.thumbs.length === 2 ? (
-                    <div className="pond-photos" onClick={() => pick(p.id)}>
+                    <div className="pond-photos">
                       {p.thumbs.map((t, i) => (
                         <figure key={t}>
                           <img src={`${PONDS_BASE}/${t}`} alt={`Pond ${p.id} from space, ${i ? "now" : "before"}`} loading="lazy" width={160} height={160} />

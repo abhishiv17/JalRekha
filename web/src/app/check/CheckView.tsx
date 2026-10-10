@@ -9,6 +9,7 @@ import Jal, { Guide, type Mood } from "@/components/Mascot";
 import { SearchIcon } from "@/components/SiteHeader";
 import Swipe from "@/components/Swipe";
 import { seasonLabel } from "@/lib/data";
+import { useLang } from "@/lib/lang";
 import { STATUS_WORDS, acres, distanceToPond, loadPonds, type Pond } from "@/lib/ponds";
 import {
   type Check,
@@ -73,7 +74,8 @@ export default function CheckView() {
   const [check, setCheck] = useState<Check | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [starting, setStarting] = useState(false);
-  const [lang, setLang] = useState<Lang>("en");
+  // The verdict follows the site's language (header menu), and its own buttons change both.
+  const { lang, setLang } = useLang();
   const [layers, setLayers] = useState<CheckLayers>({ satellite: true, water: true, flood: true });
   const [events, setEvents] = useState<FloodEvent[]>([]);
   const [lakes, setLakes] = useState<CatalogLake[] | undefined>();
@@ -205,7 +207,8 @@ export default function CheckView() {
 
   return (
     <main className="check">
-      <div className="no-print">
+      <div className="no-print" data-jal-mood="curious"
+        data-jal="Buying or renting? Drop a pin on the exact plot and I'll read every satellite photo of it since 2019: was it lake water, how close is the lake, and did it flood.">
         <span className="eyebrow">Plot Check · before you buy or rent</span>
         <h1>Was this land part of a lake?</h1>
         <p className="lede" style={{ maxWidth: 760 }}>
@@ -216,7 +219,8 @@ export default function CheckView() {
       </div>
 
       {!id && (
-        <section className="check-pick no-print">
+        <section className="check-pick no-print" data-jal-mood="searching"
+          data-jal="Search an address, use your location, or tap the map. Then start the check and give me two to four minutes to look.">
           <form className="search-pill check-search" onSubmit={search} role="search">
             <SearchIcon />
             <input
@@ -366,7 +370,8 @@ function ReportPanel({ report, lang, setLang }: { report: Report; lang: Lang; se
   const v = report.verdict;
   const t = v.text[lang];
   return (
-    <section className={`card verdict verdict-${v.level}`} aria-labelledby="verdict-title">
+    <section className={`card verdict verdict-${v.level}`} aria-labelledby="verdict-title" data-jal-mood="thinking" data-no-translate
+      data-jal="This is my answer for this spot, in plain words. Read the list under it: those are the things to check before you pay.">
       <div className="row" style={{ justifyContent: "space-between", gap: 10, flexWrap: "wrap" }}>
         <span className="row" style={{ gap: 8 }}>
           <Jal size={48} mood={LEVEL_MOOD[v.level]} interactive={false} className="no-print" />
@@ -432,7 +437,8 @@ function ReportDetails({ report }: { report: Report }) {
   const img = f.images;
   const onWater = f.dry_seasons_checked > 0 && f.dry_seasons_with_water.length === f.dry_seasons_checked;
   return (
-    <section className="section" style={{ marginTop: 28 }}>
+    <section className="section" style={{ marginTop: 28 }} data-jal-mood="scanning"
+      data-jal="And this is what the satellites saw at your pin, year by year: water, distance to the lake, and past floods.">
       {onWater && (
         <Guide size={52} className="section-guide no-print" tone="warn" interactive={false}>
           {`This pin is on open water in every dry season since 2019: it's ${f.nearest_lake ? f.nearest_lake.name : "the lake"} itself, not land beside it. To check a plot, go back and drop the pin on the plot or building.`}

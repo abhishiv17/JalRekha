@@ -1,0 +1,458 @@
+{
+ "bellandur": {
+  "event": "blr-2022-09",
+  "name": "Bengaluru floods, September 2022",
+  "date": "2022-09-05",
+  "flooded_ha_near": 3.4,
+  "near_m": 1000,
+  "share_near": 0.0025,
+  "share_city": 0.0027,
+  "times_city": 0.9,
+  "flooded_ha_near_lost": 0.0,
+  "near_lost_m": 250,
+  "image": "/insights/bellandur-flood.png",
+  "bounds": [
+   77.631789,
+   12.917325,
+   77.690952,
+   12.955206
+  ]
+ },
+ "bhalswa": {
+  "event": "delhi-2023-07",
+  "name": "Yamuna floods, Delhi, July 2023",
+  "date": "2023-07-12",
+  "flooded_ha_near": 5.4,
+  "near_m": 1000,
+  "share_near": 0.0077,
+  "share_city": 0.022,
+  "times_city": 0.3,
+  "flooded_ha_near_lost": 0.0,
+  "near_lost_m": 250,
+  "image": "/insights/bhalswa-flood.png",
+  "bounds": [
+   77.153461,
+   28.728259,
+   77.192641,
+   28.761374
+  ]
+ },
+ "ameenpur": {
+  "event": "hyderabad-2020-10",
+  "name": "Hyderabad floods, October 2020",
+  "date": "2020-10-21",
+  "flooded_ha_near": 0.0,
+  "near_m": 1000,
+  "share_near": 0.0,
+  "share_city": 0.0008,
+  "times_city": 0.0,
+  "flooded_ha_near_lost": 0.0,
+  "near_lost_m": 250,
+  "image": "/insights/ameenpur-flood.png",
+  "bounds": [
+   78.313364,
+   17.507213,
+   78.353362,
+   17.539902
+  ]
+ },
+ "jakkur": {
+  "event": "blr-2022-09",
+  "name": "Bengaluru floods, September 2022",
+  "date": "2022-09-05",
+  "flooded_ha_near": 0.0,
+  "near_m": 1000,
+  "share_near": 0.0,
+  "share_city": 0.0027,
+  "times_city": 0.0,
+  "flooded_ha_near_lost": 0.0,
+  "near_lost_m": 250,
+  "image": "/insights/jakkur-flood.png",
+  "bounds": [
+   77.594861,
+   13.068387,
+   77.626028,
+   13.104931
+  ]
+ },
+ "yele-mallappa-shetty": {
+  "event": "blr-2022-09",
+  "name": "Bengaluru floods, September 2022",
+  "date": "2022-09-05",
+  "flooded_ha_near": 3.2,
+  "near_m": 1000,
+  "share_near": 0.0032,
+  "share_city": 0.0027,
+  "times_city": 1.2,
+  "flooded_ha_near_lost": 0.0,
+  "near_lost_m": 250,
+  "image": "/insights/yele-mallappa-shetty-flood.png",
+  "bounds": [
+   77.709379,
+   13.006687,
+   77.74651,
+   13.048934
+  ]
+ },
+ "varthur": {
+  "event": "blr-2022-09",
+  "name": "Bengaluru floods, September 2022",
+  "date": "2022-09-05",
+  "flooded_ha_near": 2.6,
+  "near_m": 1000,
+  "share_near": 0.0026,
+  "share_city": 0.0027,
+  "times_city": 1.0,
+  "flooded_ha_near_lost": 0.3,
+  "near_lost_m": 250,
+  "image": "/insights/varthur-flood.png",
+  "bounds": [
+   77.711134,
+   12.930606,
+   77.758126,
+   12.966246
+  ]
+ },
+ "subedeharana-kere": {
+  "event": "blr-2022-09",
+  "name": "Bengaluru floods, September 2022",
+  "date": "2022-09-05",
+  "flooded_ha_near": 0.0,
+  "near_m": 1000,
+  "share_near": 0.0,
+  "share_city": 0.0027,
+  "times_city": 0.0,
+  "flooded_ha_near_lost": 0.0,
+  "near_lost_m": 250,
+  "image": "/insights/subedeharana-kere-flood.png",
+  "bounds": [
+   77.603994,
+   12.847859,
+   77.629286,
+   12.871637
+  ]
+ },
+ "sanjay-lake": {
+  "event": "delhi-2023-07",
+  "name": "Yamuna floods, Delhi, July 2023",
+  "date": "2023-07-12",
+  "flooded_ha_near": 2.7,
+  "near_m": 1000,
+  "share_near": 0.0039,
+  "share_city": 0.022,
+  "times_city": 0.2,
+  "flooded_ha_near_lost": 0.0,
+  "near_lost_m": 250,
+  "image": "/insights/sanjay-lake-flood.png",
+  "bounds": [
+   77.278094,
+   28.603329,
+   77.321364,
+   28.627677
+  ]
+ },
+ "neeli-jheel": {
+  "event": "delhi-2023-07",
+  "name": "Yamuna floods, Delhi, July 2023",
+  "date": "2023-07-12",
+  "flooded_ha_near": 0.0,
+  "near_m": 1000,
+  "share_near": 0.0,
+  "share_city": 0.022,
+  "times_city": 0.0,
+  "flooded_ha_near_lost": 0.0,
+  "near_lost_m": 250,
+  "image": "/insights/neeli-jheel-flood.png",
+  "bounds": [
+   77.235097,
+   28.43604,
+   77.263591,
+   28.460652
+  ]
+ },
+ "pattandur-agrahara": {
+  "event": "blr-2022-09",
+  "name": "Bengaluru floods, September 2022",
+  "date": "2022-09-05",
+  "flooded_ha_near": 0.0,
+  "near_m": 1000,
+  "share_near": 0.0,
+  "share_city": 0.0027,
+  "times_city": 0.0,
+  "flooded_ha_near_lost": 0.0,
+  "near_lost_m": 250,
+  "image": "/insights/pattandur-agrahara-flood.png",
+  "bounds": [
+   77.725722,
+   12.967852,
+   77.750486,
+   12.991801
+  ]
+ },
+ "naini-lake-delhi": {
+  "event": "delhi-2023-07",
+  "name": "Yamuna floods, Delhi, July 2023",
+  "date": "2023-07-12",
+  "flooded_ha_near": 0.0,
+  "near_m": 1000,
+  "share_near": 0.0,
+  "share_city": 0.022,
+  "times_city": 0.0,
+  "flooded_ha_near_lost": 0.0,
+  "near_lost_m": 250,
+  "image": "/insights/naini-lake-delhi-flood.png",
+  "bounds": [
+   77.181238,
+   28.695512,
+   77.20752,
+   28.719086
+  ]
+ },
+ "kaikondrahalli": {
+  "event": "blr-2022-09",
+  "name": "Bengaluru floods, September 2022",
+  "date": "2022-09-05",
+  "flooded_ha_near": 0.7,
+  "near_m": 1000,
+  "share_near": 0.0015,
+  "share_city": 0.0027,
+  "times_city": 0.6,
+  "flooded_ha_near_lost": 0.0,
+  "near_lost_m": 250,
+  "image": "/insights/kaikondrahalli-flood.png",
+  "bounds": [
+   77.658313,
+   12.899892,
+   77.686963,
+   12.9267
+  ]
+ },
+ "chembarambakkam": {
+  "event": "chennai-2015-12",
+  "name": "Chennai floods, December 2015",
+  "date": "2015-12-06",
+  "flooded_ha_near": 17.6,
+  "near_m": 1000,
+  "share_near": 0.0129,
+  "share_city": 0.0062,
+  "times_city": 2.1,
+  "flooded_ha_near_lost": 0.0,
+  "near_lost_m": 250,
+  "image": "/insights/chembarambakkam-flood.png",
+  "bounds": [
+   80.007749,
+   12.967221,
+   80.093745,
+   13.04891
+  ]
+ },
+ "ambalipura-kelagina": {
+  "event": "blr-2022-09",
+  "name": "Bengaluru floods, September 2022",
+  "date": "2022-09-05",
+  "flooded_ha_near": 0.7,
+  "near_m": 1000,
+  "share_near": 0.002,
+  "share_city": 0.0027,
+  "times_city": 0.7,
+  "flooded_ha_near_lost": null,
+  "near_lost_m": 250,
+  "image": "/insights/ambalipura-kelagina-flood.png",
+  "bounds": [
+   77.652843,
+   12.905187,
+   77.676854,
+   12.928792
+  ]
+ },
+ "durgam-cheruvu": {
+  "event": "hyderabad-2020-10",
+  "name": "Hyderabad floods, October 2020",
+  "date": "2020-10-21",
+  "flooded_ha_near": 0.0,
+  "near_m": 1000,
+  "share_near": 0.0,
+  "share_city": 0.0008,
+  "times_city": 0.0,
+  "flooded_ha_near_lost": null,
+  "near_lost_m": 250,
+  "image": "/insights/durgam-cheruvu-flood.png",
+  "bounds": [
+   78.374735,
+   17.415012,
+   78.404949,
+   17.447199
+  ]
+ },
+ "hauz-khas": {
+  "event": "delhi-2023-07",
+  "name": "Yamuna floods, Delhi, July 2023",
+  "date": "2023-07-12",
+  "flooded_ha_near": 0.0,
+  "near_m": 1000,
+  "share_near": 0.0,
+  "share_city": 0.022,
+  "times_city": 0.0,
+  "flooded_ha_near_lost": null,
+  "near_lost_m": 250,
+  "image": "/insights/hauz-khas-flood.png",
+  "bounds": [
+   77.177472,
+   28.542905,
+   77.206377,
+   28.5668
+  ]
+ },
+ "naraina": {
+  "event": "delhi-2023-07",
+  "name": "Yamuna floods, Delhi, July 2023",
+  "date": "2023-07-12",
+  "flooded_ha_near": 0.0,
+  "near_m": 1000,
+  "share_near": 0.0,
+  "share_city": 0.022,
+  "times_city": 0.0,
+  "flooded_ha_near_lost": null,
+  "near_lost_m": 250,
+  "image": "/insights/naraina-flood.png",
+  "bounds": [
+   77.117634,
+   28.616398,
+   77.145741,
+   28.640859
+  ]
+ },
+ "neela-hauz": {
+  "event": "delhi-2023-07",
+  "name": "Yamuna floods, Delhi, July 2023",
+  "date": "2023-07-12",
+  "flooded_ha_near": 0.0,
+  "near_m": 1000,
+  "share_near": 0.0,
+  "share_city": 0.022,
+  "times_city": 0.0,
+  "flooded_ha_near_lost": null,
+  "near_lost_m": 250,
+  "image": "/insights/neela-hauz-flood.png",
+  "bounds": [
+   77.157738,
+   28.517233,
+   77.184169,
+   28.540632
+  ]
+ },
+ "nehru-vihar-pond": {
+  "event": "delhi-2023-07",
+  "name": "Yamuna floods, Delhi, July 2023",
+  "date": "2023-07-12",
+  "flooded_ha_near": 14.2,
+  "near_m": 1000,
+  "share_near": 0.0376,
+  "share_city": 0.022,
+  "times_city": 1.7,
+  "flooded_ha_near_lost": null,
+  "near_lost_m": 250,
+  "image": "/insights/nehru-vihar-pond-flood.png",
+  "bounds": [
+   77.211222,
+   28.700439,
+   77.238751,
+   28.724528
+  ]
+ },
+ "osm-w510046937": {
+  "event": "delhi-2023-07",
+  "name": "Yamuna floods, Delhi, July 2023",
+  "date": "2023-07-12",
+  "flooded_ha_near": 0.0,
+  "near_m": 1000,
+  "share_near": 0.0,
+  "share_city": 0.022,
+  "times_city": 0.0,
+  "flooded_ha_near_lost": null,
+  "near_lost_m": 250,
+  "image": "/insights/osm-w510046937-flood.png",
+  "bounds": [
+   77.184849,
+   28.66243,
+   77.210896,
+   28.684925
+  ]
+ },
+ "purana-qila": {
+  "event": "delhi-2023-07",
+  "name": "Yamuna floods, Delhi, July 2023",
+  "date": "2023-07-12",
+  "flooded_ha_near": 0.0,
+  "near_m": 1000,
+  "share_near": 0.0,
+  "share_city": 0.022,
+  "times_city": 0.0,
+  "flooded_ha_near_lost": null,
+  "near_lost_m": 250,
+  "image": "/insights/purana-qila-flood.png",
+  "bounds": [
+   77.227684,
+   28.598212,
+   77.254178,
+   28.622857
+  ]
+ },
+ "sadaramangala": {
+  "event": "blr-2022-09",
+  "name": "Bengaluru floods, September 2022",
+  "date": "2022-09-05",
+  "flooded_ha_near": 0.0,
+  "near_m": 1000,
+  "share_near": 0.0,
+  "share_city": 0.0027,
+  "times_city": 0.0,
+  "flooded_ha_near_lost": null,
+  "near_lost_m": 250,
+  "image": "/insights/sadaramangala-flood.png",
+  "bounds": [
+   77.713216,
+   12.986773,
+   77.742071,
+   13.013931
+  ]
+ },
+ "shahdara-lake": {
+  "event": "delhi-2023-07",
+  "name": "Yamuna floods, Delhi, July 2023",
+  "date": "2023-07-12",
+  "flooded_ha_near": 0.0,
+  "near_m": 1000,
+  "share_near": 0.0,
+  "share_city": 0.022,
+  "times_city": 0.0,
+  "flooded_ha_near_lost": null,
+  "near_lost_m": 250,
+  "image": "/insights/shahdara-lake-flood.png",
+  "bounds": [
+   77.264261,
+   28.663832,
+   77.291367,
+   28.687195
+  ]
+ },
+ "shamshi-talab": {
+  "event": "delhi-2023-07",
+  "name": "Yamuna floods, Delhi, July 2023",
+  "date": "2023-07-12",
+  "flooded_ha_near": 0.0,
+  "near_m": 1000,
+  "share_near": 0.0,
+  "share_city": 0.022,
+  "times_city": 0.0,
+  "flooded_ha_near_lost": null,
+  "near_lost_m": 250,
+  "image": "/insights/shamshi-talab-flood.png",
+  "bounds": [
+   77.164173,
+   28.502153,
+   77.190593,
+   28.525189
+  ]
+ }
+}

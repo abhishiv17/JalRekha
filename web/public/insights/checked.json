@@ -1,0 +1,68 @@
+{
+ "ameenpur": {
+  "checked": 9,
+  "confirmed_ac": 0.0,
+  "not_confirmed_ac": 2.8,
+  "unclear_ac": 1.14
+ },
+ "bellandur": {
+  "checked": 10,
+  "confirmed_ac": 2.55,
+  "not_confirmed_ac": 71.74,
+  "unclear_ac": 44.01
+ },
+ "bhalswa": {
+  "checked": 2,
+  "confirmed_ac": 6.75,
+  "not_confirmed_ac": 0.0,
+  "unclear_ac": 1.41
+ },
+ "chembarambakkam": {
+  "checked": 1,
+  "confirmed_ac": 0.0,
+  "not_confirmed_ac": 0.15,
+  "unclear_ac": 0.0
+ },
+ "jakkur": {
+  "checked": 5,
+  "confirmed_ac": 1.51,
+  "not_confirmed_ac": 0.91,
+  "unclear_ac": 0.17
+ },
+ "kaikondrahalli": {
+  "checked": 1,
+  "confirmed_ac": 0.0,
+  "not_confirmed_ac": 0.0,
+  "unclear_ac": 0.15
+ },
+ "mallathahalli": {
+  "checked": 8,
+  "confirmed_ac": 3.33,
+  "not_confirmed_ac": 0.2,
+  "unclear_ac": 0.12
+ },
+ "pattandur-agrahara": {
+  "checked": 2,
+  "confirmed_ac": 0.0,
+  "not_confirmed_ac": 0.12,
+  "unclear_ac": 0.12
+ },
+ "subedeharana-kere": {
+  "checked": 1,
+  "confirmed_ac": 0.94,
+  "not_confirmed_ac": 0.0,
+  "unclear_ac": 0.0
+ },
+ "varthur": {
+  "checked": 2,
+  "confirmed_ac": 0.0,
+  "not_confirmed_ac": 2.02,
+  "unclear_ac": 0.0
+ },
+ "yele-mallappa-shetty": {
+  "checked": 5,
+  "confirmed_ac": 0.29,
+  "not_confirmed_ac": 1.11,
+  "unclear_ac": 0.79
+ }
+}

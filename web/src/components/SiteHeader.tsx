@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Logo from "@/components/Brand";
+import { JalToggle } from "@/components/JalGuide";
+import LanguageMenu from "@/components/LanguageMenu";
 import { ANALYSED_META } from "@/lib/catalog";
 import { loadIndex } from "@/lib/data";
 
@@ -57,9 +59,16 @@ export default function SiteHeader() {
       </div>
       <header className="site">
         <nav aria-label="Main">
-          <Link href="/" className="brand" aria-label="JalRekha home"><Logo /></Link>
-          <button type="button" className="menu-toggle" aria-expanded={open} aria-controls="main-links" onClick={() => setOpen((o) => !o)}>
-            {open ? "Close" : "Menu"}
+          <Link href="/" className="brand" aria-label="JalRekha home" translate="no"><Logo /></Link>
+          <div className="nav-tools">
+            <LanguageMenu />
+            <JalToggle />
+          </div>
+          <button type="button" className="menu-toggle" aria-expanded={open} aria-controls="main-links" onClick={() => setOpen((o) => !o)}
+            aria-label={open ? "Close menu" : "Menu"}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+              {open ? <path d="M6 6l12 12M18 6 6 18" /> : <path d="M4 7h16M4 12h16M4 17h16" />}
+            </svg>
           </button>
           <div id="main-links" className={`nav-links${open ? " open" : ""}`}>
             <Link className="link" href="/lakes/" aria-current={on("/lake")}>Lakes</Link>
