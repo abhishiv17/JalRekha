@@ -58,6 +58,16 @@ Setup: [`infra/plot/setup.sh`](infra/plot/setup.sh). Code: [`pipeline/jalrekha/p
 
 Cases live in DynamoDB behind the Plot Check API (`/ponds/cases`, `/ponds/<id>/adopt|stage|check`); space checks run on the worker Lambda.
 
+## In your language, with Jal as your guide
+
+People who live beside these lakes don't all read English, and a satellite map needs explaining. So:
+
+- **Four languages.** The language menu in the header (or "Read this in" on the home page) shows every page in English, हिन्दी, ಕನ್ನಡ or తెలుగు. Text is translated by **Amazon Translate** through the Plot Check API (`POST /translate`) and kept in DynamoDB, so each phrase is translated once; the site also ships phrase books built from its own pages (`web/scripts/i18n-bundle.mjs`) and remembers answers in the browser. Lake names, "JalRekha" and "Jal" stay as they are. If the API can't be reached, the page stays in English rather than breaking.
+- **Jal, the guide.** Switch on "Jal guide" in the header, or pick a language when Jal offers a walk-through. Jal follows you down the page, lights up the part it is talking about, explains it in plain words from that lake's own numbers, and reads it aloud: **Amazon Polly** (Kajal, Indian English and Hindi; `POST /speak`, cached in S3) or, for Kannada and Telugu, which Polly has no voice for, the device's own voice. Back and Next step through the page; `?guide=1` on any link opens it with Jal on.
+- Every speech bubble on the site has a listen button too.
+
+How it works: [`PageTranslator.tsx`](web/src/components/PageTranslator.tsx) swaps the text on screen for its translation and keeps the English beside it (React keeps working, switching back is exact); [`JalGuide.tsx`](web/src/components/JalGuide.tsx) reads what each section wants Jal to say from `data-jal`; [`speech.ts`](web/src/lib/speech.ts) and [`translate.ts`](web/src/lib/translate.ts) talk to the API in [`infra/plot/api.py`](infra/plot/api.py).
+
 ## Repository layout
 
 ```
@@ -87,19 +97,24 @@ research/       Flag hand-check kit
 
 Thresholds live in [`pipeline/jalrekha/config.py`](pipeline/jalrekha/config.py) and are the same for every lake.
 
-## Built on AWS (verified 9 Oct 2026)
+## Built on AWS (verified 10 Oct 2026)
+
+Two AWS accounts, both us-west-2: the lake pipeline (below, `kerewatch-*`) and the Plot Check API (`jalrekha-plot-*`), which also serves the site's lake data, pond cases, translation and Jal's voice.
 
 | Service | Use | Status |
 | --- | --- | --- |
 | Registry of Open Data (Sentinel-2 COGs) | All imagery, read in place | Live |
 | Lambda (container) | Pipeline, one lake per run, ~2 min | Live |
-| Step Functions | All lakes in parallel, retries | Live; last run 12/12 succeeded |
+| Step Functions | All lakes in parallel, retries | Live; the 5 most recent runs succeeded |
 | S3 | Results, images, flags | Live |
-| DynamoDB | Lake summaries, season statistics, flags (267 items); watchers | Live |
+| DynamoDB | Lake summaries, season statistics, flags (291 items); watchers | Live |
 | EventBridge Scheduler | Monthly re-scan, 5th at 03:00 IST | Live |
-| SNS | Email alerts, once per new dry season | Live; no subscribers yet |
+| SNS | Email alerts, once per new dry season | Live |
 | API Gateway + Lambda | Results, `/watch`, `/unwatch` | Live |
 | Amplify Hosting | Web app | Live: https://main.d25xaqqlm27lpb.amplifyapp.com/ |
+| Amazon Translate | The site in Hindi, Kannada and Telugu (`/translate`), Plot Check verdicts | Live in the Plot Check account |
+| Amazon Polly | Jal's voice in Indian English and Hindi (`/speak`, cached in S3) | Plot Check account |
+| Amazon Location Service | Address search for Plot Check | Live |
 
 Deployed resource names keep the original `kerewatch-*` prefix (see [`infra/README.md`](infra/README.md)); renaming them needs a migration, not a rename.
 
@@ -141,4 +156,6 @@ cd pipeline && python scripts/osm_india_lakes.py <cache_dir> ../data/catalog
 ## AI tools used
 
 <!-- The rules require listing these. -->
-- Claude Code (Anthropic)
+- Claude Code (Anthropic): writing and reviewing code, copy and translations of Jal's own controls
+- Claude (Anthropic): AI-assisted review of 35 of the 46 flag image chips (`research/flags_checked.csv`, `checked_by`)
+- Amazon Translate and Amazon Polly are part of the product, not tools used to build it
