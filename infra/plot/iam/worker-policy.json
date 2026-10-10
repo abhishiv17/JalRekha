@@ -4,7 +4,7 @@
     {"Sid": "Logs", "Effect": "Allow", "Action": ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"],
      "Resource": "arn:aws:logs:${REGION}:${ACCOUNT}:log-group:/aws/lambda/jalrekha-plot-worker:*"},
     {"Sid": "Results", "Effect": "Allow", "Action": ["s3:PutObject", "s3:GetObject"],
-     "Resource": "arn:aws:s3:::${BUCKET}/plots/*"},
+     "Resource": ["arn:aws:s3:::${BUCKET}/plots/*", "arn:aws:s3:::${BUCKET}/lakes/*", "arn:aws:s3:::${BUCKET}/ponds/*"]},
     {"Sid": "Checks", "Effect": "Allow", "Action": ["dynamodb:UpdateItem", "dynamodb:GetItem"],
      "Resource": "arn:aws:dynamodb:${REGION}:${ACCOUNT}:table/jalrekha-plot-checks"},
     {"Sid": "Claude", "Effect": "Allow", "Action": ["bedrock-mantle:CreateInference"], "Resource": "*"},
