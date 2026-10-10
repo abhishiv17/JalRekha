@@ -15,6 +15,7 @@ type Props = {
   flags: FeatureCollection<FlagProps>;
   reference: FeatureCollection<{ kind: string; width_m?: number }>;
   bufferWidth: number;
+  zoneFocus?: boolean; // "Show the zone on the map": fill and pulse the no-build ring
   focusFlag?: string | null;
   zoomTo?: string | null; // fly to this flag; null = whole lake
   onError?: (message: string) => void;
@@ -24,19 +25,37 @@ const corners = ([w, s, e, n]: Props["bounds"]) =>
   [[w, n], [e, n], [e, s], [w, s]] as [[number, number], [number, number], [number, number], [number, number]];
 const FLAG = "#f5a524";
 
-function apply(m: maplibregl.Map, p: Props) {
-  (m.getSource("truecolor") as ImageSource | undefined)?.updateImage({ url: p.imageUrl, coordinates: corners(p.bounds) });
-  (m.getSource("overlay") as ImageSource | undefined)?.updateImage({ url: p.overlayUrl, coordinates: corners(p.bounds) });
+type Loaded = Partial<Record<"truecolor" | "overlay" | "water", string>>;
+
+// Only (re)load an image or outline when its URL changes: reloading on every layer
+// toggle cancels requests in flight, which used to surface as "could not be loaded".
+function apply(m: maplibregl.Map, p: Props, loaded: Loaded) {
+  if (loaded.truecolor !== p.imageUrl) {
+    loaded.truecolor = p.imageUrl;
+    (m.getSource("truecolor") as ImageSource | undefined)?.updateImage({ url: p.imageUrl, coordinates: corners(p.bounds) });
+  }
+  if (loaded.overlay !== p.overlayUrl) {
+    loaded.overlay = p.overlayUrl;
+    (m.getSource("overlay") as ImageSource | undefined)?.updateImage({ url: p.overlayUrl, coordinates: corners(p.bounds) });
+  }
   const vis = (on: boolean) => (on ? "visible" : "none");
   m.setLayoutProperty("overlay", "visibility", vis(p.layers.landcover));
-  (m.getSource("water") as GeoJSONSource | undefined)?.setData(p.waterUrl);
+  if (loaded.water !== p.waterUrl) {
+    loaded.water = p.waterUrl;
+    (m.getSource("water") as GeoJSONSource | undefined)?.setData(p.waterUrl);
+  }
   m.setLayoutProperty("water-fill", "visibility", vis(p.layers.water));
   m.setLayoutProperty("water-line", "visibility", vis(p.layers.water));
   m.setLayoutProperty("reference", "visibility", vis(p.layers.outline));
   m.setLayoutProperty("buffer", "visibility", vis(p.layers.buffer));
   m.setLayoutProperty("flags-fill", "visibility", vis(p.layers.flags));
   m.setLayoutProperty("flags", "visibility", vis(p.layers.flags));
-  m.setFilter("buffer", ["all", ["==", ["get", "kind"], "buffer"], ["==", ["get", "width_m"], p.bufferWidth]]);
+  const ring: maplibregl.FilterSpecification = ["all", ["==", ["get", "kind"], "buffer"], ["==", ["get", "width_m"], p.bufferWidth]];
+  m.setFilter("buffer", ring);
+  m.setFilter("buffer-fill", ring);
+  m.setLayoutProperty("buffer-fill", "visibility", vis(p.layers.buffer && !!p.zoneFocus));
+  m.setPaintProperty("buffer", "line-width", p.zoneFocus ? 3 : 1.6);
+  m.setPaintProperty("buffer", "line-color", p.zoneFocus ? "#ffe082" : "#d8f0e0");
   (m.getSource("flags") as GeoJSONSource | undefined)?.setData(p.flags as GeoJSON.FeatureCollection);
   m.setPaintProperty("flags", "line-width", ["case", ["==", ["get", "flag_id"], p.focusFlag ?? ""], 4, 2.5]);
   m.setPaintProperty("flags-fill", "fill-opacity", ["case", ["==", ["get", "flag_id"], p.focusFlag ?? ""], 0.45, 0.18]);
@@ -60,6 +79,8 @@ export default function LakeMap(p: Props) {
   const ready = useRef(false);
   const latest = useRef(p);
   latest.current = p;
+  const loaded = useRef<Loaded>({});
+  const retried = useRef<Partial<Record<"truecolor" | "overlay", string>>>({});
 
   useEffect(() => {
     if (!el.current) return;
@@ -91,6 +112,14 @@ export default function LakeMap(p: Props) {
           { id: "water-fill", type: "fill", source: "water", paint: { "fill-color": "#1e78dc", "fill-opacity": 0.6 } },
           { id: "water-line", type: "line", source: "water", paint: { "line-color": "#9fd0ff", "line-width": 1.2 } },
           {
+            id: "buffer-fill",
+            type: "fill",
+            source: "reference",
+            layout: { visibility: "none" },
+            filter: ["all", ["==", ["get", "kind"], "buffer"], ["==", ["get", "width_m"], p.bufferWidth]],
+            paint: { "fill-color": "#ffd54f", "fill-opacity": 0.45 },
+          },
+          {
             id: "buffer",
             type: "line",
             source: "reference",
@@ -113,12 +142,29 @@ export default function LakeMap(p: Props) {
     m.addControl(new maplibregl.ScaleControl({ unit: "metric", maxWidth: 120 }), "bottom-left");
     m.on("load", () => {
       ready.current = true;
-      apply(m, latest.current);
+      loaded.current = { truecolor: latest.current.imageUrl, overlay: latest.current.overlayUrl, water: latest.current.waterUrl };
+      apply(m, latest.current, loaded.current);
       zoom(m, latest.current);
     });
     m.on("error", (e) => {
-      const src = (e as unknown as { sourceId?: string }).sourceId;
-      if (src === "truecolor" || src === "overlay") latest.current.onError?.("This season's image could not be loaded.");
+      const ev = e as unknown as { sourceId?: string; error?: { name?: string; message?: string; status?: number } };
+      const src = ev.sourceId;
+      if (src !== "truecolor" && src !== "overlay") return;
+      // Switching years cancels the previous image: that is not a failure.
+      if (ev.error?.name === "AbortError" || /abort/i.test(ev.error?.message ?? "")) return;
+      const want = src === "truecolor" ? latest.current.imageUrl : latest.current.overlayUrl;
+      // A real failure gets one quiet retry for the year still on screen before we say anything.
+      if (retried.current[src] !== want) {
+        retried.current[src] = want;
+        window.setTimeout(() => {
+          const now = src === "truecolor" ? latest.current.imageUrl : latest.current.overlayUrl;
+          if (now !== want || !ready.current) return;
+          loaded.current[src] = undefined;
+          apply(m, latest.current, loaded.current);
+        }, 1200);
+        return;
+      }
+      if (src === "truecolor") latest.current.onError?.("This year's photo could not be loaded. Try another year, or reload the page.");
     });
     map.current = m;
     return () => {
@@ -130,9 +176,28 @@ export default function LakeMap(p: Props) {
   }, [p.bounds.join(",")]);
 
   useEffect(() => {
-    if (map.current && ready.current) apply(map.current, p);
+    if (map.current && ready.current) apply(map.current, p, loaded.current);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [p.imageUrl, p.overlayUrl, p.waterUrl, p.layers, p.bufferWidth, p.flags, p.focusFlag]);
+  }, [p.imageUrl, p.overlayUrl, p.waterUrl, p.layers, p.bufferWidth, p.flags, p.focusFlag, p.zoneFocus]);
+
+  // Turning the zone on: frame the lake and pulse the ring twice so the eye finds it.
+  useEffect(() => {
+    const m = map.current;
+    if (!m || !ready.current || !p.zoneFocus) return;
+    m.fitBounds(p.bounds, { padding: 20, duration: 600 });
+    if (window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const start = performance.now();
+    let frame = 0;
+    const tick = (t: number) => {
+      const k = Math.min(1, (t - start) / 1800);
+      m.setPaintProperty("buffer-fill", "fill-opacity", 0.3 + 0.35 * Math.abs(Math.sin(k * Math.PI * 2)));
+      if (k < 1) frame = requestAnimationFrame(tick);
+      else m.setPaintProperty("buffer-fill", "fill-opacity", 0.45);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [p.zoneFocus, p.bufferWidth]);
 
   useEffect(() => {
     if (map.current && ready.current) zoom(map.current, p);
