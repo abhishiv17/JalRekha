@@ -1,35 +1,19 @@
 "use client";
 
-// Jal, the guide: turn it on and Jal walks you down the page, explaining each part in your
-// language and reading it out loud. A page opts in by putting what Jal should say on its
-// sections: <section data-jal="This is …" data-jal-mood="curious">. Jal follows your scrolling,
-// lights up the part it is talking about, and you can step through with Back and Next.
+// Jal, the guide: started from the home page hero, Jal walks you down the home page,
+// explaining each part in your language, and reads it out loud only when you press Listen.
+// Sections say what Jal should say: <section data-jal="This is …" data-jal-mood="curious">.
+// Jal follows your scrolling, lights up the part it is talking about, and you can step
+// through with Back and Next. It lives on the home page only; leaving the page closes it.
 
 import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Jal, { type Mood } from "@/components/Mascot";
-import { type Lang, LANGS, ui, useLang } from "@/lib/lang";
+import { type Lang, ui, useLang } from "@/lib/lang";
 import { onVoices, speak, stop, type Voice, voiceFor } from "@/lib/speech";
 import { lookup, request } from "@/lib/translate";
 
-const INVITE_KEY = "jalrekha.guide-invite";
 const MOODS: Mood[] = ["happy", "curious", "scanning", "thinking", "wink", "celebrate"];
-
-function seen(key: string) {
-  try {
-    return window.localStorage.getItem(key) === "done";
-  } catch {
-    return false;
-  }
-}
-
-function markSeen(key: string) {
-  try {
-    window.localStorage.setItem(key, "done");
-  } catch {
-    /* fine */
-  }
-}
 
 const reducedMotion = () => typeof window !== "undefined" && window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
 
@@ -56,67 +40,10 @@ function useSaid(english: string, lang: Lang) {
   return said;
 }
 
-export function JalToggle({ compact = false }: { compact?: boolean }) {
-  const { lang, guideOn, setGuideOn } = useLang();
-  return (
-    <button type="button" className={`jal-toggle${guideOn ? " on" : ""}${compact ? " compact" : ""}`} aria-pressed={guideOn}
-      onClick={() => setGuideOn(!guideOn)} title={ui("guide", lang)} data-no-translate>
-      <span className="jal-toggle-face" aria-hidden="true"><Jal size={26} interactive={false} mood={guideOn ? "celebrate" : "happy"} /></span>
-      {!compact && <span className="jal-toggle-label">{ui("guide", lang)}</span>}
-      <span className="jal-switch" aria-hidden="true"><i /></span>
-    </button>
-  );
-}
-
-function Invite({ steps }: { steps: number }) {
-  const { setLang, setGuideOn, guideOn } = useLang();
-  const [show, setShow] = useState(false);
-  const path = usePathname();
-
-  useEffect(() => {
-    if (guideOn || steps < 2 || seen(INVITE_KEY)) return;
-    // On the home page, let the headline be read first: offer once they start exploring.
-    const home = path === "/";
-    const t = window.setTimeout(() => setShow(true), home ? 10000 : 3500);
-    const onScroll = () => home && window.scrollY > 300 && setShow(true);
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => {
-      window.clearTimeout(t);
-      window.removeEventListener("scroll", onScroll);
-    };
-  }, [guideOn, steps, path]);
-
-  if (!show || guideOn) return null;
-  const close = () => {
-    markSeen(INVITE_KEY);
-    setShow(false);
-  };
-  const start = (l: Lang) => {
-    setLang(l);
-    setGuideOn(true);
-    close();
-  };
-  return (
-    <aside className="jal-invite" aria-label="Jal can guide you" data-no-translate>
-      <div className="jal-invite-peek" aria-hidden="true"><Jal size={84} interactive={false} mood="wink" /></div>
-      <button type="button" className="jal-x" aria-label="Not now" onClick={close}>×</button>
-      <p className="jal-invite-title">Want a walk-through?</p>
-      <p className="jal-invite-text">
-        I&apos;m Jal. I&apos;ll take you through this page, part by part, and read it out loud.
-      </p>
-      <div className="jal-invite-langs" role="group" aria-label="Start the guide in">
-        {LANGS.map((l) => (
-          <button key={l.id} type="button" lang={l.id} onClick={() => start(l.id)}>{l.native}</button>
-        ))}
-      </div>
-      <button type="button" className="jal-later" onClick={close}>Not now</button>
-    </aside>
-  );
-}
-
 export default function JalGuide() {
-  const { lang, setLang, guideOn, setGuideOn } = useLang();
+  const { lang, guideOn, setGuideOn } = useLang();
   const path = usePathname();
+  const home = path === "/";
   const [steps, setSteps] = useState<HTMLElement[]>([]);
   const [active, setActive] = useState(0);
   const [voiceOn, setVoiceOn] = useState(false); // Jal only speaks when asked
@@ -125,8 +52,17 @@ export default function JalGuide() {
   const manualUntil = useRef(0);
   const ratios = useRef(new Map<Element, number>());
 
+  // Only the home page has a guide: going anywhere else closes it.
+  useEffect(() => {
+    if (!home && guideOn) setGuideOn(false);
+  }, [home, guideOn, setGuideOn]);
+
   // Find the parts of the page Jal can talk about (pages load in pieces, so keep looking).
   useEffect(() => {
+    if (!home) {
+      setSteps([]);
+      return;
+    }
     let t = 0;
     const scan = () => {
       const next = visibleSteps();
@@ -142,7 +78,7 @@ export default function JalGuide() {
       obs.disconnect();
       window.clearTimeout(t);
     };
-  }, [path]);
+  }, [home]);
 
   useEffect(() => setActive(0), [path]);
   useEffect(() => {
@@ -220,60 +156,36 @@ export default function JalGuide() {
     setVoiceOn(!voiceOn);
   };
 
-  const dots = useMemo(() => steps.map((_, i) => i), [steps]);
-
+  if (!home || !guideOn) return null;
   return (
-    <>
-      <Invite steps={steps.length} />
-      {guideOn && (
-        <aside className={`jal-dock${speaking ? " talking" : ""}`} aria-label="Jal, your guide" data-no-translate
-          onKeyDown={(e) => {
-            if (e.key === "Escape") setGuideOn(false);
-            if (e.key === "ArrowRight") go(Math.min(active + 1, steps.length - 1));
-            if (e.key === "ArrowLeft") go(Math.max(active - 1, 0));
-          }}>
-          <div className="jal-dock-water" aria-hidden="true" />
-          <div className="jal-dock-head">
-            <span className="jal-avatar"><Jal size={62} interactive={false} mood={speaking ? "happy" : mood} /></span>
-            <div className="jal-dock-who">
-              <strong>Jal</strong>
-              <span>{steps.length ? `${ui("step", lang)} ${active + 1} / ${steps.length}` : ui("guide", lang)}</span>
-            </div>
-            {speaking && <span className="jal-eq" aria-hidden="true"><i /><i /><i /><i /></span>}
-            <button type="button" className="jal-x" aria-label={ui("close", lang)} onClick={() => setGuideOn(false)}>×</button>
-          </div>
+    <aside className={`jal-dock${speaking ? " talking" : ""}`} aria-label="Jal, your guide" data-no-translate
+      onKeyDown={(e) => {
+        if (e.key === "Escape") setGuideOn(false);
+        if (e.key === "ArrowRight") go(Math.min(active + 1, steps.length - 1));
+        if (e.key === "ArrowLeft") go(Math.max(active - 1, 0));
+      }}>
+      <div className="jal-dock-head">
+        <span className="jal-avatar"><Jal size={34} interactive={false} mood={speaking ? "happy" : mood} /></span>
+        <strong>Jal</strong>
+        {steps.length > 0 && <span className="jal-step">{active + 1}/{steps.length}</span>}
+        {speaking && <span className="jal-eq" aria-hidden="true"><i /><i /><i /><i /></span>}
+        <button type="button" className="jal-x" aria-label={ui("close", lang)} onClick={() => setGuideOn(false)}>×</button>
+      </div>
 
-          <p className="jal-line" lang={lang} aria-live="polite" key={`${active}-${lang}`}>
-            {steps.length ? said : ui("scroll", lang)}
-          </p>
+      <p className="jal-line" lang={lang} aria-live="polite" key={`${active}-${lang}`}>
+        {steps.length ? said : ui("scroll", lang)}
+      </p>
 
-          {steps.length > 1 && (
-            <div className="jal-dots" role="tablist" aria-label="Parts of this page">
-              {dots.map((i) => (
-                <button key={i} type="button" role="tab" aria-selected={i === active} aria-label={`${i + 1}`}
-                  className={i === active ? "on" : i < active ? "done" : ""} onClick={() => go(i)} />
-              ))}
-            </div>
-          )}
-
-          <div className="jal-controls">
-            <button type="button" className="ghost" onClick={() => go(active - 1)} disabled={active <= 0}>← {ui("back", lang)}</button>
-            {voice !== "none" && (
-              <button type="button" className={`jal-play${voiceOn ? " on" : ""}`} aria-pressed={voiceOn} onClick={toggleVoice}>
-                <SpeakerIcon off={voiceOn} /> {voiceOn ? ui("pause", lang) : ui("listen", lang)}
-              </button>
-            )}
-            <button type="button" onClick={() => go(active + 1)} disabled={active >= steps.length - 1}>{ui("next", lang)} →</button>
-          </div>
-
-          <div className="jal-langs" role="group" aria-label={ui("language", lang)}>
-            {LANGS.map((l) => (
-              <button key={l.id} type="button" lang={l.id} aria-pressed={lang === l.id} onClick={() => setLang(l.id)}>{l.native}</button>
-            ))}
-          </div>
-        </aside>
-      )}
-    </>
+      <div className="jal-controls">
+        <button type="button" className="ghost" onClick={() => go(active - 1)} disabled={active <= 0} aria-label={ui("back", lang)}>←</button>
+        {voice !== "none" && (
+          <button type="button" className={`jal-play${voiceOn ? " on" : ""}`} aria-pressed={voiceOn} onClick={toggleVoice}>
+            <SpeakerIcon off={voiceOn} /> {voiceOn ? ui("pause", lang) : ui("listen", lang)}
+          </button>
+        )}
+        <button type="button" onClick={() => go(active + 1)} disabled={active >= steps.length - 1} aria-label={ui("next", lang)}>→</button>
+      </div>
+    </aside>
   );
 }
 

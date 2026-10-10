@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import Logo from "@/components/Brand";
-import { JalToggle } from "@/components/JalGuide";
 import LanguageMenu from "@/components/LanguageMenu";
 import { ANALYSED_META } from "@/lib/catalog";
 import { loadIndex } from "@/lib/data";
@@ -62,7 +61,6 @@ export default function SiteHeader() {
           <Link href="/" className="brand" aria-label="JalRekha home" translate="no"><Logo /></Link>
           <div className="nav-tools">
             <LanguageMenu />
-            <JalToggle />
           </div>
           <button type="button" className="menu-toggle" aria-expanded={open} aria-controls="main-links" onClick={() => setOpen((o) => !o)}
             aria-label={open ? "Close menu" : "Menu"}>

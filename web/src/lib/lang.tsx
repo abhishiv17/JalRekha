@@ -66,7 +66,6 @@ type LangState = {
 
 const Ctx = createContext<LangState | null>(null);
 const KEY_LANG = "jalrekha.lang";
-const KEY_GUIDE = "jalrekha.guide";
 
 /** ?guide=1 opens the page with Jal already guiding: handy for sharing and demos. */
 const urlGuide = (search: string) => new URLSearchParams(search).get("guide") === "1";
@@ -96,17 +95,14 @@ export function LangProvider({ children }: { children: React.ReactNode }) {
     const url = new URLSearchParams(window.location.search).get("lang");
     const saved = (url ?? read(KEY_LANG)) as Lang | null;
     if (saved && LANGS.some((l) => l.id === saved)) setLangState(saved);
-    if (urlGuide(window.location.search) || read(KEY_GUIDE) === "on") setGuideState(true);
+    if (urlGuide(window.location.search)) setGuideState(true);
   }, []);
 
   const setLang = useCallback((l: Lang) => {
     setLangState(l);
     write(KEY_LANG, l);
   }, []);
-  const setGuideOn = useCallback((on: boolean) => {
-    setGuideState(on);
-    write(KEY_GUIDE, on ? "on" : "off");
-  }, []);
+  const setGuideOn = useCallback((on: boolean) => setGuideState(on), []);
 
   const value = useMemo(() => ({ lang, setLang, guideOn, setGuideOn, pending, setPending }),
     [lang, setLang, guideOn, setGuideOn, pending]);

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import LakeCard from "@/components/LakeCard";
 import { BhalswaStory } from "@/components/LakeStory";
 import Jal from "@/components/Mascot";
@@ -9,7 +9,6 @@ import { Arrow } from "@/components/SiteHeader";
 import { LANGS, ui, useLang } from "@/lib/lang";
 import { cards } from "@/lib/catalog";
 import { type LakeSummary, loadIndex } from "@/lib/data";
-import { loadInsights } from "@/lib/insights";
 
 /** The site in four languages, and Jal as a guide: right under the headline, where people look first. */
 function ReadIn() {
@@ -32,80 +31,37 @@ function ReadIn() {
   );
 }
 
-type Impact = { confirmedAc: number; confirmedLakes: number; ponds: number; fixable: number; coolerC: number; heatLakes: number };
-
-const median = (xs: number[]) => {
-  const s = [...xs].sort((a, b) => a - b);
-  return s.length ? (s.length % 2 ? s[(s.length - 1) / 2] : (s[s.length / 2 - 1] + s[s.length / 2]) / 2) : 0;
-};
-
-/** What changes because of JalRekha, problem by problem, with a real number as proof where there is one. */
-function ImpactBand() {
-  const [x, setX] = useState<Impact | null>(null);
+/**
+ * A 30-second tour of everything JalRekha does, made from its own screens and numbers. It has no
+ * sound, so it can play muted on its own (phones allow that) while it is on screen; it
+ * pauses when scrolled away, and waits for a tap if the visitor prefers less motion.
+ */
+function VideoBand() {
+  const ref = useRef<HTMLVideoElement>(null);
   useEffect(() => {
-    Promise.all([loadInsights(), fetch("/ponds/delhi/summary.json").then((r) => (r.ok ? r.json() : null)).catch(() => null)])
-      .then(([ins, ponds]) => {
-        const checked = Object.values(ins.checked).filter((c) => c.confirmed_ac > 0);
-        const cooler = Object.values(ins.heat)
-          .flatMap((h) => (h.water_c != null && h.near_c != null ? [h.near_c - h.water_c] : []));
-        setX({
-          confirmedAc: checked.reduce((a, c) => a + c.confirmed_ac, 0),
-          confirmedLakes: checked.length,
-          ponds: ponds?.vanished ?? 0,
-          fixable: ponds?.now?.dried_grassed ?? 0,
-          coolerC: median(cooler),
-          heatLakes: cooler.length,
-        });
-      });
+    const v = ref.current;
+    if (!v || window.matchMedia?.("(prefers-reduced-motion: reduce)").matches) return;
+    const io = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) void v.play().catch(() => {});
+      else v.pause();
+    }, { threshold: 0.4 });
+    io.observe(v);
+    return () => io.disconnect();
   }, []);
-  if (!x) return null;
-  const rows: { tone: string; who: string; was: string; now: string; proof?: string; href: string; cta: string }[] = [
-    {
-      tone: "buy", who: "Home buyers and banks", href: "/check/", cta: "Check a plot",
-      was: "You find out the plot was a lake after the first flood, and after you've paid.",
-      now: "Drop a pin before you pay. In about two minutes you know if water stood there since 2019, and what to ask the seller.",
-      proof: "Fewer people buy filled lake land, so filling a lake stops paying.",
-    },
-    {
-      tone: "loss", who: "Residents, lake groups and reporters", href: "/lakes/priority/", cta: "Which lakes to save first",
-      was: "A lake is noticed shrinking years later, when it is already built over.",
-      now: "It is spotted within a season, with dated photos, a map file and a letter to the right authority.",
-      proof: x.confirmedAc > 0 ? `${x.confirmedAc.toFixed(1)} acres of lost lake bed confirmed so far, across ${x.confirmedLakes} lakes.` : undefined,
-    },
-    {
-      tone: "pond", who: "Resident welfare associations, schools and companies", href: "/ponds/", cta: "Adopt a pond",
-      was: "A dried-up pond is forgotten, and nobody knows which office owns it.",
-      now: "A local group adopts it, the letter goes to the land-owning agency, and a public clock shows if they answer.",
-      proof: x.ponds > 0 ? `${x.ponds} dried-up ponds in Delhi are ready to adopt; ${x.fixable} are easy to bring back.` : undefined,
-    },
-    {
-      tone: "cool", who: "City agencies and funders", href: "/ponds/board/", cta: "See the public clock",
-      was: "“Work done” is claimed, and nobody checks whether the water came back.",
-      now: "The satellite checks the pond for everyone to see, and flags claims it can’t see.",
-      proof: x.heatLakes > 0 ? `Worth it: lake water is usually about ${Math.round(x.coolerC)} °C cooler than the ground around it on summer mornings.` : undefined,
-    },
-  ];
   return (
-    <section className="wrap impact" aria-labelledby="impact-title">
-      <span className="eyebrow">What changes</span>
-      <h2 id="impact-title" className="section-title" style={{ marginBottom: 10 }}>From finding out too late, to fixing it in time.</h2>
-      <p className="impact-users">
-        Built for the people who decide what happens to a lake: <b>home buyers</b>, <b>residents</b>, <b>local groups</b>,{" "}
-        <b>companies</b> and <b>city agencies</b>.
-      </p>
-      <div className="impact-rows">
-        {rows.map((r) => (
-          <Link key={r.tone} href={r.href} className={`impact-row ${r.tone}`}>
-            <div className="impact-was"><span className="impact-who">{r.who}</span><small>Today</small><p>{r.was}</p></div>
-            <div className="impact-now"><small>With JalRekha</small><p>{r.now}</p>{r.proof && <p className="impact-proof">{r.proof}</p>}</div>
-            <em>{r.cta} →</em>
-          </Link>
-        ))}
+    <section className="wrap video-band" aria-labelledby="video-title" data-jal-mood="wink"
+      data-jal="Start here: in thirty seconds, everything I can do for you, from checking a plot to the email you get when your lake changes.">
+      <span className="eyebrow">JalRekha in 30 seconds</span>
+      <h2 id="video-title" className="section-title">See what JalRekha does.</h2>
+      <div className="video-frame">
+        <video ref={ref} controls muted loop playsInline preload="metadata" poster="/video/jalrekha-explainer.jpg"
+          aria-label="JalRekha in 30 seconds: lakes hold monsoon rain, refill borewells and cool the streets, and they are being filled in. JalRekha watches 7,178 lakes across India from space. You can see each lake's story, track any lake, check a plot before you buy, see heat and floods, report with proof, watch a lake and get one email when it changes, see which lakes to save first, adopt a dried-up pond, and use it all in English, Hindi, Kannada or Telugu.">
+          <source src="/video/jalrekha-explainer-720.mp4" type="video/mp4" media="(max-width: 900px)" />
+          <source src="/video/jalrekha-explainer.webm" type='video/webm; codecs="vp9"' />
+          <source src="/video/jalrekha-explainer.mp4" type="video/mp4" />
+          <a href="/video/jalrekha-explainer.mp4">Watch the video</a>
+        </video>
       </div>
-      <p className="small muted">
-        Numbers come from free satellite photos (Sentinel-2, Landsat); a change counts as lost only once it held up on
-        sharper photos. <Link href="/how-sure/">How sure is it?</Link>
-      </p>
     </section>
   );
 }
@@ -151,8 +107,8 @@ export default function Home() {
         </section>
       </div>
 
-      {/* What changes: today, and with JalRekha */}
-      <ImpactBand />
+      {/* The idea in a short film */}
+      <VideoBand />
 
       {/* How it works: a scroll story on one real lake */}
       <section id="how" className="wrap section" aria-labelledby="how-title" data-jal-mood="scanning"
@@ -160,7 +116,7 @@ export default function Home() {
         <span className="eyebrow">How it works</span>
         <h2 id="how-title" className="section-title" style={{ marginBottom: 8 }}>Watch it work on a real Delhi lake.</h2>
         <p className="lede" style={{ maxWidth: 680, marginBottom: 28 }}>
-          Use the arrows. Each step adds one layer to the real satellite photo of Bhalswa Lake.
+          Keep scrolling. Each step adds one layer to the real satellite photo of Bhalswa Lake.
         </p>
         <BhalswaStory />
       </section>

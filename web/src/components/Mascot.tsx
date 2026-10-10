@@ -11,8 +11,6 @@
 // celebrate (closed happy eyes and sparkles: low risk).
 
 import { useEffect, useId, useRef, useState } from "react";
-import { ui, useLangMaybe } from "@/lib/lang";
-import { onVoices, speak, stop, voiceFor } from "@/lib/speech";
 
 const INK = "#24302a";
 
@@ -305,47 +303,12 @@ export function Guide({ children, size = 52, interactive = true, className, tone
   mood?: Mood;
 }) {
   const text = typeof children === "string" ? children : undefined;
-  const lang = useLangMaybe()?.lang;
-  const bubble = useRef<HTMLDivElement>(null);
-  const [talking, setTalking] = useState(false);
-  const [canSpeak, setCanSpeak] = useState(false);
-  useEffect(() => {
-    if (!lang) return;
-    const check = () => setCanSpeak(voiceFor(lang) !== "none");
-    check();
-    return onVoices(check);
-  }, [lang]);
-  const talkingRef = useRef(false);
-  talkingRef.current = talking;
-  useEffect(() => () => {
-    if (talkingRef.current) stop(); // leaving the page mid-sentence
-  }, []);
-  const listen = () => {
-    if (!lang) return;
-    if (talking) {
-      stop(); // tells us we've stopped
-      return;
-    }
-    // Read what the bubble shows right now, so it is in the visitor's language.
-    const said = bubble.current?.querySelector(".guide-words")?.textContent ?? "";
-    setTalking(true);
-    void speak(said, lang, () => setTalking(false));
-  };
   return (
-    <div className={`guide${tone ? ` guide-${tone}` : ""}${talking ? " talking" : ""}${className ? ` ${className}` : ""}`}>
+    <div className={`guide${tone ? ` guide-${tone}` : ""}${className ? ` ${className}` : ""}`}>
       <Jal size={size} interactive={interactive} mood={mood ?? (tone === "warn" ? "cautious" : "happy")} />
-      <div className="guide-bubble" role="status" aria-live="polite" key={text} ref={bubble}>
+      <div className="guide-bubble" role="status" aria-live="polite" key={text}>
         <span className="sr-only">Jal says: </span>
         <span className="guide-words">{children}</span>
-        {lang && canSpeak && (
-          <button type="button" className="guide-listen no-print" onClick={listen} data-no-translate
-            aria-label={ui("hear", lang)} title={ui("hear", lang)} aria-pressed={talking}>
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-              <path d="M11 5 6 9H3v6h3l5 4V5Z" />
-              {talking ? <path d="M16 9v6M20 9v6" /> : <path d="M15.5 8.5a5 5 0 0 1 0 7M18.5 5.5a9 9 0 0 1 0 13" />}
-            </svg>
-          </button>
-        )}
       </div>
     </div>
   );
