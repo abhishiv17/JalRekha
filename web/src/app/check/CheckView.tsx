@@ -9,6 +9,7 @@ import Jal, { Guide, type Mood } from "@/components/Mascot";
 import { SearchIcon } from "@/components/SiteHeader";
 import Swipe from "@/components/Swipe";
 import { seasonLabel } from "@/lib/data";
+import { STATUS_WORDS, acres, distanceToPond, loadPonds, type Pond } from "@/lib/ponds";
 import {
   type Check,
   type FloodEvent,
@@ -77,6 +78,7 @@ export default function CheckView() {
   const [events, setEvents] = useState<FloodEvent[]>([]);
   const [lakes, setLakes] = useState<CatalogLake[] | undefined>();
   const [copied, setCopied] = useState(false);
+  const [ponds, setPonds] = useState<Pond[]>([]);
 
   useEffect(() => {
     const lat = Number(params.get("lat")), lon = Number(params.get("lon"));
@@ -86,6 +88,7 @@ export default function CheckView() {
   useEffect(() => {
     loadFloodEvents().then(setEvents).catch(() => setEvents([]));
     fetch("/catalog/india.json").then((r) => r.json()).then(setLakes).catch(() => setLakes([]));
+    loadPonds().then((r) => setPonds(r.ponds)).catch(() => setPonds([]));
   }, []);
 
   // Follow a check by id: poll until it is done or failed.
@@ -174,6 +177,17 @@ export default function CheckView() {
     }
     return best;
   }, [pin, lakes]);
+  // Ponds found from space (Delhi): warn before anyone buys land that is, or was, a pond.
+  const pondHit = useMemo(() => {
+    if (!pin || !ponds.length) return null;
+    let best: { pond: Pond; d: number } | null = null;
+    for (const p of ponds) {
+      if (Math.abs(p.properties.lat - pin[1]) > 0.01 || Math.abs(p.properties.lon - pin[0]) > 0.01) continue;
+      const d = distanceToPond(pin[0], pin[1], p.geometry);
+      if (!best || d < best.d) best = { pond: p, d };
+    }
+    return best && best.d <= 50 ? best : null;
+  }, [pin, ponds]);
   const flood = useMemo(() => {
     if (!pin) return null;
     const e = events.find((ev) => inside(ev.bounds, pin[0], pin[1]));
@@ -207,7 +221,7 @@ export default function CheckView() {
             <SearchIcon />
             <input
               aria-label="Address, layout or landmark"
-              placeholder="Address, layout or landmark, e.g. Mallathahalli, Bengaluru"
+              placeholder="Address, colony or landmark, e.g. Hauz Khas, Delhi"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
             />
@@ -241,6 +255,22 @@ export default function CheckView() {
       )}
 
       {error && <p className="notice error" role="alert">{error}</p>}
+
+      {pondHit && (
+        <div className="card check-pond" role="alert">
+          <strong>
+            {pondHit.d === 0 ? "This spot is on a pond" : `This spot is ${Math.round(pondHit.d)} metres from a pond`}
+            {pondHit.pond.properties.status === "vanished" || pondHit.pond.properties.status === "shrank"
+              ? " that has dried up since 2021." : "."}
+          </strong>
+          <p className="small" style={{ margin: "6px 0" }}>
+            Pond {pondHit.pond.properties.id}, about {acres(pondHit.pond.properties.area_ha)}: {STATUS_WORDS[pondHit.pond.properties.status].plain.toLowerCase()}.
+            Land on a filled pond floods in heavy rain and can sink, and building on a water body can be against the law.
+            Ask the seller for the land records before you pay anything.
+          </p>
+          <Link className="small" href={`/ponds/pond/?id=${pondHit.pond.properties.id}`}>See the pond, and help bring it back</Link>
+        </div>
+      )}
 
       <div className={report ? "check-grid" : undefined}>
         <div className="map-wrap check-map-wrap">
@@ -443,23 +473,23 @@ function ReportDetails({ report }: { report: Report }) {
       <h3 style={{ marginTop: 24 }}>Season by season, at the pin</h3>
       <SeasonStrip report={report} />
 
-      <h3 style={{ marginTop: 24 }}>Buffer zones, measured from the water&rsquo;s edge</h3>
+      <h3 style={{ marginTop: 24 }}>Can you build here? No-build zones around the lake</h3>
       <div className="table-scroll"><table>
-        <thead><tr><th>Rule</th><th>Width</th><th>Status</th><th>This spot</th></tr></thead>
+        <thead><tr><th>Rule</th><th>Distance from the water</th><th>Is it law?</th><th>Your spot</th></tr></thead>
         <tbody>
           {f.buffer_rules.map((r) => (
             <tr key={r.rule}>
               <td>{RULE_LABEL[r.rule]}</td>
               <td>{r.width_m} metres</td>
               <td>{RULE_STATUS[r.status]}</td>
-              <td>{d === 0 ? "on the lake's water extent" : r.inside ? <strong>inside</strong> : "outside"}</td>
+              <td>{d === 0 ? "On the lake itself" : r.inside ? <strong>Inside the zone</strong> : "Outside the zone"}</td>
             </tr>
           ))}
         </tbody>
       </table></div>
       <p className="small muted">
-        Buffers here are measured from the largest water extent seen since 2019, not from the notified Full Tank Level
-        or the revenue map, which can differ. Ask the planning authority for the official line.
+        We measure from the furthest the water reached since 2019. The official lake line on government maps can be
+        different, so ask the city planning office before you buy.
       </p>
 
       {f.floods.length > 0 && (
