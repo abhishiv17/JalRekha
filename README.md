@@ -14,9 +14,10 @@ Discover a lake → compare historical satellite observations → inspect detect
 
 | Status | Lakes |
 | --- | --- |
-| Analysed (full pipeline, 2019–2026) | 12 lakes in Bengaluru, Hyderabad and Chennai |
+| Analysed (full pipeline, 2019–2026) | 27 lakes in Delhi, Bengaluru, Hyderabad and Chennai, plus any catalogued lake a visitor asks to track ("Track this lake") |
+| Delhi's ponds | 331 found from space; 59 dried up and 31 shrunk since 2019–2021 (`/ponds/`) |
 | Catalogued, queued for analysis | 7,165 named lakes across 35 states and union territories (OpenStreetMap) |
-| Flags hand-checked | 36 checked: 7 confirmed, 20 not confirmed, 9 can't tell (see [`research/`](research/README.md)) |
+| Flags checked on sharper photos | 46 checked: 14 confirmed, 21 not confirmed, 11 can't tell (see [`research/`](research/README.md)) |
 
 Demo lake: **Subedeharana Kere, Bengaluru**: 0.94 ac of lake bed turned to grassed land, lasting since the 2025 dry season (reported debris dumping in early 2024).
 
@@ -28,7 +29,7 @@ Drop a pin or search an address at `/check/`. For a 1.2 km square around the pin
 - **Does it get waterlogged?** Water at the pin after each monsoon (Nov–Dec).
 - **How close is the lake?** Distance to the largest water extent seen since 2019, and whether the spot falls inside the buffer zones (Karnataka 30 m and the proposed size-based tiers; Hyderabad 30 m / 9 m), measured from that edge.
 - **Did it flood?** Sentinel-1 radar flood maps of past events, starting with Bengaluru on 5 Sep 2022 (2.91 km² of standing floodwater outside the lakes).
-- **What does it mean?** A level (High risk / Watch / Low risk) set by fixed rules, explained in English, Kannada, Telugu and Hindi by Claude on Amazon Bedrock, with what to verify before paying. Save as PDF or share the link.
+- **What does it mean?** A level (High risk / Watch / Low risk) set by fixed rules, explained in English, Kannada, Telugu and Hindi, with what to verify before paying. The explanation is written by Claude on Amazon Bedrock once the account has model access (requested; AWS currently answers "Error 002"); until then it comes from a fixed English template translated by Amazon Translate. Save as PDF or share the link.
 
 It uses the pipeline's most reliable signal (was water there?), not the harder one (was a lake filled?). The hand-check above shows why: satellite change flags are leads, but water history is evidence.
 
@@ -38,11 +39,24 @@ It uses the pipeline's most reliable signal (was water there?), not the harder o
 | `POST /check`, `GET /check/<id>`, `GET /geocode` | API Gateway (HTTP) + Lambda |
 | One pin per run, 2–4 min | Lambda (container from ECR), invoked asynchronously |
 | Imagery | Sentinel-2 L2A and Sentinel-1 GRD from the Registry of Open Data on AWS |
-| Plain-language verdict | Amazon Bedrock (Claude), fixed-template fallback |
+| Plain-language verdict | Amazon Bedrock (Claude, pending account access), then Amazon Translate, then fixed templates |
 | Reports and images; status and cache | S3 (private, presigned links); DynamoDB |
 | Flood maps, container builds, tests | CodeBuild |
 
 Setup: [`infra/plot/setup.sh`](infra/plot/setup.sh). Code: [`pipeline/jalrekha/plot.py`](pipeline/jalrekha/plot.py), [`verdict.py`](pipeline/jalrekha/verdict.py), [`flood.py`](pipeline/jalrekha/flood.py).
+
+## Bring Delhi's ponds back
+
+`/ponds/` turns the pond scan into action, one pond at a time:
+
+1. **Find**: every pond in Delhi from Sentinel-2 (Nov–Jan medians, 2019–2025, clipped to Delhi's boundary), with before and after photos ([`ponds.py`](pipeline/jalrekha/ponds.py)).
+2. **Adopt**: a resident welfare association, school, college or company takes charge of a dried-up pond.
+3. **Route**: a ready letter to the agency that owns the land (DDA, MCD, DJB, PWD, Irrigation and Flood Control, Forest, or the district's District Magistrate), copied to the Wetland Authority of Delhi, and a CSR proposal for companies.
+4. **Clock**: each pond shows its stage, and `/ponds/board/` shows each agency's letters, answers and overdue cases (30 days).
+5. **Proof**: anyone can ask the satellite to look at a pond now (every clear pass of the last 75 days, [`pondcheck.py`](pipeline/jalrekha/pondcheck.py)); water back means "Revived", a claim the satellite can't see is flagged.
+6. **Prevent**: Plot Check warns when a pin is on, or within 50 m of, a pond.
+
+Cases live in DynamoDB behind the Plot Check API (`/ponds/cases`, `/ponds/<id>/adopt|stage|check`); space checks run on the worker Lambda.
 
 ## Repository layout
 
@@ -85,7 +99,7 @@ Thresholds live in [`pipeline/jalrekha/config.py`](pipeline/jalrekha/config.py) 
 | EventBridge Scheduler | Monthly re-scan, 5th at 03:00 IST | Live |
 | SNS | Email alerts, once per new dry season | Live; no subscribers yet |
 | API Gateway + Lambda | Results, `/watch`, `/unwatch` | Live |
-| Amplify Hosting | Web app | Not deployed yet; the site runs locally (`npm run dev`) |
+| Amplify Hosting | Web app | Live: https://main.d25xaqqlm27lpb.amplifyapp.com/ |
 
 Deployed resource names keep the original `kerewatch-*` prefix (see [`infra/README.md`](infra/README.md)); renaming them needs a migration, not a rename.
 
@@ -120,7 +134,7 @@ cd pipeline && python scripts/osm_india_lakes.py <cache_dir> ../data/catalog
 - 10 m pixels: a 30 m buffer is three pixels wide; small sheds and walls are missed.
 - History starts in 2019 (Sentinel-2 L2A is global from December 2018).
 - Legal works (walkways, sewage plants, desilting) also show as change.
-- Flags are leads, not findings: of 36 hand-checked, 7 were confirmed (see `research/flags_checked.csv`).
+- Flags are leads, not findings: of 46 checked on sharper photos, 14 were confirmed (see `research/flags_checked.csv`).
 - Plot Check measures buffers from the water seen since 2019, not the notified Full Tank Level or revenue map.
 - Radar flood maps miss water between tall buildings and floods that drained before the satellite passed; "not seen" is not "flood-free".
 
