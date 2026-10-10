@@ -210,7 +210,8 @@ export default function EvidenceView({ id, place: placeProp }: { id: string; pla
 
   return (
     <main>
-      <div className="row no-print" style={{ justifyContent: "space-between", marginBottom: 14 }}>
+      <div className="row no-print" style={{ justifyContent: "space-between", marginBottom: 14 }} data-jal-mood="writing"
+        data-jal={`This is the evidence pack for ${stats.name}: dated photos, areas and map points that anyone can re-check. Save it as a PDF to attach to a complaint.`}>
         <Link href={`/lake/${id}/`}>← Back to {stats.name}</Link>
         <div className="row">
           <button className="secondary" onClick={geojson} disabled={!flags.length}>Download map file (GeoJSON)</button>
@@ -366,7 +367,8 @@ export default function EvidenceView({ id, place: placeProp }: { id: string; pla
         <li>Losses before 2019 are outside this record.</li>
       </ul>
 
-      <h2 id="letters">Draft letters</h2>
+      <h2 id="letters" data-jal-mood="writing"
+        data-jal="And here are two letters, already filled in: a complaint to whoever looks after the lake, and an RTI request asking what was approved there. Fill in the parts in square brackets and send.">Draft letters</h2>
       <p className="small muted no-print">Filled from the largest flag. Complete the parts in [square brackets] before sending.</p>
       <Letter title="Complaint to the lake custodian" text={fill(templates.complaint, letterValues(top))} />
       <Letter title="RTI application" text={fill(templates.rti, letterValues(top))} />

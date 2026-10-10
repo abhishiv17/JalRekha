@@ -38,7 +38,8 @@ export default function Watchlist() {
 
   return (
     <main>
-      <div className="ripples" style={{ display: "grid", gap: 12, maxWidth: 760 }}>
+      <div className="ripples" style={{ display: "grid", gap: 12, maxWidth: 760 }} data-jal-mood="happy"
+        data-jal="This is your watchlist. Every month I look at your lakes again, and if more of one turns into land, you get one short email. No newsletters.">
         <span className="kicker">My alerts</span>
         <h1 style={{ margin: 0 }}>We&apos;ll keep an eye on it for you.</h1>
         <p className="lede">

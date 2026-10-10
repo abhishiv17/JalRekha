@@ -251,12 +251,34 @@ export default function LakeView({ id, place: placeProp }: { id: string; place?:
     setLayers((l) => ({ ...l, [k]: !l[k] }));
   };
 
+  // What Jal says about each part of this page when the guide is on.
+  const name = stats.name;
+  const jal = {
+    answer: status === "nodata"
+      ? `This is ${name}. Clouds hid it in too many years, so I can't judge it yet. I'll keep checking every month.`
+      : total > 0
+        ? `This is ${name}. About ${total.toFixed(1)} acres of it has turned into land since 2019. The two photos show it then and now; orange marks what was lost.`
+        : `This is ${name}. Good news: none of it has turned into land since 2019.`,
+    map: `This map shows ${name} from space, one year at a time. Blue is open water. Pick a year under the map to watch the lake change.`,
+    findings: total > 0
+      ? `Here are the numbers: ${ac(total)} lost, about ${pct.toFixed(1)} percent of the lake. The second box shows how much of it is inside the no-build zone around the lake.`
+      : "Here are the numbers. Nothing was lost, and nothing changed inside the no-build zone around the lake either.",
+    story: `Now the same lake step by step. Each step adds one layer to the real satellite photo.`,
+    compare: "Drag the white line to compare any two years side by side.",
+    flags: fs.length
+      ? `Each row is one place where the lake turned into land. ${heldUp.length ? `${heldUp.length} of them held up when we checked sharper photos. ` : ""}Tap a row and I'll fly the map there.`
+      : "I found no place where this lake turned into land.",
+    watch: total > 0
+      ? "If you want to act, start here. Download the dated proof and a complaint letter that's already written, or ask me to email you when something changes."
+      : "Want to keep an eye on this lake? Leave your email and I'll tell you if anything changes.",
+  };
+
   return (
     <main>
       <Link href="/lakes/" className="small" style={{ textDecoration: "none" }}>← All lakes</Link>
 
       {/* The answer a resident came for: what happened, why it matters, what to do. */}
-      <section className="answer" aria-labelledby="answer-title">
+      <section className="answer" aria-labelledby="answer-title" data-jal={jal.answer} data-jal-mood={total > 0 ? "worried" : "celebrate"}>
         <div className="answer-copy">
           <span className="kicker">{place ? placeLabel(place) : "Lake"}</span>
           <h1 id="answer-title">{stats.name}</h1>
@@ -354,7 +376,7 @@ export default function LakeView({ id, place: placeProp }: { id: string; place?:
       </div>
 
       <div className="grid2" style={{ marginTop: 20 }}>
-        <section id="lake-map" aria-label="Satellite map">
+        <section id="lake-map" aria-label="Satellite map" data-jal={jal.map} data-jal-mood="scanning">
           <div className="map-wrap">
             <LakeMap
               bounds={bounds}
@@ -433,7 +455,7 @@ export default function LakeView({ id, place: placeProp }: { id: string; place?:
           </div>
         </section>
 
-        <section aria-label="Findings" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        <section aria-label="Findings" style={{ display: "flex", flexDirection: "column", gap: 12 }} data-jal={jal.findings} data-jal-mood="thinking">
           <div className="card">
             <h2 style={{ marginTop: 0 }}>What changed</h2>
             <dl className="season-stats" style={{ gridTemplateColumns: "repeat(2, minmax(0, 1fr))", gap: "12px 16px" }}>
@@ -496,7 +518,7 @@ export default function LakeView({ id, place: placeProp }: { id: string; place?:
       </div>
 
       {usable.length > 1 && (
-        <section aria-labelledby="story-title" style={{ marginTop: 32 }}>
+        <section aria-labelledby="story-title" style={{ marginTop: 32 }} data-jal={jal.story} data-jal-mood="curious">
           <h2 id="story-title">{stats.name}, step by step</h2>
           <p className="lede" style={{ marginBottom: 20 }}>Use the arrows to go step by step. Each step adds one layer to the real satellite photo.</p>
           <LakePageStory id={id} name={stats.name} placeText={place ? placeLabel(place) : undefined} stats={stats}
@@ -506,7 +528,7 @@ export default function LakeView({ id, place: placeProp }: { id: string; place?:
       )}
 
       {before && after && usable.length > 1 && (
-        <section aria-labelledby="compare-title">
+        <section aria-labelledby="compare-title" data-jal={jal.compare} data-jal-mood="wink">
           <h2 id="compare-title">Compare two years</h2>
           <div className="card">
             <div className="compare">
@@ -541,7 +563,7 @@ export default function LakeView({ id, place: placeProp }: { id: string; place?:
       )}
 
       <h2 id="flags">Places where the lake was lost</h2>
-      <div className="card">
+      <div className="card" data-jal={jal.flags} data-jal-mood="searching">
         {fs.length === 0 ? (
           <p className="muted" style={{ margin: 0 }}>None found. The lake has kept its size since 2019.</p>
         ) : (
@@ -616,7 +638,7 @@ export default function LakeView({ id, place: placeProp }: { id: string; place?:
         </dl>
       </details>
 
-      <section id="watch" className="card ripples" style={{ marginTop: 24 }} aria-label="Act on these results">
+      <section id="watch" className="card ripples" style={{ marginTop: 24 }} aria-label="Act on these results" data-jal={jal.watch} data-jal-mood="celebrate">
         <div className="split" style={{ gap: 24, alignItems: "flex-start" }}>
           <div>
             <h2 style={{ marginTop: 0 }}>Help save this lake</h2>
