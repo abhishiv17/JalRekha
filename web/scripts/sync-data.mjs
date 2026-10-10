@@ -82,3 +82,11 @@ if (existsSync(checked)) {
 }
 writeFileSync(resolve(pub, "hand-checks.json"), JSON.stringify(checks));
 console.log(`synced ${Object.keys(checks).length} hand-checked spots`);
+
+// Ponds found from space, and which vanished (pipeline/jalrekha/ponds.py): one folder per city.
+const ponds = resolve(repo, "data", "ponds");
+rmSync(resolve(pub, "ponds"), { recursive: true, force: true });
+if (existsSync(ponds)) {
+  cpSync(ponds, resolve(pub, "ponds"), { recursive: true });
+  console.log(`synced ponds for ${readdirSync(ponds).join(", ")}`);
+}

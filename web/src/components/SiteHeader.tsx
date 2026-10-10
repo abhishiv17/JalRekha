@@ -58,6 +58,7 @@ export default function SiteHeader() {
           <Link href="/" className="brand" aria-label="JalRekha home"><Logo /></Link>
           <div className="nav-links">
             <Link className="link" href="/lakes/" aria-current={on("/lake")}>Lakes</Link>
+            <Link className="link" href="/ponds/" aria-current={on("/ponds")}>Missing ponds</Link>
             <Link className="link" href="/#how">How it works</Link>
             <Link className="link" href="/#method">How sure is it?</Link>
             <Link className="link" href="/watchlist/" aria-current={on("/watchlist")}>Watchlist</Link>

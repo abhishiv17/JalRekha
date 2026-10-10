@@ -49,3 +49,4 @@ next-env.d.ts
 !.env.example
 /public/floods
 /public/hand-checks.json
+/public/ponds
