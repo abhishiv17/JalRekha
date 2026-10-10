@@ -1,7 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import LakeCard from "@/components/LakeCard";
 import { EmptyState, Guide } from "@/components/Mascot";
 import { SearchIcon } from "@/components/SiteHeader";
@@ -19,6 +19,10 @@ const STATUS_LABELS: Record<StatusFilter, string> = {
   nodata: "Too cloudy to tell",
   queued: "Not tracked yet",
 };
+const km = (a: { lat: number; lon: number }, b: { lat?: number; lon?: number }) =>
+  b.lat == null || b.lon == null
+    ? Infinity
+    : Math.hypot((a.lat - b.lat) * 111, (a.lon - b.lon) * 111 * Math.cos((a.lat * Math.PI) / 180));
 const PAGE = 48;
 
 function Skeleton() {
@@ -46,6 +50,23 @@ export default function AllLakes() {
   const [sort, setSort] = useState<Sort>("change");
   const [q, setQ] = useState("");
   const [limit, setLimit] = useState(PAGE);
+  const [here, setHere] = useState<{ lat: number; lon: number } | null>(null);
+  const [locating, setLocating] = useState<string | null>(null);
+  const [filtersOpen, setFiltersOpen] = useState(false);
+
+  const nearMe = useCallback(() => {
+    if (!navigator.geolocation) return setLocating("This browser can't share a location; search by area instead.");
+    setLocating("Finding you…");
+    navigator.geolocation.getCurrentPosition(
+      (p) => { setHere({ lat: p.coords.latitude, lon: p.coords.longitude }); setLocating(null); },
+      () => setLocating("Location wasn't shared, so search by lake or area instead."),
+      { timeout: 10000, maximumAge: 600000 },
+    );
+  }, []);
+
+  useEffect(() => {
+    if (new URLSearchParams(window.location.search).get("near")) nearMe();
+  }, [nearMe]);
 
   useEffect(() => {
     loadIndex()
@@ -106,12 +127,16 @@ export default function AllLakes() {
       largest: (a, b) => (b.areaAc ?? 0) - (a.areaAc ?? 0),
       name: (a, b) => a.name.localeCompare(b.name),
     };
+    if (here) {
+      // Nearest first, within 25 km; your lake should be the first card you see.
+      return list.filter((c) => km(here, c) < 25).sort((a, b) => km(here, a) - km(here, b));
+    }
     return [...list].sort(by[sort]);
-  }, [all, state, status, kind, sort, q]);
+  }, [all, state, status, kind, sort, q, here]);
 
   const analysedShown = shown.filter((c) => c.analysed);
   const queuedShown = shown.filter((c) => !c.analysed);
-  const queuedSorted = sort === "change" || sort === "recent"
+  const queuedSorted = !here && (sort === "change" || sort === "recent")
     ? [...queuedShown].sort((a, b) => Number(!!b.thumb) - Number(!!a.thumb) || (b.areaAc ?? 0) - (a.areaAc ?? 0))
     : queuedShown;
   const loading = lakes === null || osm === null;
@@ -120,6 +145,11 @@ export default function AllLakes() {
   const guide = (() => {
     const a = analysedShown.length, n = queuedShown.length;
     const where = state === "All" ? "" : ` in ${state}`;
+    if (here) {
+      return shown.length
+        ? `${shown.length.toLocaleString("en-IN")} lakes within 25 km of you, nearest first. ${a ? `${a} of them I've checked.` : "I haven't checked any of these yet; they're mapped and waiting."}`
+        : "I don't have a mapped lake within 25 km of you yet. Try searching by city.";
+    }
     if (q.trim()) {
       const m = shown.length === 1 ? `1 lake matches "${q.trim()}".` : `${shown.length.toLocaleString("en-IN")} lakes match "${q.trim()}".`;
       if (shown.length === 1) return a ? `${m} I track it; open it to see every year since 2019.` : `${m} I don't track it yet, but you can still check plots near it.`;
@@ -142,33 +172,38 @@ export default function AllLakes() {
     setKind("any");
     setSort("change");
     setQ("");
+    setHere(null);
   };
 
   return (
     <main>
-      <span className="eyebrow">Lakes</span>
-      <div className="section-head" style={{ marginTop: 4 }}>
-        <div style={{ flex: "1 1 520px", minWidth: 0 }}>
-          <h1>Lakes</h1>
-          <p className="lede">
-            {loading
-              ? "Loading lakes…"
-              : `${analysedTotal} lakes tracked closely · ${(all.length - analysedTotal).toLocaleString("en-IN")} more on the map across ${states.length} states and union territories.`}
-          </p>
+      <div className="find-head ripples" style={{ marginBottom: 20 }}>
+        <span className="eyebrow">Lakes</span>
+        <h1 style={{ margin: 0 }}>Lakes</h1>
+        <p className="lede">
+          {loading
+            ? "Loading lakes…"
+            : `${analysedTotal} lakes tracked closely · ${(all.length - analysedTotal).toLocaleString("en-IN")} more on the map across ${states.length} states and union territories.`}
+        </p>
+        <label htmlFor="lake-search" className="sr-only">Search by lake, area, town or state</label>
+        <div className="search-pill">
+          <SearchIcon />
+          <input id="lake-search" type="search" placeholder="Lake, area or town, e.g. Bhalswa, Mallathahalli, Jakkur" value={q}
+            onChange={(e) => { setQ(e.target.value); setHere(null); }} />
         </div>
-        <div style={{ flex: "0 1 340px", minWidth: 0 }}>
-          <label htmlFor="lake-search" className="small" style={{ fontWeight: 600, display: "block", marginBottom: 6 }}>
-            Search by lake, town or state
-          </label>
-          <div className="search-pill">
-            <SearchIcon />
-            <input id="lake-search" type="search" placeholder="e.g. Jakkur, Udaipur, Kerala" value={q}
-              onChange={(e) => setQ(e.target.value)} />
-          </div>
+        <div className="row" style={{ gap: 16 }}>
+          {here
+            ? <button type="button" className="near-me" onClick={() => setHere(null)}>Show all lakes again</button>
+            : <button type="button" className="near-me" onClick={nearMe}>Show lakes near me</button>}
+          {locating && <span className="small muted" role="status">{locating}</span>}
         </div>
       </div>
 
-      <div className="filters" role="search" aria-label="Filter lakes">
+      <button type="button" className="secondary filters-toggle" aria-expanded={filtersOpen} aria-controls="lake-filters"
+        onClick={() => setFiltersOpen((o) => !o)}>
+        {filtersOpen ? "Hide filters" : "Filter by state or status"}
+      </button>
+      <div id="lake-filters" className={`filters${filtersOpen ? "" : " collapsed"}`} role="search" aria-label="Filter lakes">
         <div className="field" style={{ flex: "1 1 200px" }}>
           <label htmlFor="state">State</label>
           <select id="state" value={state} onChange={(e) => setState(e.target.value)}>
@@ -177,7 +212,7 @@ export default function AllLakes() {
           </select>
         </div>
         <div className="field" style={{ flex: "1 1 180px" }}>
-          <label htmlFor="status">Status</label>
+          <label htmlFor="status">What we found</label>
           <select id="status" value={status} onChange={(e) => setStatus(e.target.value as StatusFilter)}>
             {(Object.keys(STATUS_LABELS) as StatusFilter[]).map((k) => <option key={k} value={k}>{STATUS_LABELS[k]}</option>)}
           </select>
@@ -216,7 +251,7 @@ export default function AllLakes() {
             <section aria-labelledby="analysed-title" style={{ marginBottom: 56 }}>
               <div className="count-head">
                 <h2 id="analysed-title">Lakes we track</h2>
-                <span className="muted">{analysedShown.length} with results from the full pipeline · flags not yet hand-checked</span>
+                <span className="muted">{analysedShown.length} with results from the full pipeline · each lake page says which spots were checked on sharper photos</span>
               </div>
               <div className="lake-grid">{analysedShown.map((c) => <LakeCard key={c.id} c={c} />)}</div>
             </section>
@@ -227,7 +262,7 @@ export default function AllLakes() {
               <div className="count-head">
                 <h2 id="queued-title">All lakes in India</h2>
                 <span className="muted">
-                  {queuedSorted.length.toLocaleString("en-IN")} named lakes from OpenStreetMap · queued, no results yet
+                  {queuedSorted.length.toLocaleString("en-IN")} named lakes from OpenStreetMap · no results yet, which isn&apos;t the same as no change
                 </span>
               </div>
               <div style={{ marginBottom: 28 }}><IndiaMap lakes={shown} /></div>

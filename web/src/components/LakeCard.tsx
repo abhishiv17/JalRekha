@@ -11,7 +11,7 @@ export default function LakeCard({ c, facts = true }: { c: Card; facts?: boolean
   const tag = (c.city || c.state).toUpperCase();
   const body = (
     <>
-      <div className="lake-thumb">
+      <div className={`lake-thumb${c.thumb?.includes("/truecolor/") ? " raw" : ""}`}>
         {c.thumb ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img src={c.thumb} crossOrigin="anonymous" alt={`Satellite view of ${c.name}`} loading="lazy" />

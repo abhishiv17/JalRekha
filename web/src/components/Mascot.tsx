@@ -1,7 +1,7 @@
 "use client";
 
-// "Jal", the lake guardian: a chibi Indian freshwater pond turtle, head and shoulders,
-// whose shell carries lake-contour lines. The eyes follow the cursor and it blinks
+// "Jal", the lake guardian: a chibi Indian freshwater pond turtle, full body: a domed
+// shell with scutes (lake contours on the centre one), flippers and a striped head. The eyes follow the cursor and it blinks
 // when poked (both off under reduced motion). Jal is the logo and a quiet guide at each
 // step (see Guide); it stays out of the printed evidence report.
 //
@@ -25,45 +25,62 @@ function Bust({ look, blink, mood = "happy" }: BustProps) {
   const eyeLook = look.x || look.y ? look : gaze;
   const eye = (cx: number) =>
     mood === "celebrate" ? (
-      <path d={`M${cx - 7} 61 q7 -9 14 0`} fill="none" stroke={INK} strokeWidth="2.8" strokeLinecap="round" />
+      <path d={`M${cx - 5.5} 68 q5.5 -7 11 0`} fill="none" stroke={INK} strokeWidth="2.6" strokeLinecap="round" />
     ) : blink ? (
-      <path d={`M${cx - 7} 59 q7 4 14 0`} fill="none" stroke={INK} strokeWidth="2.6" strokeLinecap="round" />
+      <path d={`M${cx - 5.5} 67 q5.5 3.5 11 0`} fill="none" stroke={INK} strokeWidth="2.4" strokeLinecap="round" />
     ) : (
       <g>
-        <ellipse cx={cx} cy={58} rx={7.6} ry={8.8} fill="#1d2420" />
-        <g transform={`translate(${eyeLook.x} ${eyeLook.y})`}>
-          <circle cx={cx - 2.4} cy={54.6} r={2.8} fill="#fff" />
-          <circle cx={cx + 2.6} cy={61.2} r={1.3} fill="#fff" />
+        <ellipse cx={cx} cy={66} rx={5.6} ry={6.6} fill="#1d2420" />
+        <g transform={`translate(${eyeLook.x * 0.8} ${eyeLook.y * 0.8})`}>
+          <circle cx={cx - 1.8} cy={63.4} r={2.1} fill="#fff" />
+          <circle cx={cx + 2} cy={68.4} r={1} fill="#fff" />
         </g>
       </g>
     );
+  const SKIN = "#8cc49a";
+  const SKIN_DARK = "#5f9e72";
   return (
     <>
       <defs>
         <clipPath id={clip}>
-          <path d="M14 120C14 93 34 79 60 79s46 14 46 41Z" />
+          <path d="M12 92C12 54 34 30 60 30s48 24 48 62Z" />
         </clipPath>
       </defs>
       {/* soft ground shadow */}
-      <ellipse cx="60" cy="117" rx="44" ry="5" fill="#000" opacity="0.06" />
-      {/* shell on the shoulders, with lake contours */}
-      <path d="M14 120C14 93 34 79 60 79s46 14 46 41Z" fill="var(--brand)" stroke={INK} strokeWidth="2.4" strokeLinejoin="round" />
-      <g clipPath={`url(#${clip})`} fill="none" stroke="var(--sage)" strokeWidth="2.2">
-        <path d="M24 122c0-21 16-33 36-33s36 12 36 33" />
-        <path d="M35 122c0-14 11-23 25-23s25 9 25 23" strokeOpacity="0.85" />
-        <path d="M46 122c0-8 6-13 14-13s14 5 14 13" strokeOpacity="0.7" />
+      <ellipse cx="60" cy="113" rx="48" ry="5" fill="#000" opacity="0.07" />
+      {/* back feet and a tail peeking out */}
+      <ellipse cx="17" cy="96" rx="9" ry="6" fill={SKIN} stroke={INK} strokeWidth="2.2" />
+      <ellipse cx="103" cy="96" rx="9" ry="6" fill={SKIN} stroke={INK} strokeWidth="2.2" />
+      {/* domed shell with scutes; the centre scute carries lake contours */}
+      <path d="M12 92C12 54 34 30 60 30s48 24 48 62Z" fill="var(--brand)" stroke={INK} strokeWidth="2.4" strokeLinejoin="round" />
+      <g clipPath={`url(#${clip})`} fill="none" stroke="#a9d3b4" strokeWidth="2" strokeLinejoin="round">
+        <path d="M46 44l14-8 14 8v14l-14 8-14-8Z" />
+        <path d="M46 58l-14 6M74 58l14 6M46 44l-12-6M74 44l12-6M60 66v26M32 64l-4 28M88 64l4 28" />
+        <path d="M52 51c0-3 4-5 8-5s8 2 8 5-4 5-8 5-8-2-8-5Z" strokeOpacity="0.8" />
       </g>
-      <rect x="40" y="76" width="40" height="10" rx="5" fill="#5f9e72" stroke={INK} strokeWidth="2.2" />
-      {/* head */}
-      <path d="M26 56c0-20 15-34 34-34s34 14 34 34c0 17-14 28-34 28S26 73 26 56Z" fill="#7cb98a" stroke={INK} strokeWidth="2.6" strokeLinejoin="round" />
-      <path d="M44 30c4-3 10-4 16-4" fill="none" stroke="#fff" strokeOpacity="0.45" strokeWidth="3" strokeLinecap="round" />
-      <ellipse cx="74" cy="33" rx="4" ry="2.6" fill="#5f9e72" />
-      <ellipse cx="81" cy="40" rx="2.6" ry="1.8" fill="#5f9e72" />
-      {eye(47)}
-      {eye(73)}
-      {/* cheeks and smile */}
-      <ellipse cx="37" cy="68" rx="5.4" ry="3.2" fill="#f2a196" opacity="0.75" />
-      <ellipse cx="83" cy="68" rx="5.4" ry="3.2" fill="#f2a196" opacity="0.75" />
+      <path d="M28 40c6-6 14-9 22-10" fill="none" stroke="#fff" strokeOpacity="0.35" strokeWidth="3" strokeLinecap="round" />
+      {/* shell rim (marginal scutes) */}
+      <path d="M10 92h100v4a6 6 0 0 1-6 6H16a6 6 0 0 1-6-6Z" fill="#2f7a52" stroke={INK} strokeWidth="2.2" strokeLinejoin="round" />
+      <path d="M24 92v10M38 92v10M82 92v10M96 92v10" stroke={INK} strokeOpacity="0.45" strokeWidth="1.6" />
+      {/* front flippers with claws */}
+      <path d="M30 98c-4 6-4 12 2 14 6 1 11-2 12-8" fill={SKIN} stroke={INK} strokeWidth="2.2" strokeLinejoin="round" />
+      <path d="M90 98c4 6 4 12-2 14-6 1-11-2-12-8" fill={SKIN} stroke={INK} strokeWidth="2.2" strokeLinejoin="round" />
+      <path d="M31 109l-2 3M35 111l-1 3M89 109l2 3M85 111l1 3" stroke={INK} strokeWidth="1.6" strokeLinecap="round" />
+      {/* neck and head, poking out in front of the shell */}
+      <path d="M48 96c0-8 5-12 12-12s12 4 12 12" fill={SKIN} stroke={INK} strokeWidth="2.2" />
+      <path d="M38 70c0-14 10-22 22-22s22 8 22 22c0 13-10 21-22 21S38 83 38 70Z" fill={SKIN} stroke={INK} strokeWidth="2.6" strokeLinejoin="round" />
+      {/* yellow head stripes of an Indian pond turtle, and a couple of spots */}
+      <path d="M41 64c3-5 7-8 11-9M79 64c-3-5-7-8-11-9" fill="none" stroke="#f2d46b" strokeWidth="2.2" strokeLinecap="round" />
+      <circle cx="60" cy="55" r="2.2" fill={SKIN_DARK} />
+      <circle cx="54" cy="52" r="1.4" fill={SKIN_DARK} />
+      <circle cx="66" cy="52" r="1.4" fill={SKIN_DARK} />
+      {eye(51)}
+      {eye(69)}
+      {/* nostrils, cheeks, then the mood: mouth, brows and extras */}
+      <circle cx="58" cy="74" r="0.9" fill={INK} />
+      <circle cx="62" cy="74" r="0.9" fill={INK} />
+      <ellipse cx="44" cy="76" rx="4" ry="2.4" fill="#f2a196" opacity="0.7" />
+      <ellipse cx="76" cy="76" rx="4" ry="2.4" fill="#f2a196" opacity="0.7" />
       <Mouth mood={mood} />
       <Brows mood={mood} />
       <Extras mood={mood} />
@@ -76,29 +93,29 @@ function Mouth({ mood }: { mood: Mood }) {
   switch (mood) {
     case "thinking":
     case "scanning":
-      return <ellipse cx="62" cy="72" rx="2.6" ry="2.2" fill={INK} />;
+      return <ellipse cx="61" cy="80" rx="2.2" ry="1.9" fill={INK} />;
     case "cautious":
-      return <path d="M55 72h10" {...line} />;
+      return <path d="M55 80h10" {...line} />;
     case "worried":
-      return <path d="M54 73q3 -3 6 0t6 0" {...line} />;
+      return <path d="M54 81q3 -3 6 0t6 0" {...line} />;
     case "celebrate":
-      return <path d="M53 69q7 8 14 0Z" fill="#c4544b" stroke={INK} strokeWidth="2" strokeLinejoin="round" />;
+      return <path d="M53 78q7 7 14 0Z" fill="#c4544b" stroke={INK} strokeWidth="2" strokeLinejoin="round" />;
     default:
-      return <path d="M55 70q5 4 10 0" {...line} />;
+      return <path d="M53 79q7 5 14 0" {...line} />;
   }
 }
 
 function Brows({ mood }: { mood: Mood }) {
-  const line = { fill: "none", stroke: INK, strokeWidth: 2.4, strokeLinecap: "round" as const };
-  if (mood === "worried") return <g {...line}><path d="M40 45l11 3" /><path d="M80 45l-11 3" /></g>;
-  if (mood === "cautious") return <g {...line}><path d="M41 47h11" /><path d="M68 44q6 -4 12 0" /></g>;
-  if (mood === "thinking") return <g {...line}><path d="M41 46q6 -3 11 0" /><path d="M68 44q6 -3 11 1" /></g>;
+  const line = { fill: "none", stroke: INK, strokeWidth: 2.2, strokeLinecap: "round" as const };
+  if (mood === "worried") return <g {...line}><path d="M45 54l9 3" /><path d="M75 54l-9 3" /></g>;
+  if (mood === "cautious") return <g {...line}><path d="M46 56h9" /><path d="M65 54q4.5 -3.5 9 0" /></g>;
+  if (mood === "thinking") return <g {...line}><path d="M46 55q4.5 -2.5 9 0" /><path d="M65 54q4.5 -2.5 9 1" /></g>;
   return null;
 }
 
 function Extras({ mood }: { mood: Mood }) {
   if (mood === "scanning") {
-    // A small satellite sweeping over the head, like a scanner.
+    // A small satellite sweeping over the shell, like a scanner.
     return (
       <g className="jal-orbit">
         <g transform="translate(60 52)">
@@ -121,7 +138,7 @@ function Extras({ mood }: { mood: Mood }) {
     );
   }
   if (mood === "worried") {
-    return <path className="jal-drop" d="M92 34c3 5 5 8 5 10a5 5 0 0 1-10 0c0-2 2-5 5-10Z" fill="#8cc8f0" stroke={INK} strokeWidth="1.6" />;
+    return <path className="jal-drop" d="M85 49c3 5 5 8 5 10a5 5 0 0 1-10 0c0-2 2-5 5-10Z" fill="#8cc8f0" stroke={INK} strokeWidth="1.6" />;
   }
   if (mood === "celebrate") {
     const star = (x: number, y: number, r: number) =>
@@ -130,7 +147,7 @@ function Extras({ mood }: { mood: Mood }) {
       <g className="jal-sparkle" fill="#f5c542" stroke={INK} strokeWidth="1.2">
         <path d={star(16, 26, 7)} />
         <path d={star(104, 18, 6)} />
-        <path d={star(108, 62, 4)} />
+        <path d={star(110, 60, 4)} />
       </g>
     );
   }

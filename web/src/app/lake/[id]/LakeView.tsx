@@ -6,13 +6,16 @@ import { useEffect, useMemo, useState } from "react";
 import AreaChart from "@/components/AreaChart";
 import type { Layers } from "@/components/LakeMap";
 import { Guide, Loader } from "@/components/Mascot";
-import { Outlines } from "@/components/OutlinedImage";
+import OutlinedImage, { Outlines } from "@/components/OutlinedImage";
 import Swipe from "@/components/Swipe";
 import WatchForm from "@/components/WatchForm";
 import { ANALYSED_META, KIND_LABELS, placeLabel } from "@/lib/catalog";
 import {
+  type Checks,
   type FeatureCollection,
+  type FlagCheck,
   type FlagProps,
+  loadChecks,
   type Stats,
   drySeasons,
   kindLabel,
@@ -40,13 +43,39 @@ const ac = (n: number) => `${n.toFixed(2)} acres`;
 // How sure, from the pipeline's confidence (pipeline/jalrekha/change.py).
 const SURE: Record<string, string> = { high: "Sure", medium: "Fairly sure", low: "Not sure yet" };
 
-// A person compared the spot with older high-resolution photos (research/flags_checked.csv).
-type HandCheck = { verdict: string; seen: string; dates: string; source: string };
+// What a check on older, sharper photos found (loadChecks; research/flags_checked.csv).
 const CHECKED: Record<string, string> = {
-  confirmed: "Yes: lake really lost",
-  "not confirmed": "Yes: no loss found",
-  "can't tell": "Yes: unclear",
+  confirmed: "lake really lost",
+  "not confirmed": "no loss found",
+  "can't tell": "unclear",
 };
+
+// Plain-language scales for the headline. A football pitch (105 × 68 m) is about 1.76 acres;
+// a 30×40 ft plot is 111.5 m² (36 to an acre); one acre of lake, one metre deep, holds 4,047 m³ (about 40 lakh litres).
+const PITCH_AC = 1.76;
+const LITRES_PER_AC_M = 4_046_856;
+
+function pitches(acres: number) {
+  const n = acres / PITCH_AC;
+  if (n < 0.35) return `about ${Math.max(2, Math.round(acres * 36.3))} house plots of 30×40 ft`;
+  if (n < 0.75) return "about half a football pitch";
+  if (n < 1.5) return "about one football pitch";
+  return `about ${Math.round(n)} football pitches`;
+}
+
+function litres(acres: number) {
+  const l = acres * LITRES_PER_AC_M;
+  return l >= 1e7 ? `${(l / 1e7).toFixed(1)} crore litres` : `${Math.round(l / 1e5)} lakh litres`;
+}
+
+/** Did this flag hold up when compared with high-resolution historical photos? */
+function CheckChip({ c }: { c?: FlagCheck }) {
+  if (!c) return <span className="flag-check none">Not yet</span>;
+  const who = c.by === "person" ? "checked by a person" : "AI-assisted check";
+  const [cls, text] =
+    c.verdict === "confirmed" ? ["confirmed", "Lake really lost"] : c.verdict === "not confirmed" ? ["not", "No loss found"] : ["unsure", "Unclear"];
+  return <span className={`flag-check ${cls}`} title={`${c.note} (${who}; photos ${c.dates})`}>{text}</span>;
+}
 
 export default function LakeView({ id }: { id: string }) {
   const [data, setData] = useState<Loaded | null>(null);
@@ -60,17 +89,14 @@ export default function LakeView({ id }: { id: string }) {
   const [before, setBefore] = useState<string | null>(null);
   const [after, setAfter] = useState<string | null>(null);
   // What Jal last reacted to; drives the narration next to the map.
-  const [checks, setChecks] = useState<Record<string, HandCheck>>({});
   const [said, setSaid] = useState<{ kind: "intro" | "season" | "flag" | "buffer" | "landcover"; ref?: string | number }>({ kind: "intro" });
-
-  useEffect(() => {
-    fetch("/hand-checks.json").then((r) => r.json()).then(setChecks).catch(() => setChecks({}));
-  }, []);
+  const [checks, setChecks] = useState<Checks>({ as_of: "", flags: {} });
 
   // A failed image belongs to one season; clear the notice when the season changes.
   useEffect(() => setMapError(null), [season]);
 
   useEffect(() => {
+    loadChecks(id).then(setChecks);
     Promise.all([loadStats(id), loadFlags(id), loadReference(id), loadBounds(id)])
       .then(([stats, flags, reference, b]) => {
         setData({ stats, flags, reference, bounds: b.bounds });
@@ -93,7 +119,7 @@ export default function LakeView({ id }: { id: string }) {
       </main>
     );
   }
-  if (!data || !season) return <main><Loader label="Pulling up every dry season since 2019…" /></main>;
+  if (!data || !season) return <main><Loader label="Pulling up every summer since 2019…" /></main>;
 
   const { stats, flags, reference, bounds } = data;
   const place = ANALYSED_META[id];
@@ -116,6 +142,8 @@ export default function LakeView({ id }: { id: string }) {
   const status = !enoughData ? "nodata" : total > 0 ? "changed" : "steady";
   const statusText = status === "nodata" ? "Not enough clear photos" : status === "changed" ? "Lake is shrinking" : "Lake looks stable";
   const last = usable.at(-1)!.season;
+  const checkedFs = fs.filter((f) => checks.flags[f.flag_id]);
+  const heldUp = checkedFs.filter((f) => checks.flags[f.flag_id].verdict === "confirmed");
 
   const narration = (() => {
     const base = usable[0];
@@ -127,10 +155,13 @@ export default function LakeView({ id }: { id: string }) {
         const n = f.flag_id.split("-").at(-1);
         const what = f.kind === "vegetated_land" ? "lake bed that dried up and grassed over" : "soil dumped or built on";
         const where = f.zone === "buffer" ? "within 30 metres of the lake, where building is not allowed" : "inside the lake";
-        const hand = checks[f.flag_id];
+        const c = checks.flags[f.flag_id];
+        const hand = c
+          ? ` ${c.by === "person" ? "A person" : "An AI-assisted review"} checked it on sharper photos: ${CHECKED[c.verdict] ?? "unclear"}. ${c.note.replace(/\.?$/, ".")}`
+          : " Nobody has checked it on sharper photos yet, so treat it as a lead.";
         return `Spot ${n}: ${ac(f.area_ac)} of ${what}, ${where}. I first saw it in ${yearOf(f.first_seen)}${
           f.status === "confirmed" ? ", and it stayed land the next year too" : ". It has been land in only one year so far, so it needs another look next year"
-        }. ${SURE[f.confidence]}.${hand ? ` A person checked it: ${CHECKED[hand.verdict] ?? hand.verdict}. They saw: ${hand.seen}` : ""}`;
+        }. ${SURE[f.confidence]}.${hand}`;
       }
     }
     if (said.kind === "buffer") {
@@ -181,12 +212,77 @@ export default function LakeView({ id }: { id: string }) {
     <main>
       <Link href="/lakes/" className="small" style={{ textDecoration: "none" }}>← All lakes</Link>
 
-      <div className="lake-header" style={{ marginTop: 10 }}>
+      {/* The answer a resident came for: what happened, why it matters, what to do. */}
+      <section className="answer" aria-labelledby="answer-title">
+        <div className="answer-copy">
+          <span className="kicker">{place ? placeLabel(place) : "Lake"}</span>
+          <h1 id="answer-title">{stats.name}</h1>
+          <p className={`lake-verdict ${status}`}>
+            {status === "nodata"
+              ? "Not enough clear satellite photos to judge this lake yet."
+              : total > 0
+                ? `About ${total.toFixed(1)} acres of this lake and its protected edge has turned into land since ${yearOf(usable[0].season)}.`
+                : `No lasting loss found. This lake has held its ground since ${yearOf(usable[0].season)}.`}
+          </p>
+          <p className="lede">
+            {status === "nodata" ? (
+              <>Clouds hid it in too many summers. We&apos;ll keep checking every month; ask for an alert below.</>
+            ) : total > 0 ? (
+              <>
+                That&apos;s {pitches(total)}{earliest && <>, first seen in {yearOf(earliest)}</>}. That much lake holds about {litres(total)} of
+                monsoon water for every metre of depth: water that would otherwise run into streets, and that refills the
+                borewells around it.
+              </>
+            ) : (
+              <>
+                We compared every summer from {yearOf(usable[0].season)} to {yearOf(last)}, and nothing in the lake bed or
+                its 30 m edge turned to land and stayed. We&apos;ll email you if that changes.
+              </>
+            )}
+          </p>
+          {checkedFs.length > 0 && (
+            <div className="care-note">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" aria-hidden="true">
+                <path d="M20 6 9 17l-5-5" />
+              </svg>
+              <span>
+                We went back and compared {checkedFs.length === fs.length ? "every one" : `${checkedFs.length}`} of the {fs.length}{" "}
+                {fs.length === 1 ? "patch" : "patches"} here with high-resolution photos:{" "}
+                <strong>{heldUp.length} held up</strong>. <a href="#flags">See which</a>
+              </span>
+            </div>
+          )}
+          <div className="row answer-actions no-print">
+            {total > 0 && <Link className="button big" href={`/lake/${id}/evidence/#letters`}>Report it</Link>}
+            <a className={`button big${total > 0 ? " secondary" : ""}`} href="#watch">Alert me</a>
+            <a className="button big secondary" href="#explore">See the proof</a>
+          </div>
+          <p className="small muted" style={{ margin: 0 }}>
+            Satellites show that land changed, not who changed it or whether it was allowed. Check on the ground and in
+            official records before you complain.
+          </p>
+        </div>
+        {usable.length > 1 && (
+          <div className="then-now" aria-label={`${stats.name} in ${yearOf(usable[0].season)} and ${yearOf(last)}`}>
+            {[usable[0].season, last].map((s, i) => (
+              <figure key={s}>
+                <OutlinedImage src={lakeUrl(id, `truecolor/${s}.png`)} alt={`${stats.name}, January–April ${yearOf(s)}`}
+                  bounds={bounds} reference={reference} flags={i ? flags : undefined} />
+                <figcaption><b>{i ? "Now" : "Then"}</b> Jan–Apr {yearOf(s)}</figcaption>
+              </figure>
+            ))}
+            <p className="small muted">White: the lake. Orange: where it turned into land.</p>
+          </div>
+        )}
+      </section>
+      {stats.sample && <p className="notice">Sample data, not real results.</p>}
+      {place?.note && <p className="notice"><strong>Read this first:</strong> {place.note}</p>}
+
+      <div id="explore" className="lake-header" style={{ marginTop: 36 }}>
         <div style={{ minWidth: 0, flex: "1 1 560px" }}>
           <span className="eyebrow">How this lake changed</span>
-          <h1>{stats.name}</h1>
-          <div className="row" style={{ gap: 10 }}>
-            {place && <span className="lede">{placeLabel(place)}</span>}
+          <h2 style={{ margin: "4px 0 0" }}>Every year since 2019, on the map</h2>
+          <div className="row" style={{ gap: 10, marginTop: 8 }}>
             <span className={`pill ${status}`}>{statusText}</span>
           </div>
           <p className="summary-line">
@@ -210,12 +306,9 @@ export default function LakeView({ id }: { id: string }) {
           </div>
         </div>
         <div className="row no-print" style={{ gap: 10 }}>
-          <Link className="button" href={`/lake/${id}/evidence/`}>Download proof</Link>
-          <a className="button secondary" href="#watch">Watch this lake</a>
+          <Link className="button secondary" href={`/lake/${id}/evidence/`}>Download proof</Link>
         </div>
       </div>
-      {stats.sample && <p className="notice">Sample data, not real results.</p>}
-      {place?.note && <p className="notice"><strong>Read this first:</strong> {place.note}</p>}
 
       <div className="grid2" style={{ marginTop: 20 }}>
         <section id="lake-map" aria-label="Satellite map">
@@ -383,39 +476,60 @@ export default function LakeView({ id }: { id: string }) {
         </section>
       )}
 
-      <h2>Places where the lake was lost</h2>
+      <h2 id="flags">Places where the lake was lost</h2>
       <div className="card">
         {fs.length === 0 ? (
           <p className="muted" style={{ margin: 0 }}>None found. The lake has kept its size since 2019.</p>
         ) : (
-          <div className="table-scroll"><table>
-            <thead>
-              <tr><th>Spot</th><th>Where</th><th>What happened</th><th className="num">Size</th><th>First seen</th><th>Lasted?</th><th>How sure</th><th>Checked by a person</th></tr>
-            </thead>
-            <tbody>
-              {fs.map((f) => (
-                <tr key={f.flag_id} className={`clickable${zoomTo === f.flag_id ? " active" : ""}`} tabIndex={0}
-                  title="Show this spot on the map"
-                  onClick={() => zoom(f.flag_id)}
-                  onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), zoom(f.flag_id))}
-                  onMouseEnter={() => setFocusFlag(f.flag_id)} onMouseLeave={() => setFocusFlag(zoomTo)}>
-                  <td>{f.flag_id.split("-").at(-1)}</td>
-                  <td>{f.zone === "lakebed" ? "Inside the lake" : "Within 30 metres of the lake"}</td>
-                  <td>{kindLabel(f.kind)}</td>
-                  <td className="num">{ac(f.area_ac)}</td>
-                  <td>{yearOf(f.first_seen)}</td>
-                  <td>{f.status === "confirmed" ? "Yes, 2+ years" : "Only 1 year so far"}</td>
-                  <td><span className={`pill ${f.confidence}`}>{SURE[f.confidence]}</span></td>
-                  <td title={checks[f.flag_id]?.seen}>{checks[f.flag_id] ? CHECKED[checks[f.flag_id].verdict] ?? checks[f.flag_id].verdict : "Not yet"}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table></div>
+          <>
+            <div className="table-scroll flag-table"><table>
+              <thead>
+                <tr><th>Spot</th><th>Where</th><th>What happened</th><th className="num">Size</th><th>First seen</th><th>Lasted?</th><th>How sure</th><th>Checked on sharper photos</th></tr>
+              </thead>
+              <tbody>
+                {fs.map((f) => (
+                  <tr key={f.flag_id} className={`clickable${zoomTo === f.flag_id ? " active" : ""}`} tabIndex={0}
+                    title="Show this spot on the map"
+                    onClick={() => zoom(f.flag_id)}
+                    onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), zoom(f.flag_id))}
+                    onMouseEnter={() => setFocusFlag(f.flag_id)} onMouseLeave={() => setFocusFlag(zoomTo)}>
+                    <td>{f.flag_id.split("-").at(-1)}</td>
+                    <td>{f.zone === "lakebed" ? "Inside the lake" : "Within 30 metres of the lake"}</td>
+                    <td>{kindLabel(f.kind)}</td>
+                    <td className="num">{ac(f.area_ac)}</td>
+                    <td>{yearOf(f.first_seen)}</td>
+                    <td>{f.status === "confirmed" ? "Yes, 2+ years" : "Only 1 year so far"}</td>
+                    <td><span className={`pill ${f.confidence}`}>{SURE[f.confidence]}</span></td>
+                    <td><CheckChip c={checks.flags[f.flag_id]} /></td>
+                  </tr>
+                ))}
+              </tbody>
+            </table></div>
+            <ul className="flag-list">
+              {fs.map((f) => {
+                const c = checks.flags[f.flag_id];
+                return (
+                  <li key={f.flag_id}>
+                    <div className="row" style={{ justifyContent: "space-between" }}>
+                      <strong>Spot {f.flag_id.split("-").at(-1)} · {ac(f.area_ac)}</strong>
+                      <CheckChip c={c} />
+                    </div>
+                    <span className="small" style={{ color: "var(--body)" }}>
+                      {kindLabel(f.kind)}, {f.zone === "lakebed" ? "inside the lake" : "within 30 metres of the lake"}, first seen{" "}
+                      {yearOf(f.first_seen)}. {f.status === "confirmed" ? "Lasted 2+ years" : "Only 1 year so far"}. {SURE[f.confidence]}.
+                    </span>
+                    {c && <span className="small muted">{c.note}</span>}
+                    <button type="button" className="ghost" onClick={() => zoom(f.flag_id)}>Show on map</button>
+                  </li>
+                );
+              })}
+            </ul>
+          </>
         )}
         <dl className="explain small">
           <div><dt>Lasted?</dt><dd><b>Yes, 2+ years</b>: the spot was land in two or more dry seasons in a row. <b>Only 1 year so far</b>: land in the latest year only; it could be a dry year.</dd></div>
           <div><dt>How sure</dt><dd><b>Sure</b>: land 2+ years in a row, and still land after every monsoon since. <b>Fairly sure</b>: land 2+ years, but water came back after some monsoons. <b>Not sure yet</b>: land in one year only.</dd></div>
-          <div><dt>Checked by a person</dt><dd>A team member compared the spot with older, sharper photos (Google Earth). Hover or tap a spot to read what they saw. Every other spot still needs a check.</dd></div>
+          <div><dt>Checked on sharper photos</dt><dd>A team member, or an AI-assisted review a person can repeat, compared the spot with older, sharper photos (Google Earth, Esri Wayback). Hover or tap to read what they saw. <b>Not yet</b> means the spot still needs a check.</dd></div>
         </dl>
         <p className="small muted" style={{ marginBottom: 0 }}>Tap a row to see the spot on the map. A satellite sees change, not who did it, so check on the ground before blaming anyone.</p>
       </div>
@@ -438,7 +552,7 @@ export default function LakeView({ id }: { id: string }) {
         </dl>
       </details>
 
-      <section id="watch" className="card" style={{ marginTop: 24 }} aria-label="Act on these results">
+      <section id="watch" className="card ripples" style={{ marginTop: 24 }} aria-label="Act on these results">
         <div className="split" style={{ gap: 24, alignItems: "flex-start" }}>
           <div>
             <h2 style={{ marginTop: 0 }}>Help save this lake</h2>
@@ -451,6 +565,12 @@ export default function LakeView({ id }: { id: string }) {
           <WatchForm lake={id} name={stats.name} />
         </div>
       </section>
+
+      <nav className="action-bar no-print" aria-label="Quick actions">
+        {total > 0 && <Link className="button" href={`/lake/${id}/evidence/#letters`}>Report it</Link>}
+        <a className={`button${total > 0 ? " secondary" : ""}`} href="#watch">Alert me</a>
+        <a className="button secondary" href="#flags">The proof</a>
+      </nav>
     </main>
   );
 }

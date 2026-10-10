@@ -114,7 +114,7 @@ function QueuedLake() {
             ) : lake.shapeState ? (
               <LakeShape id={lake.id} state={lake.shapeState} label={lake.name} />
             ) : null}
-            <span className="label">{lake.thumb ? "SENTINEL-2 · DRY SEASON 2026" : "OUTLINE · OPENSTREETMAP"}</span>
+            <span className="label">{lake.thumb ? "SENTINEL-2 · JAN–APR 2026" : "OUTLINE · OPENSTREETMAP"}</span>
           </div>
           <div style={{ marginTop: 16 }}>
             <IndiaMap lakes={[lake, ...nearby.queued]} />
