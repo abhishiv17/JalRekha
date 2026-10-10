@@ -214,7 +214,7 @@ const BHALSWA_STEPS: StoryStep[] = [
   { title: "Find the water", mood: "thinking", chip: "Open water in blue",
     text: "Blue is open water. Green patches inside the white line are weeds floating on water, so they still count as lake." },
   { title: "Spot where the lake became land", mood: "worried", chip: "Lake turned to land in orange",
-    text: "Orange is lake bed that turned into land since 2019, mostly soil pushed in at the north-east edge." },
+    text: "Orange is where the satellite saw lake bed turn into land. Sharper photos confirm soil pushed in along the south-east shore. Some of the orange is water under green algae, so it is a lead to check, not a verdict." },
   { title: "Check the no-build zone", mood: "cautious", chip: "30-metre no-build zone",
     text: "The yellow ring is 30 metres around the lake, where nothing should be built. Part of the change sits inside it." },
   { title: "Get proof to act", mood: "celebrate", chip: "Proof ready",
@@ -231,7 +231,7 @@ export function BhalswaStory() {
     w: file.w, h: file.h, before: "/story/bhalswa-2019.jpg", after: "/story/bhalswa-2026.jpg",
     beforeYear: 2019, afterYear: 2026, outline: file.outline, zone: file.zone, water: file.water2026,
     spots: file.spots.map((s) => s.d),
-    callout: { text: <><b>{file.lostAcres.toFixed(2)} acres</b> became land</>, x: 66, y: 30 },
+    callout: { text: <><b>{file.lostAcres.toFixed(2)} acres</b> flagged</>, x: 66, y: 30 },
   };
   return (
     <LakeStory data={data} steps={BHALSWA_STEPS} label="Bhalswa Lake, Delhi, step by step"

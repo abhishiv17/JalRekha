@@ -109,10 +109,10 @@ export default function Home() {
           <figcaption>
             <Guide size={60}>
               <span className="hero-caption">
-                <strong>8 acres</strong>
+                <strong>Soil pushed in</strong>
                 <span>
-                  <span className="flag-key" />of Delhi&rsquo;s Bhalswa Lake turned into land since 2019, mostly soil pushed in at
-                  its north-east edge. Spotted from space, dated, ready to check. <Link href="/lake/bhalswa/">See it</Link>
+                  <span className="flag-key" />along the south-east shore of Delhi&rsquo;s Bhalswa Lake, where there was water until 2024.
+                  Spotted from space, then checked on sharper photos. <Link href="/lake/bhalswa/">See it</Link>
                 </span>
               </span>
             </Guide>
