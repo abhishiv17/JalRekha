@@ -59,27 +59,27 @@ function ImpactBand() {
       });
   }, []);
   if (!x) return null;
-  const rows: { tone: string; was: string; now: string; proof?: string; href: string; cta: string }[] = [
+  const rows: { tone: string; who: string; was: string; now: string; proof?: string; href: string; cta: string }[] = [
     {
-      tone: "buy", href: "/check/", cta: "Check a plot",
+      tone: "buy", who: "Home buyers and banks", href: "/check/", cta: "Check a plot",
       was: "You find out the plot was a lake after the first flood, and after you've paid.",
       now: "Drop a pin before you pay. In about two minutes you know if water stood there since 2019, and what to ask the seller.",
       proof: "Fewer people buy filled lake land, so filling a lake stops paying.",
     },
     {
-      tone: "loss", href: "/lakes/priority/", cta: "Which lakes to save first",
+      tone: "loss", who: "Residents, lake groups and reporters", href: "/lakes/priority/", cta: "Which lakes to save first",
       was: "A lake is noticed shrinking years later, when it is already built over.",
       now: "It is spotted within a season, with dated photos, a map file and a letter to the right authority.",
       proof: x.confirmedAc > 0 ? `${x.confirmedAc.toFixed(1)} acres of lost lake bed confirmed so far, across ${x.confirmedLakes} lakes.` : undefined,
     },
     {
-      tone: "pond", href: "/ponds/", cta: "Adopt a pond",
+      tone: "pond", who: "Resident welfare associations, schools and companies", href: "/ponds/", cta: "Adopt a pond",
       was: "A dried-up pond is forgotten, and nobody knows which office owns it.",
       now: "A local group adopts it, the letter goes to the land-owning agency, and a public clock shows if they answer.",
       proof: x.ponds > 0 ? `${x.ponds} dried-up ponds in Delhi are ready to adopt; ${x.fixable} are easy to bring back.` : undefined,
     },
     {
-      tone: "cool", href: "/ponds/board/", cta: "See the public clock",
+      tone: "cool", who: "City agencies and funders", href: "/ponds/board/", cta: "See the public clock",
       was: "“Work done” is claimed, and nobody checks whether the water came back.",
       now: "The satellite checks the pond for everyone to see, and flags claims it can’t see.",
       proof: x.heatLakes > 0 ? `Worth it: lake water is usually about ${Math.round(x.coolerC)} °C cooler than the ground around it on summer mornings.` : undefined,
@@ -88,11 +88,15 @@ function ImpactBand() {
   return (
     <section className="wrap impact" aria-labelledby="impact-title">
       <span className="eyebrow">What changes</span>
-      <h2 id="impact-title" className="section-title" style={{ marginBottom: 20 }}>From finding out too late, to fixing it in time.</h2>
+      <h2 id="impact-title" className="section-title" style={{ marginBottom: 10 }}>From finding out too late, to fixing it in time.</h2>
+      <p className="impact-users">
+        Built for the people who decide what happens to a lake: <b>home buyers</b>, <b>residents</b>, <b>local groups</b>,{" "}
+        <b>companies</b> and <b>city agencies</b>.
+      </p>
       <div className="impact-rows">
         {rows.map((r) => (
           <Link key={r.tone} href={r.href} className={`impact-row ${r.tone}`}>
-            <div className="impact-was"><small>Today</small><p>{r.was}</p></div>
+            <div className="impact-was"><span className="impact-who">{r.who}</span><small>Today</small><p>{r.was}</p></div>
             <div className="impact-now"><small>With JalRekha</small><p>{r.now}</p>{r.proof && <p className="impact-proof">{r.proof}</p>}</div>
             <em>{r.cta} →</em>
           </Link>

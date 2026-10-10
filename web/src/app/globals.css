@@ -1087,3 +1087,9 @@ html:not([lang="en"]) .nav-links a.link { padding: 10px 8px; font-size: 14.5px; 
 .act-jal { flex: none; display: grid; place-items: center; width: 240px; height: 240px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, 0.92) 0 58%, rgba(255, 255, 255, 0.18) 59% 100%); animation: lang-bob 2.4s ease-in-out infinite; }
 @media (max-width: 760px) { .act-inner { flex-direction: column; align-items: flex-start; padding-top: 52px; padding-bottom: 52px; } .act-jal { display: none; } }
 @media (prefers-reduced-motion: reduce) { .act-jal { animation: none; } }
+.impact-users { margin: 0 0 20px; font-size: 16px; color: var(--body); max-width: 960px; }
+.impact-users b { color: var(--text); font-weight: 600; }
+.impact-who { display: inline-block; margin-bottom: 10px; padding: 3px 10px; border-radius: 999px; background: var(--brand-tint); color: var(--brand-deep); font-size: 12.5px; font-weight: 600; }
+.impact-row.loss .impact-who { background: #fdf1db; color: #7a4b00; }
+.impact-row.pond .impact-who { background: #fbe7dc; color: #8a2c08; }
+.impact-row.cool .impact-who { background: #e3eefb; color: #164f93; }
