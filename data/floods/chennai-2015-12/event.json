@@ -1,0 +1,34 @@
+{
+  "id": "chennai-2015-12",
+  "name": "Chennai floods, December 2015",
+  "date": "2015-12-06",
+  "bounds": [
+    80.04852710713365,
+    12.849113795966955,
+    80.33111146435549,
+    13.20099441426031
+  ],
+  "flood_scene": "S1A_IW_GRDH_1SDV_20151206T003120_20151206T003149_008914_00CC1F",
+  "flood_time_utc": "2015-12-06T00:31:34.598952+00:00",
+  "reference_scenes": [
+    "S1A_IW_GRDH_1SDV_20160123T003118_20160123T003147_009614_00E007",
+    "S1A_IW_GRDH_1SDV_20160216T003117_20160216T003146_009964_00EA37",
+    "S1A_IW_GRDH_1SDV_20160228T003117_20160228T003142_010139_00EF42",
+    "S1A_IW_GRDH_1SDV_20160510T003120_20160510T003149_011189_010E6D",
+    "S1A_IW_GRDH_1SDV_20160522T003123_20160522T003152_011364_01142B"
+  ],
+  "resolution_m": 20,
+  "shift_px": [
+    1,
+    8
+  ],
+  "flooded_km2": 7.21,
+  "thresholds": {
+    "flood_db_max": -15.0,
+    "drop_db": 3.0,
+    "min_flood_px": 4
+  },
+  "source": "Copernicus Sentinel-1 GRD via the Registry of Open Data on AWS (Earth Search)",
+  "limits": "Radar misses water between tall buildings and floods that drained before the pass.",
+  "made": "2026-10-09"
+}

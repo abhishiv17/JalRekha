@@ -1,0 +1,37 @@
+{
+  "id": "hyderabad-2020-10",
+  "name": "Hyderabad floods, October 2020",
+  "date": "2020-10-21",
+  "bounds": [
+    78.29541296535561,
+    17.245855994678394,
+    78.6239207665923,
+    17.55412468318879
+  ],
+  "flood_scene": "S1A_IW_GRDH_1SDV_20201021T003858_20201021T003923_034887_041153",
+  "flood_time_utc": "2020-10-21T00:39:10.904621+00:00",
+  "reference_scenes": [
+    "S1A_IW_GRDH_1SDV_20201126T003857_20201126T003922_035412_04236E",
+    "S1A_IW_GRDH_1SDV_20201208T003857_20201208T003922_035587_042978",
+    "S1A_IW_GRDH_1SDV_20201220T003856_20201220T003921_035762_042F7B",
+    "S1A_IW_GRDH_1SDV_20210101T003856_20210101T003921_035937_043594",
+    "S1A_IW_GRDH_1SDV_20210113T003855_20210113T003920_036112_043BBE",
+    "S1A_IW_GRDH_1SDV_20210125T003855_20210125T003920_036287_0441CB",
+    "S1A_IW_GRDH_1SDV_20210206T003854_20210206T003919_036462_0447DA",
+    "S1A_IW_GRDH_1SDV_20210218T003854_20210218T003919_036637_044DFD"
+  ],
+  "resolution_m": 20,
+  "shift_px": [
+    0,
+    5
+  ],
+  "flooded_km2": 0.95,
+  "thresholds": {
+    "flood_db_max": -15.0,
+    "drop_db": 3.0,
+    "min_flood_px": 4
+  },
+  "source": "Copernicus Sentinel-1 GRD via the Registry of Open Data on AWS (Earth Search)",
+  "limits": "Radar misses water between tall buildings and floods that drained before the pass.",
+  "made": "2026-10-09"
+}
