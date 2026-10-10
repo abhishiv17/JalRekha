@@ -74,7 +74,7 @@ export default function SiteHeader() {
             <Link className="link" href="/lakes/" aria-current={on("/lake")}>Lakes</Link>
             <Link className="link" href="/ponds/" aria-current={on("/ponds")}>Missing ponds</Link>
             <Link className="link" href="/#how">How it works</Link>
-            <Link className="link" href="/#method">How sure is it?</Link>
+            <Link className="link" href="/how-sure/" aria-current={on("/how-sure")}>How sure is it?</Link>
             <Link className="link" href="/watchlist/" aria-current={on("/watchlist")}>Watchlist</Link>
             <Link className="button" href="/check/" style={{ minHeight: 40, padding: "9px 16px", marginLeft: 6 }}>
               Check a plot

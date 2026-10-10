@@ -234,7 +234,7 @@ export function BhalswaStory() {
     callout: { text: <><b>{file.lostAcres.toFixed(2)} acres</b> flagged</>, x: 66, y: 30 },
   };
   return (
-    <LakeStory data={data} steps={BHALSWA_STEPS} label="Bhalswa Lake, Delhi, step by step"
+    <LakeStory data={data} steps={BHALSWA_STEPS} label="Bhalswa Lake, Delhi, step by step" mode="stepper"
       end={{ title: "Proof ready", text: "Dated photos · map points · complaint letter · Right to Information request",
         href: "/lake/bhalswa/", label: "Open Bhalswa Lake" }} />
   );
