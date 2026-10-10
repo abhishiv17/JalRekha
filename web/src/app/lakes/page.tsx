@@ -1,6 +1,7 @@
 "use client";
 
 import dynamic from "next/dynamic";
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import LakeCard from "@/components/LakeCard";
 import { EmptyState, Guide } from "@/components/Mascot";
@@ -186,6 +187,7 @@ export default function AllLakes() {
             ? "Loading lakes…"
             : `${analysedTotal} lakes tracked closely · ${(all.length - analysedTotal).toLocaleString("en-IN")} more on the map across ${states.length} states and union territories.`}
         </p>
+        <Link href="/lakes/priority/" className="small" style={{ fontWeight: 600 }}>Not sure where to start? See which lakes to save first →</Link>
         <label htmlFor="lake-search" className="sr-only">Search by lake, area, town or state</label>
         <div className="search-pill">
           <SearchIcon />

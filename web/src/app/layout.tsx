@@ -60,6 +60,7 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
                 <span className="footer-title">Explore</span>
                 <Link href="/check/">Check a plot</Link>
                 <Link href="/lakes/">Lakes we track</Link>
+                <Link href="/lakes/priority/">Which lakes to save first</Link>
                 <Link href="/lakes/?status=queued">All lakes in India</Link>
                 <Link href="/watchlist/">Your watchlist</Link>
               </nav>
