@@ -58,6 +58,12 @@ Setup: [`infra/plot/setup.sh`](infra/plot/setup.sh). Code: [`pipeline/jalrekha/p
 
 Cases live in DynamoDB behind the Plot Check API (`/ponds/cases`, `/ponds/<id>/adopt|stage|check`); space checks run on the worker Lambda.
 
+## Heat, floods, and which lakes to save first
+
+- **Lakes keep a city cool.** Summer daytime ground temperature around every tracked lake, from Landsat 8 and 9 surface temperature (Collection 2 Level-2, `s3://usgs-landsat` on the Registry of Open Data on AWS): the median of every clear April–May pass of 2023–2025. On every lake page, a heat map with the lake outline, and the lake's water against the ground 100–300 m and 600–1,000 m away. What it shows: on summer mornings lake water is typically 5–11 °C cooler than the ground around it, and lake bed that was filled in has heated up (+2.8 °C at Bhalswa, +4.1 °C at Najafgarh, +6.2 °C at Mallathahalli, against the water still there). The difference between ground near a lake and ground further away is small and varies (−1.5 to +2.6 °C), so it is shown per lake only where it is real. Ground, not air, temperature; [`heat.py`](pipeline/jalrekha/heat.py).
+- **Floods that came close.** Each lake against the Sentinel-1 flood maps (Bengaluru 2022, Delhi 2023, Chennai 2015, Hyderabad 2020): hectares flooded within 1 km, compared with the whole mapped city. We looked for flooding on lost lake bed and found almost none (radar misses water between buildings), so the site states the facts and makes no claim about cause; [`floodlink.py`](pipeline/jalrekha/floodlink.py).
+- **Which lakes to save first** (`/lakes/priority/`), for agencies choosing lakes to revive and companies looking for one to adopt: every tracked lake ranked on acres turned into land (leaving out flags that did not hold up on sharper photos), share of the lake, whether it is still changing, heat at stake and nearby flooding, with every reason and the lake's own caveat shown and the weights written out.
+
 ## In your language, with Jal as your guide
 
 People who live beside these lakes don't all read English, and a satellite map needs explaining. So:
@@ -115,6 +121,7 @@ Two AWS accounts, both us-west-2: the lake pipeline (below, `kerewatch-*`) and t
 | Amazon Translate | The site in Hindi, Kannada and Telugu (`/translate`), Plot Check verdicts | Live in the Plot Check account |
 | Amazon Polly | Jal's voice in Indian English and Hindi (`/speak`, cached in S3) | Plot Check account |
 | Amazon Location Service | Address search for Plot Check | Live |
+| Registry of Open Data (Landsat 8/9, Sentinel-1) | Summer ground temperature per lake; flood maps | Read in place |
 
 Deployed resource names keep the original `kerewatch-*` prefix (see [`infra/README.md`](infra/README.md)); renaming them needs a migration, not a rename.
 
