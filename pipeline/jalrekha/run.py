@@ -101,12 +101,12 @@ def load_seasons(gbox, years, cache: Path | None = None, on_season=None) -> dict
     return seasons
 
 
-def run(lake_id: str, lakes_file: Path, out_root: Path, years, cache_root: Path | None = None) -> Path:
+def run(lake_id: str, lakes_file: Path, out_root: Path, years, cache_root: Path | None = None, on_season=None) -> Path:
     lake = load_lake(lake_id, lakes_file)
     gbox = analysis_grid(lake["outline"])
     region = to_mask(lake["outline"].buffer(THRESHOLDS.ring_m), gbox)
     outline_mask = to_mask(lake["outline"], gbox)
-    seasons = load_seasons(gbox, years, cache_root / lake_id if cache_root else None)
+    seasons = load_seasons(gbox, years, cache_root / lake_id if cache_root else None, on_season=on_season)
     dry_names = [n for n, s in seasons.items() if s["season"] == "dry"]
     base_names = [n for n in dry_names if seasons[n]["year"] in BASELINE_YEARS]
     if not base_names or len(dry_names) <= len(base_names):
