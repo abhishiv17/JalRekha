@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import AreaChart from "@/components/AreaChart";
 import LakePageStory from "@/components/LakePageStory";
+import LakeInsights from "@/components/LakeInsights";
 import type { Layers } from "@/components/LakeMap";
 import { Guide, Loader } from "@/components/Mascot";
 import OutlinedImage, { Outlines } from "@/components/OutlinedImage";
@@ -516,6 +517,8 @@ export default function LakeView({ id, place: placeProp }: { id: string; place?:
           </div>
         </section>
       </div>
+
+      <LakeInsights id={id} name={stats.name} reference={reference} flags={flags} />
 
       {usable.length > 1 && (
         <section aria-labelledby="story-title" style={{ marginTop: 32 }} data-jal={jal.story} data-jal-mood="curious">

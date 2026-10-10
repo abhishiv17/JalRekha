@@ -947,3 +947,71 @@ html:not([lang="en"]) .nav-links a.link { padding: 10px 8px; font-size: 14.5px; 
   box-shadow: 0 16px 40px rgba(0, 0, 0, 0.25); animation: jal-dock-in 0.35s ease-out; }
 .translate-notice button { min-height: 36px; padding: 6px 12px; background: #fff; color: var(--text); border-color: #fff; white-space: nowrap; }
 .translate-notice .jal-x { background: rgba(255, 255, 255, 0.15); color: #fff; width: 32px; height: 32px; }
+
+
+/* ---------- What this lake does for the people around it ---------- */
+.insights { margin-top: 36px; }
+.insights-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; }
+.insights-grid.single { grid-template-columns: minmax(0, 1fr); max-width: 980px; }
+/* One card on its own: the map beside the numbers, not a full-width square. */
+@media (min-width: 861px) {
+  .insights-grid.single .insight { display: grid; grid-template-columns: minmax(0, 440px) minmax(0, 1fr); gap: 4px 28px; align-items: start; }
+  .insights-grid.single .insight > h3, .insights-grid.single .insight > .insight-lede { grid-column: 1 / -1; }
+  .insights-grid.single .insight > .insight-figure { grid-column: 1; grid-row: 3 / span 3; }
+  .insights-grid.single .insight > :not(h3):not(.insight-lede):not(.insight-figure) { grid-column: 2; }
+}
+@media (max-width: 860px) { .insights-grid { grid-template-columns: minmax(0, 1fr); } }
+.insight h3 { margin: 0 0 8px; font-size: 21px; }
+.insight-lede { margin: 0 0 12px; font-size: 16px; color: var(--body); }
+.insight-lede strong { color: var(--text); }
+.insight-lede strong.cold { color: #2f6aa6; }
+.insight-lede strong.hot { color: #b4412f; }
+.insight-figure { position: relative; aspect-ratio: 1; border-radius: 12px; overflow: hidden; background: #1d2b24; }
+.insight-figure img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: fill; image-rendering: auto; }
+.flood-figure { background: #e9eef0 linear-gradient(0deg, #e9eef0, #f4f6f2); }
+.heat-scale { display: flex; align-items: center; gap: 8px; margin: 10px 0 4px; font-size: 13px; color: var(--muted); }
+.heat-scale i { flex: 1; height: 10px; border-radius: 99px; background: linear-gradient(90deg, #3168b0, #8fc4d6 35%, #f8eec4 55%, #f5a048 78%, #c43026); }
+.insight-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; margin: 12px 0; }
+.insight-stats dt { font-size: 13px; color: var(--muted); }
+.insight-stats dd { margin: 2px 0 0; font-family: var(--display); font-weight: 800; font-size: 22px; }
+.insight-stats .hot dd { color: #b4412f; }
+.insight-stats dd small { font-family: var(--sans); font-weight: 700; font-size: 13px; margin-left: 4px; }
+
+/* ---------- Which lakes to save first ---------- */
+.priority-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; max-width: 980px; }
+.priority-list > li { display: grid; grid-template-columns: 44px 76px minmax(0, 1fr) auto; gap: 14px; align-items: center;
+  padding: 12px 16px 12px 12px; background: var(--card); border: 1px solid var(--line); border-radius: 14px; }
+.priority-list > li.top { border-color: var(--flag); box-shadow: 0 6px 20px rgba(245, 165, 36, 0.12); }
+.priority-rank { font-family: var(--display); font-weight: 900; font-size: 26px; text-align: center; color: var(--muted); }
+.priority-list > li.top .priority-rank { color: var(--amber-ink); }
+.priority-thumb { width: 76px; height: 76px; border-radius: 10px; object-fit: cover; background: #2a3a2f; display: block; }
+.priority-body { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.priority-name { font-family: var(--display); font-weight: 800; font-size: 19px; color: var(--text); text-decoration: none; }
+.priority-name:hover { text-decoration: underline; }
+.priority-reasons { list-style: none; margin: 6px 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: 6px; }
+.priority-reasons li { display: inline-flex; gap: 6px; align-items: center; padding: 4px 9px; border-radius: 999px; font-size: 13px; background: var(--chip); color: var(--body); }
+.priority-reasons li i { font-style: normal; font-size: 11px; }
+.priority-reasons .why-lost, .priority-reasons .why-recent { background: var(--amber-bg); color: var(--amber-ink); }
+.priority-reasons .why-hotter { background: #fde3dc; color: #8f2f22; }
+.priority-reasons .why-cooler { background: #dfeef6; color: #1d4e72; }
+.priority-reasons .why-flood { background: #dbe8fb; color: #1b4f99; }
+.priority-score { font-family: var(--display); font-weight: 900; font-size: 22px; color: var(--brand-deep); min-width: 44px; text-align: right; }
+@media (max-width: 640px) {
+  .priority-list > li { grid-template-columns: 34px 56px minmax(0, 1fr); }
+  .priority-thumb { width: 56px; height: 56px; }
+  .priority-score { grid-column: 3; text-align: left; font-size: 15px; }
+  .priority-score::before { content: "Score "; font-family: var(--sans); font-weight: 600; color: var(--muted); }
+}
+
+/* Home: lakes keep you cool */
+.cool-band { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); gap: 32px; align-items: center; }
+@media (max-width: 860px) { .cool-band { grid-template-columns: minmax(0, 1fr); } }
+.cool-band .insight-figure { max-width: 520px; }
+.cool-facts { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 180px), 1fr)); gap: 12px 24px; margin: 18px 0; }
+.cool-facts b { display: block; font-family: var(--display); font-weight: 900; font-size: clamp(30px, 3.4vw, 44px); line-height: 1.05; }
+.cool-facts .cold b { color: #2f6aa6; }
+.cool-facts .hot b { color: #b4412f; }
+.cool-facts span { font-size: 15px; color: var(--body); }
+.priority-reasons .why-confirmed { background: var(--brand-tint); color: var(--brand-deep); }
+.priority-reasons .why-dropped { background: transparent; color: var(--muted); border: 1px dashed var(--line-strong); }
+.priority-note { margin: 8px 0 0; font-size: 13.5px; color: var(--amber-ink); background: var(--amber-bg); padding: 6px 10px; border-radius: 8px; }
