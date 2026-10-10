@@ -1069,3 +1069,21 @@ html:not([lang="en"]) .nav-links a.link { padding: 10px 8px; font-size: 14.5px; 
 .impact-row.cool { border-left-color: #1e78dc; }
 @media (max-width: 760px) { .impact-row { grid-template-columns: minmax(0, 1fr); gap: 10px; } .impact-row em { text-align: left; } }
 @media (prefers-reduced-motion: reduce) { .impact-row { transition: none; } .impact-row:hover { transform: none; } }
+
+/* Closing call to action: full width, one clear next step */
+.act-band { position: relative; overflow: hidden; margin-top: 72px; background: var(--brand-deep, #1f5c3f); color: #fff;
+  background-image: radial-gradient(circle at 85% 50%, rgba(255, 255, 255, 0.09) 0 18%, transparent 19% 26%, rgba(255, 255, 255, 0.06) 27% 34%, transparent 35%); }
+.act-inner { display: flex; align-items: center; justify-content: space-between; gap: 40px; padding-top: 72px; padding-bottom: 72px; }
+.act-copy { max-width: 720px; display: flex; flex-direction: column; gap: 18px; }
+.act-kicker { font-family: var(--mono); font-size: 12px; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: #bfe3cc; }
+.act-title { margin: 0; color: #fff; font-family: var(--display); font-weight: 800; font-size: clamp(30px, 4vw, 52px); line-height: 1.05; letter-spacing: -0.03em; }
+.act-buttons { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 6px; }
+.button.act-primary { background: #fff; color: var(--brand-deep, #1f5c3f); border-color: #fff; }
+.button.act-primary:hover { background: #eef6f0; color: var(--brand-deep, #1f5c3f); }
+.button.act-secondary { background: transparent; color: #fff; border: 1.5px solid rgba(255, 255, 255, 0.7); }
+.button.act-secondary:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+.act-note { margin: 4px 0 0; font-size: 15px; color: #d6eadc; }
+.act-note a { color: #fff; }
+.act-jal { flex: none; display: grid; place-items: center; width: 240px; height: 240px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 255, 255, 0.92) 0 58%, rgba(255, 255, 255, 0.18) 59% 100%); animation: lang-bob 2.4s ease-in-out infinite; }
+@media (max-width: 760px) { .act-inner { flex-direction: column; align-items: flex-start; padding-top: 52px; padding-bottom: 52px; } .act-jal { display: none; } }
+@media (prefers-reduced-motion: reduce) { .act-jal { animation: none; } }

@@ -181,31 +181,23 @@ export default function Home() {
         <div className="lake-grid">{preview.map((c) => <LakeCard key={c.id} c={c} facts={false} />)}</div>
       </section>
 
-      {/* What you can do */}
-      <section id="act" className="section" aria-labelledby="act-title" data-jal-mood="celebrate"
-        data-jal="And here is what you can do: check your lake, report it with dated proof and a letter that's already written, and get one email when something changes.">
-        <div className="band ripples" style={{ padding: "64px 0" }}>
-          <div className="wrap">
-            <span className="kicker">What you can do</span>
-            <h2 id="act-title" className="section-title" style={{ maxWidth: 760 }}>From &ldquo;I think the lake is shrinking&rdquo; to a letter the custodian has to answer.</h2>
-            <div className="acts" style={{ marginTop: 28 }}>
-              <div className="act">
-                <h3>Check your lake</h3>
-                <p>See it in early 2019 and now, side by side, with every patch that turned to land outlined and dated.</p>
-                <Link href="/lakes/">Find your lake</Link>
-              </div>
-              <div className="act">
-                <h3>Report it with proof</h3>
-                <p>Download a dated evidence pack and a complaint and RTI letter already filled with the area, location and dates.</p>
-                <Link href="/lake/subedeharana-kere/evidence/#letters">See an evidence pack</Link>
-              </div>
-              <div className="act">
-                <h3>Hear when it changes</h3>
-                <p>We re-check every lake on the 5th of each month. If new change appears, you get one email, not a newsletter.</p>
-                <Link href="/watchlist/">How alerts work</Link>
-              </div>
+      {/* Close: one clear next step for everyone */}
+      <section id="act" className="act-band" aria-labelledby="act-title" data-jal-mood="celebrate"
+        data-jal="Every lake is next to someone's home. Check a plot, find your lake, or adopt a pond near you. I'll keep watching from space.">
+        <div className="wrap act-inner">
+          <div className="act-copy">
+            <span className="act-kicker">Start with the lake near you</span>
+            <h2 id="act-title" className="act-title">Every lake is next to someone&rsquo;s home. Start with yours.</h2>
+            <div className="act-buttons">
+              <Link href="/check/" className="button big act-primary">Check a plot <Arrow /></Link>
+              <Link href="/lakes/" className="button big act-secondary">Find your lake</Link>
+              <Link href="/ponds/" className="button big act-secondary">Adopt a pond</Link>
             </div>
+            <p className="act-note">
+              Free, in English, हिन्दी, ಕನ್ನಡ and తెలుగు. Watch a lake and get one email when it changes. <Link href="/watchlist/">How alerts work</Link>
+            </p>
           </div>
+          <div className="act-jal" aria-hidden="true"><Jal size={170} interactive={false} mood="celebrate" /></div>
         </div>
       </section>
 
