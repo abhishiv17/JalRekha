@@ -8,6 +8,7 @@ import Jal, { Guide, type Mood } from "@/components/Mascot";
 import { Arrow } from "@/components/SiteHeader";
 import { LANGS, ui, useLang } from "@/lib/lang";
 import { cards } from "@/lib/catalog";
+import { type Heat, loadInsights } from "@/lib/insights";
 import { type LakeSummary, loadIndex } from "@/lib/data";
 
 const COLLAGE: { thumb: string; city: string; alt: string }[] = [
@@ -55,6 +56,53 @@ const EXAMPLES: { id: string; place: string; level: "high" | "watch" | "low"; la
 // Every flag the pipeline raised on the analysed lakes, checked against high-resolution
 // historical photos (research/flags_checked.csv, 10 Oct 2026).
 const LEDGER = { total: 46, confirmed: 14, notConfirmed: 21, unsure: 11, byPerson: 11, byAi: 35 };
+
+/** Lakes keep you cool: the Heat half of the story, on the hero lake, from Landsat. */
+function CoolBand() {
+  const [h, setH] = useState<Heat | null>(null);
+  const [n, setN] = useState(0);
+  useEffect(() => {
+    void loadInsights().then((i) => {
+      setH(i.heat.bhalswa ?? null);
+      setN(Object.keys(i.heat).length);
+    });
+  }, []);
+  if (!h || h.water_c == null || h.near_c == null) return null;
+  const cooler = h.near_c - h.water_c;
+  return (
+    <section id="cool" className="wrap section" aria-labelledby="cool-title" data-jal-mood="celebrate"
+      data-jal={`Lakes also keep us cool. On summer mornings Bhalswa's water is about ${Math.round(cooler)} degrees cooler than the ground around it${h.filled_hotter_c ? `, and where the lake was filled in the ground got ${h.filled_hotter_c.toFixed(1)} degrees hotter` : ""}. This comes from the Landsat heat sensor.`}>
+      <div className="cool-band">
+        <div>
+          <span className="eyebrow">Heat</span>
+          <h2 id="cool-title" className="section-title">Lakes keep a city cool. Filled lakes heat it up.</h2>
+          <p className="lede">
+            Satellites also measure how hot the ground gets. In the hottest weeks before the monsoon, Delhi&rsquo;s Bhalswa Lake
+            is a cool strip in a hot city, and the lake bed that was filled in has already warmed up.
+          </p>
+          <div className="cool-facts">
+            <div className="cold"><b>{cooler.toFixed(1)} °C</b><span>cooler: the lake&rsquo;s water against the ground around it, on summer mornings</span></div>
+            {h.filled_hotter_c != null && h.filled_hotter_c > 0 && (
+              <div className="hot"><b>+{h.filled_hotter_c.toFixed(1)} °C</b><span>where the lake bed was filled in, against the water still there</span></div>
+            )}
+          </div>
+          <div className="row" style={{ gap: 12, flexWrap: "wrap" }}>
+            <Link href="/lake/bhalswa/#insights-title" className="button secondary">See Bhalswa&rsquo;s heat map</Link>
+            <Link href="/lakes/priority/" className="button secondary">Which lakes to save first <Arrow size={16} /></Link>
+          </div>
+          <p className="small muted" style={{ marginTop: 14 }}>
+            Ground temperature from {h.passes} Landsat 8 and 9 passes, April&ndash;May 2023&ndash;2025, on the Registry of Open Data on
+            AWS. Measured for {n} lakes. It is the ground, not the air.
+          </p>
+        </div>
+        <figure className="insight-figure" style={{ margin: 0 }} aria-label="Summer ground temperature around Bhalswa Lake">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src={h.image} alt="Bhalswa Lake as a cool blue strip in hotter ground; red is the hottest ground" />
+        </figure>
+      </div>
+    </section>
+  );
+}
 
 /** The site in four languages, and Jal as a guide: right under the headline, where people look first. */
 function ReadIn() {
@@ -220,6 +268,8 @@ export default function Home() {
         </div>
       </section>
 
+      <CoolBand />
+
       <section className="collage-band" aria-label="Lakes in the catalogue, seen from space">
         <svg className="scallop" viewBox="0 0 1440 24" preserveAspectRatio="none" aria-hidden="true"><path d={SCALLOP} fill="var(--bg)" /></svg>
         <div className="collage">
@@ -249,7 +299,10 @@ export default function Home() {
               {catalogSize > 0 && <> {catalogSize.toLocaleString("en-IN")} lakes across India are on the map.</>}
             </p>
           </div>
-          <Link href="/lakes/" className="button secondary">See all lakes <Arrow size={16} /></Link>
+          <div className="row" style={{ gap: 10, flexWrap: "wrap" }}>
+            <Link href="/lakes/priority/" className="button secondary">Which to save first</Link>
+            <Link href="/lakes/" className="button secondary">See all lakes <Arrow size={16} /></Link>
+          </div>
         </div>
         <div className="lake-grid">{preview.map((c) => <LakeCard key={c.id} c={c} facts={false} />)}</div>
       </section>
