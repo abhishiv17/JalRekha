@@ -11,6 +11,9 @@ export type LakeSummary = {
   flagged_share: number;
   latest_first_seen: string | null;
   centroid: [number, number];
+  // Lakes tracked on demand carry their place from the catalogue.
+  city?: string | null;
+  state?: string | null;
 };
 
 export type Index = { generated: string; lakes: LakeSummary[]; sample?: boolean };

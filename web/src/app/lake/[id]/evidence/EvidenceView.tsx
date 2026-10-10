@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { StaticLogo } from "@/components/Brand";
 import { Guide, JalIcon, Loader } from "@/components/Mascot";
 import OutlinedImage from "@/components/OutlinedImage";
-import { ANALYSED_META, KIND_LABELS, placeLabel } from "@/lib/catalog";
+import { ANALYSED_META, KIND_LABELS, type Place, placeLabel } from "@/lib/catalog";
 import {
   type FeatureCollection,
   type FlagProps,
@@ -101,7 +101,7 @@ function Letter({ title, text }: { title: string; text: string }) {
   );
 }
 
-export default function EvidenceView({ id }: { id: string }) {
+export default function EvidenceView({ id, place: placeProp }: { id: string; place?: Place }) {
   const [stats, setStats] = useState<Stats | null>(null);
   const [flags, setFlags] = useState<Flag[]>([]);
   const [geo, setGeo] = useState<{
@@ -149,7 +149,7 @@ export default function EvidenceView({ id }: { id: string }) {
   }
   if (!stats || !templates || !geo) return <main><Loader label="Gathering the evidence for this lake…" /></main>;
 
-  const place = ANALYSED_META[id];
+  const place: (Place & { osmId?: string }) | undefined = ANALYSED_META[id] ?? (placeProp && { ...placeProp, osmId: id });
   const usable = drySeasons(stats).filter((s) => s.status === "ok");
   const first = usable[0];
   const last = usable.at(-1);

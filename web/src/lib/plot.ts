@@ -108,6 +108,17 @@ export const startCheck = (lat: number, lon: number, address?: string) =>
 
 export const getCheck = (id: string) => call<Check>(`/check/${encodeURIComponent(id)}`);
 
+// "Track this lake": run the lake analysis for a catalogue lake on demand.
+export type TrackStatus = {
+  id: string;
+  status: "none" | "queued" | "running" | "done" | "error";
+  created?: string;
+  error?: string;
+  progress?: { step: string; done: number; total: number; log: string[] };
+};
+export const trackLake = (id: string) => call<TrackStatus>(`/track/${encodeURIComponent(id)}`, { method: "POST" });
+export const getTrack = (id: string) => call<TrackStatus>(`/track/${encodeURIComponent(id)}`);
+
 export const LEVEL_LABEL: Record<Level, string> = {
   high: "High risk",
   watch: "Watch",
@@ -116,16 +127,16 @@ export const LEVEL_LABEL: Record<Level, string> = {
 };
 
 export const RULE_LABEL: Record<BufferRule["rule"], string> = {
-  ktcda_2014: "Karnataka lake buffer (KTCDA Act 2014)",
-  ktcda_bill_2025: "Size-based buffer (KTCDA amendment bill 2025)",
-  hmda: "Hyderabad lake buffer (HMDA)",
-  reference_30m: "30 m from the water's edge",
+  ktcda_2014: "Karnataka lake law",
+  ktcda_bill_2025: "Proposed change to Karnataka's law",
+  hmda: "Hyderabad lake rules",
+  reference_30m: "No fixed law here, so we use 30 metres as a guide",
 };
 
 export const RULE_STATUS: Record<BufferRule["status"], string> = {
-  in_force: "in force",
-  proposed: "proposed, not in force",
-  reference: "reference only",
+  in_force: "Yes",
+  proposed: "Not yet (proposed)",
+  reference: "No, just a guide",
 };
 
 export type FloodEvent = { id: string; name: string; date: string; bounds: [number, number, number, number]; flooded_km2: number };

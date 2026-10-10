@@ -4,11 +4,42 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Suspense, useEffect, useMemo, useState } from "react";
+import EvidenceView from "@/app/lake/[id]/evidence/EvidenceView";
+import LakeView from "@/app/lake/[id]/LakeView";
+import CheckProgress, { type ProgressStep } from "@/components/CheckProgress";
 import LakeCard from "@/components/LakeCard";
 import LakeShape from "@/components/LakeShape";
 import { EmptyState, Guide, Loader } from "@/components/Mascot";
-import { ANALYSED_META, type Card, type OsmLake, cards, loadCatalog, placeLabel } from "@/lib/catalog";
-import { loadIndex } from "@/lib/data";
+import { ANALYSED_META, type Card, type OsmLake, cardHref, cards, loadCatalog, placeLabel } from "@/lib/catalog";
+import { DATA_URL, loadIndex } from "@/lib/data";
+import { PLOT_API_URL, type TrackStatus, getTrack, trackLake } from "@/lib/plot";
+
+const MAX_HA = 1000; // same as pipeline/jalrekha/track.py
+const POLL_MS = 2500;
+
+const TRACK_STEPS: ProgressStep[] = [
+  { id: "queued", label: "Starting", faces: [
+    { mood: "happy", say: "Getting ready to watch this lake…" },
+    { mood: "wink", say: "Waking up the satellites…" },
+  ] },
+  { id: "outline", label: "Finding the lake's edge", faces: [
+    { mood: "searching", say: "Finding the lake's edge on the map…" },
+    { mood: "curious", say: "Where does the water stop?" },
+  ] },
+  { id: "read", label: "Reading satellite photos, 2019 to 2026", faces: [
+    { mood: "scanning", say: "Looking down at the lake from space…" },
+    { mood: "searching", say: "Checking every clear photo…" },
+    { mood: "surprised", say: "So many photos of one lake!" },
+  ] },
+  { id: "change", label: "Looking for lake that became land", faces: [
+    { mood: "thinking", say: "Comparing every year with 2019…" },
+    { mood: "cautious", say: "Did any of it turn into land?" },
+  ] },
+  { id: "save", label: "Saving the results", faces: [
+    { mood: "writing", say: "Writing it all down…" },
+    { mood: "wink", say: "Almost done!" },
+  ] },
+];
 
 const IndiaMap = dynamic(() => import("@/components/IndiaMap"), { ssr: false });
 
@@ -33,7 +64,11 @@ export default function QueuedLakePage() {
 function QueuedLake() {
   const router = useRouter();
   // Read from the URL on every navigation, so links to other lakes on this page work.
-  const id = useSearchParams().get("id");
+  const params = useSearchParams();
+  const id = params.get("id");
+  const view = params.get("view");
+  const [track, setTrack] = useState<TrackStatus | null>(null);
+  const [trackError, setTrackError] = useState<string | null>(null);
   const [all, setAll] = useState<Card[] | null>(null);
   const [osmAll, setOsmAll] = useState<OsmLake[]>([]);
 
@@ -67,8 +102,49 @@ function QueuedLake() {
       .sort((a, b) => a.d - b.d)[0]?.c;
   }, [all, osmAll, id]);
   useEffect(() => {
-    if (lake?.analysed) router.replace(`/lake/${lake.id}/`);
+    if (lake?.analysed && !lake.id.startsWith("osm-")) router.replace(`/lake/${lake.id}/`);
   }, [lake, router]);
+
+  // Follow a tracking run (started here or by someone else) until it finishes.
+  const tracking = track?.status === "queued" || track?.status === "running";
+  useEffect(() => {
+    if (!lake || lake.analysed || !PLOT_API_URL || !lake.id.startsWith("osm-")) return;
+    let stop = false;
+    let timer: ReturnType<typeof setTimeout>;
+    const tick = async () => {
+      try {
+        const t = await getTrack(lake.id);
+        if (stop) return;
+        if (t.status === "done") {
+          // Fresh lake list first (the API caches it for a few minutes; skip the cache):
+          // setting the status ends this effect, which would drop a later update.
+          const idx = await fetch(`${DATA_URL}/index.json?t=${Date.now()}`).then((r) => r.json());
+          if (stop) return;
+          setAll(cards(idx.lakes, osmAll));
+        }
+        setTrack(t);
+        if (t.status === "queued" || t.status === "running") timer = setTimeout(tick, POLL_MS);
+      } catch {
+        /* status is a nicety; the button still works */
+      }
+    };
+    if (track === null || tracking) tick();
+    return () => {
+      stop = true;
+      clearTimeout(timer);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lake?.id, lake?.analysed, tracking]);
+
+  async function startTrack() {
+    if (!lake) return;
+    setTrackError(null);
+    try {
+      setTrack(await trackLake(lake.id));
+    } catch (e) {
+      setTrackError(`Could not start: ${e instanceof Error ? e.message : "network error"}.`);
+    }
+  }
   const nearby = useMemo(() => {
     if (!all || !lake || lake.lat == null) return { analysed: [] as Card[], queued: [] as Card[] };
     const withDist = all
@@ -91,7 +167,12 @@ function QueuedLake() {
       </main>
     );
   }
-  if (lake.analysed) return <main><Loader label={`Opening ${lake.name}…`} /></main>;
+  if (lake.analysed) {
+    if (!lake.id.startsWith("osm-")) return <main><Loader label={`Opening ${lake.name}…`} /></main>;
+    const place = { city: lake.city, state: lake.state };
+    return view === "proof" ? <EvidenceView id={lake.id} place={place} /> : <LakeView id={lake.id} place={place} />;
+  }
+  const tooBig = (lake.areaAc ?? 0) * 0.404686 > MAX_HA;
 
   const osm = osmLink(lake.id);
   return (
@@ -102,7 +183,7 @@ function QueuedLake() {
           <h1>{lake.name}</h1>
           <p className="lede" style={{ marginBottom: 6 }}>{placeLabel(lake)}</p>
         </div>
-        <span className="pill" style={{ marginBottom: 12 }}>Not tracked yet</span>
+        <span className="pill" style={{ marginBottom: 12 }}>{tracking ? "Tracking now…" : "Not tracked yet"}</span>
       </div>
 
       {lake.lat != null && (
@@ -141,15 +222,23 @@ function QueuedLake() {
         </section>
 
         <section>
-          <div className="card">
-            <h2 style={{ marginTop: 0 }}>We don&rsquo;t track this lake yet</h2>
+          {tracking ? (
+            <CheckProgress progress={track?.progress} since={track?.created} steps={TRACK_STEPS} usually="usually 2 to 4 minutes" />
+          ) : (
+          <div className="card track-card">
+            <h2 style={{ marginTop: 0 }}>Track this lake</h2>
             <Guide size={56}>
-              {`I know where ${lake.name} is, but I haven't tracked how it changed over the years. ${
-                nearby.analysed[0]
-                  ? `The closest lake I track is ${nearby.analysed[0].name}, ${Math.round(km(lake, nearby.analysed[0]))} km away.`
-                  : "No lake near it is tracked yet either."
-              } You can still check any plot near it.`}
+              {tooBig
+                ? `${lake.name} is very big, so I can't track it in one go yet. You can still check any plot near it.`
+                : `I know where ${lake.name} is. Press the button and I'll look at every satellite photo of it since 2019 and show how it changed. It takes about 2 to 4 minutes.`}
             </Guide>
+            {!tooBig && PLOT_API_URL && (
+              <button type="button" className="button big track-button" onClick={startTrack}>
+                Track this lake
+              </button>
+            )}
+            {track?.status === "error" && <p className="notice error">Tracking didn&rsquo;t finish: {track.error}. Press the button to try again.</p>}
+            {trackError && <p className="notice error">{trackError}</p>}
             <div className="row" style={{ gap: 10, marginTop: 8 }}>
               {osm && <a className="button secondary" href={osm} target="_blank" rel="noopener noreferrer">View on OpenStreetMap</a>}
               {lake.lat != null && (
@@ -158,13 +247,14 @@ function QueuedLake() {
               )}
             </div>
           </div>
+          )}
           {nearby.analysed.length > 0 && (
             <div className="card" style={{ marginTop: 12 }}>
               <h2 style={{ marginTop: 0 }}>Closest analysed lakes</h2>
               <ul style={{ margin: 0, padding: 0, listStyle: "none" }}>
                 {nearby.analysed.map((c) => (
                   <li key={c.id} style={{ padding: "10px 0", borderBottom: "1px solid var(--line)" }}>
-                    <Link href={`/lake/${c.id}/`}><strong>{c.name}</strong></Link>
+                    <Link href={cardHref(c)}><strong>{c.name}</strong></Link>
                     <span className="small muted"> · {placeLabel(c)} · {Math.round(km(lake, c))} km away</span>
                   </li>
                 ))}

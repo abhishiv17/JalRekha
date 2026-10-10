@@ -84,7 +84,9 @@ export type Card = Place & {
 };
 
 /** Where a card links: analysed lakes have full pages, the rest a catalog page. */
-export const cardHref = (c: Card) => (c.analysed ? `/lake/${c.id}/` : `/lakes/view/?id=${encodeURIComponent(c.id)}`);
+// Lakes tracked on demand (osm-… ids) have no page built ahead of time; their results show on /lakes/view/.
+export const cardHref = (c: Card) =>
+  c.analysed && !c.id.startsWith("osm-") ? `/lake/${c.id}/` : `/lakes/view/?id=${encodeURIComponent(c.id)}`;
 
 export const placeLabel = (p: Place) =>
   !p.city ? p.state : p.city === p.state ? p.city : `${p.city}, ${p.state}`;
@@ -110,8 +112,8 @@ export function cards(analysed: LakeSummary[], osm: OsmLake[] = []): Card[] {
     return {
       id: l.id,
       name: l.name,
-      city: meta?.city ?? "",
-      state: meta?.state ?? "",
+      city: meta?.city ?? l.city ?? "",
+      state: meta?.state ?? l.state ?? "",
       thumb: meta?.thumb ?? lakeUrl(l.id, "truecolor/2026-dry.png"),
       analysed: true,
       areaAc: l.area_ac,
@@ -123,7 +125,7 @@ export function cards(analysed: LakeSummary[], osm: OsmLake[] = []): Card[] {
     };
   });
   const analysedSpots = Object.values(ANALYSED_META);
-  const analysedOsm = new Set(analysedSpots.map((a) => a.osmId).filter(Boolean));
+  const analysedOsm = new Set([...analysedSpots.map((a) => a.osmId).filter(Boolean), ...analysed.map((l) => l.id)]);
   const featuredUsed = new Set<string>();
 
   const queued: Card[] = [];

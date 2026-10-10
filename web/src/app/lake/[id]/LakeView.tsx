@@ -4,12 +4,13 @@ import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import AreaChart from "@/components/AreaChart";
+import LakePageStory from "@/components/LakePageStory";
 import type { Layers } from "@/components/LakeMap";
 import { Guide, Loader } from "@/components/Mascot";
 import { Outlines } from "@/components/OutlinedImage";
 import Swipe from "@/components/Swipe";
 import WatchForm from "@/components/WatchForm";
-import { ANALYSED_META, KIND_LABELS, placeLabel } from "@/lib/catalog";
+import { ANALYSED_META, KIND_LABELS, type Place, placeLabel } from "@/lib/catalog";
 import {
   type FeatureCollection,
   type FlagProps,
@@ -38,17 +39,19 @@ const BASELINE = ["2019", "2020"];
 /** What the law says about building near a lake, by state. Only Karnataka has a proposed change. */
 function zoneRule(state: string | undefined, lakeAc: number): { law: string; proposed: boolean } {
   if (state === "Karnataka") {
-    return { law: "Karnataka's lake law (KTCDA Act, 2014) bans building within 30 metres of a lake.", proposed: true };
+    return { law: "In Karnataka, the law says: no building within 30 metres of a lake.", proposed: true };
   }
   if (state === "Telangana") {
     const big = lakeAc * 0.404686 > 10;
     return {
-      law: `Hyderabad's lake rules keep a no-build zone of ${big ? "30 metres around lakes over 10 hectares, like this one" : "9 metres around lakes under 10 hectares, like this one; we show 30 metres"}, measured from the full-tank line.`,
+      law: big
+        ? "In Hyderabad, the rules say: no building within 30 metres of a big lake like this one."
+        : "In Hyderabad, the rules say: no building within 9 metres of a small lake like this one. We show 30 metres.",
       proposed: false,
     };
   }
   return {
-    law: `${state ?? "This state"} has no single no-build distance around lakes in its law. We show 30 metres as a common reference, not a legal line.`,
+    law: `${state ?? "This state"} has no fixed no-build distance in its law. We use 30 metres as a guide.`,
     proposed: false,
   };
 }
@@ -73,13 +76,22 @@ const CHECKED: Record<string, string> = {
   "can't tell": "Yes: unclear",
 };
 
-export default function LakeView({ id }: { id: string }) {
+export default function LakeView({ id, place: placeProp }: { id: string; place?: Place }) {
   const [data, setData] = useState<Loaded | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [mapError, setMapError] = useState<string | null>(null);
   const [season, setSeason] = useState<string | null>(null);
+  // The map follows the chosen year after a short pause, so clicking through years
+  // quickly doesn't start (and cancel) a photo download for every year passed.
+  const [mapSeason, setMapSeason] = useState<string | null>(null);
+  useEffect(() => {
+    const t = window.setTimeout(() => setMapSeason(season), mapSeason ? 250 : 0);
+    return () => window.clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [season]);
   const [layers, setLayers] = useState<Layers>({ flags: true, outline: true, buffer: true, landcover: false, water: true });
   const [bufferWidth, setBufferWidth] = useState(30);
+  const [zoneFocus, setZoneFocus] = useState(false);
   const [focusFlag, setFocusFlag] = useState<string | null>(null);
   const [zoomTo, setZoomTo] = useState<string | null>(null);
   const [before, setBefore] = useState<string | null>(null);
@@ -93,7 +105,7 @@ export default function LakeView({ id }: { id: string }) {
   }, []);
 
   // A failed image belongs to one season; clear the notice when the season changes.
-  useEffect(() => setMapError(null), [season]);
+  useEffect(() => setMapError(null), [mapSeason]);
 
   useEffect(() => {
     Promise.all([loadStats(id), loadFlags(id), loadReference(id), loadBounds(id)])
@@ -121,7 +133,8 @@ export default function LakeView({ id }: { id: string }) {
   if (!data || !season) return <main><Loader label="Pulling up every dry season since 2019…" /></main>;
 
   const { stats, flags, reference, bounds } = data;
-  const place = ANALYSED_META[id];
+  const place: (Place & { note?: string }) | undefined = ANALYSED_META[id] ?? placeProp;
+  const proofHref = id.startsWith("osm-") ? `/lakes/view/?id=${encodeURIComponent(id)}&view=proof` : `/lake/${id}/evidence/`;
   const sel = dry.find((s) => s.season === season)!;
   const fs = flags.features.map((f) => f.properties);
   const total = stats.flags_total_ac;
@@ -165,7 +178,7 @@ export default function LakeView({ id }: { id: string }) {
     }
     if (said.kind === "buffer") {
       return bufferWidth === 30
-        ? `${rule.proposed ? "The law says nothing may be built within 30 metres of a lake." : "Here is the 30-metre zone around the lake."} ${inBuffer > 0 ? `${ac(inBuffer)} of the change I found is inside that zone.` : "None of the change I found is in that zone; it's all inside the lake."}`
+        ? `The yellow ring is the 30-metre zone around the lake. ${inBuffer > 0 ? `${ac(inBuffer)} of the change I found is inside that zone.` : "None of the change I found is in that zone; it's all inside the lake."}`
         : `A proposed rule would shrink the zone to ${bufferWidth} metres here. It isn't law yet. ${inBuffer > 0 ? `${ac(inBuffer)} of the change is inside that smaller zone.` : "None of the change is inside that smaller zone."}`;
     }
     if (said.kind === "landcover") {
@@ -240,7 +253,7 @@ export default function LakeView({ id }: { id: string }) {
           </div>
         </div>
         <div className="row no-print" style={{ gap: 10 }}>
-          <Link className="button" href={`/lake/${id}/evidence/`}>Download proof</Link>
+          <Link className="button" href={proofHref}>Download proof</Link>
           <a className="button secondary" href="#watch">Watch this lake</a>
         </div>
       </div>
@@ -253,13 +266,14 @@ export default function LakeView({ id }: { id: string }) {
             <LakeMap
               bounds={bounds}
               // ?map=1: a cache entry of its own, so a copy cached by a plain <img> can't block the map.
-              imageUrl={`${lakeUrl(id, `truecolor/${season}.png`)}?map=1`}
-              overlayUrl={`${lakeUrl(id, `overlay/${season}.png`)}?map=1`}
-              waterUrl={`${lakeUrl(id, `water/${season}.geojson`)}?map=1`}
+              imageUrl={`${lakeUrl(id, `truecolor/${mapSeason ?? season}.png`)}?map=1`}
+              overlayUrl={`${lakeUrl(id, `overlay/${mapSeason ?? season}.png`)}?map=1`}
+              waterUrl={`${lakeUrl(id, `water/${mapSeason ?? season}.geojson`)}?map=1`}
               layers={layers}
               flags={flags}
               reference={reference}
               bufferWidth={bufferWidth}
+              zoneFocus={zoneFocus}
               focusFlag={focusFlag}
               zoomTo={zoomTo}
               onError={setMapError}
@@ -353,15 +367,28 @@ export default function LakeView({ id }: { id: string }) {
 
           <div className="card">
             <h2 style={{ marginTop: 0 }}>No-build zone around the lake</h2>
-            <div className="segmented" role="group" aria-label="Zone width" style={{ width: "fit-content" }}>
-              <button type="button" aria-pressed={bufferWidth === 30} onClick={() => { setBufferWidth(30); setSaid({ kind: "buffer", ref: 30 }); }}>{rule.proposed ? "30 metres · the law today" : "30 metres"}</button>
-              {rule.proposed && bill > 0 && bill !== 30 && (
-                <button type="button" aria-pressed={bufferWidth === bill} onClick={() => { setBufferWidth(bill); setSaid({ kind: "buffer", ref: bill }); }}>{bill} metres · proposed rule</button>
-              )}
-            </div>
+            <p style={{ margin: "0 0 12px" }}>{bufferWidth === 30 ? rule.law : `A proposed change would allow building from ${bill} metres. It is not law yet.`}</p>
+            {rule.proposed && bill > 0 && bill !== 30 && (
+              <div className="segmented" role="group" aria-label="Zone width" style={{ width: "fit-content", marginBottom: 10 }}>
+                <button type="button" aria-pressed={bufferWidth === 30} onClick={() => { setBufferWidth(30); setSaid({ kind: "buffer", ref: 30 }); }}>30 metres (law today)</button>
+                <button type="button" aria-pressed={bufferWidth === bill} onClick={() => { setBufferWidth(bill); setSaid({ kind: "buffer", ref: bill }); }}>{bill} metres (proposed)</button>
+              </div>
+            )}
+            <button type="button" className={zoneFocus ? "secondary" : undefined} aria-pressed={zoneFocus}
+              onClick={() => {
+                const on = !zoneFocus;
+                setZoneFocus(on);
+                if (on) {
+                  setLayers((l) => ({ ...l, buffer: true }));
+                  setSaid({ kind: "buffer", ref: bufferWidth });
+                  document.getElementById("lake-map")?.scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+              }}>
+              {zoneFocus ? "Hide the zone" : "Show the zone on the map"}
+            </button>
             <p style={{ margin: "14px 0 6px" }}>
               <span className="stat">{ac(inBuffer)}</span>{" "}
-              <span className="muted">of change inside the {bufferWidth}-metre zone</span>
+              <span className="muted">of change is inside this zone{zoneFocus ? " (the yellow ring on the map)" : ""}</span>
             </p>
             {bufferWidth === 30 && bufferFlags.length > 0 && (
               <p className="small" style={{ margin: "0 0 6px" }}>
@@ -369,14 +396,21 @@ export default function LakeView({ id }: { id: string }) {
               </p>
             )}
             <p className="small muted" style={{ margin: 0 }}>
-              {bufferWidth === 30
-                ? rule.law
-                : `A 2025 change to the law would allow building up to ${bill} metres from a lake this size. It is not law yet (as of ${stats.as_of}).`}{" "}
-              This is not a legal ruling.
+              We measure from the water&rsquo;s edge seen from space. This is a guide, not a legal ruling.
             </p>
           </div>
         </section>
       </div>
+
+      {usable.length > 1 && (
+        <section aria-labelledby="story-title" style={{ marginTop: 32 }}>
+          <h2 id="story-title">{stats.name}, step by step</h2>
+          <p className="lede" style={{ marginBottom: 20 }}>Use the arrows to go step by step. Each step adds one layer to the real satellite photo.</p>
+          <LakePageStory id={id} name={stats.name} placeText={place ? placeLabel(place) : undefined} stats={stats}
+            flags={flags} reference={reference} bounds={bounds} usable={usable.map((s) => s.season)}
+            zoneLaw={rule.law} proofHref={proofHref} />
+        </section>
+      )}
 
       {before && after && usable.length > 1 && (
         <section aria-labelledby="compare-title">
@@ -476,7 +510,7 @@ export default function LakeView({ id }: { id: string }) {
               Download dated satellite photos and map points of every spot, with a ready complaint letter and a
               Right to Information (RTI) request to send to the city.
             </p>
-            <Link className="button" href={`/lake/${id}/evidence/`}>Download proof and letters</Link>
+            <Link className="button" href={proofHref}>Download proof and letters</Link>
           </div>
           <WatchForm lake={id} name={stats.name} />
         </div>
